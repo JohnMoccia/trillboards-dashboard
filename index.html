@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trillboards · Curb Fleet Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:14px}
+body{background:#f0f4f8;color:#1e293b;font-family:'Inter',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#f0f4f8}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:2px solid #e2e8f0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:34px;height:34px;background:linear-gradient(135deg,#0284c7,#0ea5e9);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;font-family:'JetBrains Mono',monospace;letter-spacing:-1px}
+.brand-text{font-size:15px;font-weight:700;color:#0f172a}
+.brand-divider{color:#e2e8f0;font-size:20px;margin:0 2px}
+.brand-sub{font-size:13px;color:#64748b;font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.live-pill{display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #86efac;color:#16a34a;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.live-pill .dot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:blink 1.8s infinite}
+.live-pill.dead{background:#fef2f2;border-color:#fca5a5;color:#dc2626}
+.live-pill.dead .dot{background:#ef4444;animation:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.countdown-badge{background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;padding:5px 12px;border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace}
+.topbar-btn{background:#f8fafc;border:1px solid #e2e8f0;color:#374151;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.topbar-btn:hover{background:#f1f5f9;border-color:#cbd5e1}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 58px)}
+.sidebar{width:204px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;padding:14px 10px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto}
+.nav-section{margin-bottom:22px}
+.nav-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:#94a3b8;text-transform:uppercase;padding:0 10px;margin-bottom:6px;display:block}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;color:#475569;transition:all .12s;margin-bottom:2px}
+.nav-item:hover{background:#f8fafc;color:#1e293b}
+.nav-item.active{background:#eff6ff;color:#1d4ed8;font-weight:600}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+
+/* MAIN */
+.main{flex:1;padding:24px;overflow-x:hidden}
+.page{display:none}
+.page.active{display:block}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.ph-title{font-size:22px;font-weight:700;color:#0f172a}
+.ph-sub{font-size:13px;color:#64748b;margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+.btn-blue{background:#2563eb;color:#fff}.btn-blue:hover{background:#1d4ed8}
+.btn-blue:disabled{background:#93c5fd;cursor:not-allowed}
+.btn-white{background:#fff;color:#374151;border:1px solid #d1d5db}.btn-white:hover{background:#f9fafb}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;position:relative;overflow:hidden;transition:box-shadow .2s}
+.stat-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent,#2563eb)}
+.stat-label{font-size:11px;font-weight:600;letter-spacing:.05em;color:#64748b;text-transform:uppercase;margin-bottom:8px}
+.stat-value{font-size:30px;font-weight:700;color:#0f172a;line-height:1;margin-bottom:5px;font-family:'JetBrains Mono',monospace}
+.stat-footer{font-size:12px;color:#94a3b8}
+
+/* skeleton */
+.sk{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200%;animation:sk 1.4s infinite;border-radius:5px;color:transparent!important;pointer-events:none}
+@keyframes sk{0%{background-position:200%}100%{background-position:-200%}}
+
+/* CARD */
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px}
+.card-head{padding:14px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;background:#fafbfd}
+.card-title{font-size:13px;font-weight:700;color:#374151}
+.card-body{padding:20px}
+
+/* 2-col */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.two{grid-template-columns:1fr}.sidebar{display:none}}
+
+/* KV LIST */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f8fafc}
+.kv-row:last-child{border-bottom:none}
+.kv-k{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
+.kv-v{font-size:13px;color:#1e293b;font-weight:500;text-align:right;max-width:65%;word-break:break-all}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+.tg{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.tr{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.ty{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.tb{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.ts{background:#f8fafc;color:#64748b;border:1px solid #e2e8f0}
+.tag-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ALERTS */
+.alert{border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:13px;line-height:1.6}
+.alert-red{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.alert-red strong{display:block;font-size:14px;margin-bottom:5px;color:#dc2626}
+.alert-info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.alert-info strong{display:block;font-size:13px;margin-bottom:6px;color:#1d4ed8}
+.alert-info code{background:#dbeafe;padding:2px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+
+/* BAR CHART */
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:10px}
+.bar-lbl{font-size:12px;color:#64748b;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bar-val{font-size:12px;font-weight:700;color:#374151;text-align:right;font-family:'JetBrains Mono',monospace}
+
+/* CANVAS */
+canvas{display:block;width:100%;height:160px}
+
+/* HEALTH */
+.hg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.hc{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;text-align:center}
+.hc-num{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;line-height:1;margin-bottom:5px}
+.hc-lbl{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
+
+/* ACTIVITY */
+.act{display:flex;flex-direction:column}
+.act-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f8fafc}
+.act-row:last-child{border-bottom:none}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.act-text{font-size:13px;color:#475569}.act-text strong{color:#1e293b;font-weight:600}
+.act-time{font-size:11px;color:#94a3b8;margin-top:2px;font-family:'JetBrains Mono',monospace}
+
+/* LOG */
+.log-box{background:#0f172a;border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;max-height:150px;overflow-y:auto;line-height:2;border:1px solid #1e293b}
+.ll{display:flex;gap:10px}
+.lts{color:#334155;flex-shrink:0}
+.li{color:#38bdf8}.lo{color:#4ade80}.le{color:#f87171}.lw{color:#fbbf24}.lg{color:#475569}
+
+/* JSON */
+.jv{background:#0f172a;border-radius:8px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;max-height:300px;overflow:auto;white-space:pre;color:#94a3b8;border:1px solid #1e293b}
+.jk{color:#c4b5fd}.js{color:#86efac}.jn{color:#fbbf24}.jb{color:#f87171}
+
+/* PERIOD TABS */
+.ptabs{display:flex;gap:4px}
+.ptab{font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid #e2e8f0;color:#64748b;background:#fff;transition:all .12s}
+.ptab:hover{border-color:#93c5fd;color:#1d4ed8}
+.ptab.active{background:#eff6ff;color:#1d4ed8;border-color:#93c5fd}
+
+/* SCREEN INPUT */
+.si-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.si-row input{flex:1;min-width:240px;background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 12px;border-radius:7px;outline:none;transition:border-color .2s}
+.si-row input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:11px;font-weight:700;letter-spacing:.05em;color:#94a3b8;text-transform:uppercase;padding:10px 16px;text-align:left;border-bottom:1px solid #f1f5f9;background:#fafbfd}
+.tbl td{padding:11px 16px;border-bottom:1px solid #f8fafc;font-size:13px;color:#475569;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafbfd;color:#1e293b}
+
+/* USAGE METER */
+.um{margin-bottom:14px}
+.um-head{display:flex;justify-content:space-between;margin-bottom:5px}
+.um-head span{font-size:12px;color:#64748b;font-weight:500}
+.um-head span:last-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:#374151;font-weight:600}
+.um-track{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden}
+.um-fill{height:100%;border-radius:4px;transition:width .8s}
+
+/* EARN CARDS */
+.earn-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:16px}
+.earn-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px}
+.earn-lbl{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
+.earn-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#0f172a}
+
+/* EMPTY */
+.empty{text-align:center;padding:36px 16px;color:#94a3b8}
+.empty-icon{font-size:30px;margin-bottom:10px;opacity:.4}
+.empty-text{font-size:13px}
+
+/* RAW */
+.raw-form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.raw-form select,.raw-form input{background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 12px;border-radius:7px;outline:none}
+.raw-form input{flex:1;min-width:240px}
+.raw-form textarea{width:100%;background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 12px;border-radius:7px;outline:none;resize:vertical;height:70px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">TB</div>
+    <span class="brand-text">Trillboards</span>
+    <span class="brand-divider">·</span>
+    <span class="brand-sub">Curb Fleet Dashboard</span>
+  </div>
+  <div class="topbar-right">
+    <div class="live-pill" id="live-pill"><div class="dot"></div><span id="live-text">CONNECTING…</span></div>
+    <div class="countdown-badge">↻ <span id="cd">30</span>s</div>
+    <button class="topbar-btn" onclick="loadDashboard()">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-section">
+    <span class="nav-section-label">Overview</span>
+    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">🏠</span>Dashboard</div>
+    <div class="nav-item" onclick="nav('health',this)"><span class="nav-icon">💚</span>Health</div>
+  </div>
+  <div class="nav-section">
+    <span class="nav-section-label">Analytics</span>
+    <div class="nav-item" onclick="nav('fleet',this)"><span class="nav-icon">🚕</span>Fleet</div>
+    <div class="nav-item" onclick="nav('screen',this)"><span class="nav-icon">📺</span>Screen</div>
+    <div class="nav-item" onclick="nav('audience',this)"><span class="nav-icon">👥</span>Audience</div>
+  </div>
+  <div class="nav-section">
+    <span class="nav-section-label">Finance</span>
+    <div class="nav-item" onclick="nav('earnings',this)"><span class="nav-icon">💰</span>Earnings</div>
+  </div>
+  <div class="nav-section">
+    <span class="nav-section-label">Dev</span>
+    <div class="nav-item" onclick="nav('usage',this)"><span class="nav-icon">📊</span>API Usage</div>
+    <div class="nav-item" onclick="nav('raw',this)"><span class="nav-icon">⚡</span>Raw API</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══ DASHBOARD ═══ -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div>
+      <div class="ph-title">Dashboard</div>
+      <div class="ph-sub">GET /v1/partner/dashboard</div>
+    </div>
+    <button class="btn btn-blue" onclick="loadDashboard()">↻ Reload</button>
+  </div>
+
+  <div id="dash-cors-warn"></div>
+  <div id="dash-err"></div>
+
+  <div class="stat-grid">
+    <div class="stat-card" style="--accent:#2563eb"><div class="stat-label">Total Screens</div><div class="stat-value sk" id="s-total" style="height:32px;width:80px"> </div><div class="stat-footer" id="s-total-f">—</div></div>
+    <div class="stat-card" style="--accent:#16a34a"><div class="stat-label">Active</div><div class="stat-value sk" id="s-active" style="height:32px;width:80px;color:#16a34a"> </div><div class="stat-footer" id="s-active-f">—</div></div>
+    <div class="stat-card" style="--accent:#dc2626"><div class="stat-label">Offline</div><div class="stat-value sk" id="s-offline" style="height:32px;width:80px;color:#dc2626"> </div><div class="stat-footer">current</div></div>
+    <div class="stat-card" style="--accent:#d97706"><div class="stat-label">Impressions Today</div><div class="stat-value sk" id="s-imp-today" style="height:32px;width:80px"> </div><div class="stat-footer" id="s-imp-month">—</div></div>
+    <div class="stat-card" style="--accent:#7c3aed"><div class="stat-label">Impressions / Week</div><div class="stat-value sk" id="s-imp-week" style="height:32px;width:80px"> </div><div class="stat-footer">7-day total</div></div>
+    <div class="stat-card" style="--accent:#0891b2"><div class="stat-label">Revenue Share</div><div class="stat-value sk" id="s-rev" style="height:32px;width:60px"> </div><div class="stat-footer">partner cut</div></div>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <div class="card-head"><span class="card-title">Partner Info</span><span id="p-status-tag" class="tag ts">—</span></div>
+      <div class="card-body"><div class="kv" id="partner-kv">
+        <div class="kv-row"><div class="kv-k">Name</div><div class="kv-v sk" style="height:14px;width:130px"> </div></div>
+        <div class="kv-row"><div class="kv-k">Slug</div><div class="kv-v">—</div></div>
+        <div class="kv-row"><div class="kv-k">Status</div><div class="kv-v">—</div></div>
+        <div class="kv-row"><div class="kv-k">Stripe</div><div class="kv-v">—</div></div>
+        <div class="kv-row"><div class="kv-k">Created</div><div class="kv-v">—</div></div>
+      </div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Earnings Summary</span></div>
+      <div class="card-body"><div class="kv" id="earnings-kv">
+        <div class="kv-row"><div class="kv-k">Total Earned</div><div class="kv-v sk" style="height:14px;width:100px"> </div></div>
+        <div class="kv-row"><div class="kv-k">Available Payout</div><div class="kv-v">—</div></div>
+        <div class="kv-row"><div class="kv-k">Pending</div><div class="kv-v">—</div></div>
+        <div class="kv-row"><div class="kv-k">Next Payout</div><div class="kv-v">—</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="card"><div class="card-head"><span class="card-title">Top Screens</span></div><div class="card-body" id="top-screens"><div class="empty"><div class="empty-icon">📺</div><div class="empty-text">Loading…</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Recent Activity</span></div><div class="card-body" id="activity"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Loading…</div></div></div></div>
+  </div>
+
+  <div class="card"><div class="card-head"><span class="card-title">Request Log</span></div><div class="card-body" style="padding:12px"><div class="log-box" id="dash-log"></div></div></div>
+</div>
+
+<!-- ═══ HEALTH ═══ -->
+<div class="page" id="page-health">
+  <div class="ph"><div><div class="ph-title">Connect Health</div><div class="ph-sub">GET /v1/partner/connect/health</div></div><button class="btn btn-blue" onclick="loadHealth()">↻ Load</button></div>
+  <div id="health-err"></div>
+  <div class="two">
+    <div class="card">
+      <div class="card-head"><span class="card-title">Screen Health</span></div>
+      <div class="card-body"><div class="hg" id="health-grid">
+        <div class="hc"><div class="hc-num sk" style="height:32px;width:60px;margin:0 auto 5px"> </div><div class="hc-lbl">Total</div></div>
+        <div class="hc"><div class="hc-num" style="color:#16a34a">—</div><div class="hc-lbl">Online</div></div>
+        <div class="hc"><div class="hc-num" style="color:#dc2626">—</div><div class="hc-lbl">Offline</div></div>
+      </div></div>
+    </div>
+    <div class="card"><div class="card-head"><span class="card-title">Connect Earnings</span></div><div class="card-body" id="connect-earn"><div class="empty"><div class="empty-icon">💰</div><div class="empty-text">Loading…</div></div></div></div>
+  </div>
+  <div class="card"><div class="card-head"><span class="card-title">Raw Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="health-json">// press Load</div></div></div>
+</div>
+
+<!-- ═══ FLEET ═══ -->
+<div class="page" id="page-fleet">
+  <div class="ph"><div><div class="ph-title">Fleet</div><div class="ph-sub">GET /v1/partner/fleet/overview  ·  GET /v1/partner/fleet/analytics</div></div><button class="btn btn-blue" onclick="loadFleet()">↻ Load</button></div>
+  <div id="fleet-err"></div>
+  <div class="two">
+    <div class="card"><div class="card-head"><span class="card-title">Fleet Overview</span></div><div class="card-body" id="fleet-ov"><div class="empty"><div class="empty-icon">🚕</div><div class="empty-text">Loading…</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Fleet Analytics</span></div><div class="card-body" id="fleet-an"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div></div>
+  </div>
+  <div class="card"><div class="card-head"><span class="card-title">Raw Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="fleet-json">// press Load</div></div></div>
+</div>
+
+<!-- ═══ SCREEN ANALYTICS ═══ -->
+<div class="page" id="page-screen">
+  <div class="ph"><div><div class="ph-title">Screen Analytics</div><div class="ph-sub">GET /v1/partner/screens/{screenId}/analytics</div></div></div>
+  <div id="screen-err"></div>
+  <div class="si-row">
+    <input type="text" id="sc-id" placeholder="Screen ID" value="69a076ad2ccbba67a5ba1c1e"/>
+    <div class="ptabs">
+      <div class="ptab active" onclick="setPeriod(this,'7d')">7D</div>
+      <div class="ptab" onclick="setPeriod(this,'30d')">30D</div>
+      <div class="ptab" onclick="setPeriod(this,'90d')">90D</div>
+    </div>
+    <button class="btn btn-blue" onclick="loadScreen()">↻ Load</button>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card" style="--accent:#2563eb"><div class="stat-label">Total Impressions</div><div class="stat-value" id="sc-total">—</div><div class="stat-footer">period</div></div>
+    <div class="stat-card" style="--accent:#16a34a"><div class="stat-label">Daily Average</div><div class="stat-value" id="sc-avg" style="color:#16a34a">—</div><div class="stat-footer">per day</div></div>
+    <div class="stat-card" style="--accent:#d97706"><div class="stat-label">Trend</div><div class="stat-value" id="sc-trend">—</div><div class="stat-footer">vs prior period</div></div>
+    <div class="stat-card" style="--accent:#7c3aed"><div class="stat-label">Status</div><div class="stat-value" id="sc-status" style="font-size:14px;padding-top:8px">—</div><div class="stat-footer" id="sc-name">—</div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head"><span class="card-title">Impression Timeline</span></div>
+    <div class="card-body">
+      <canvas id="tl-canvas" width="800" height="160"></canvas>
+      <div id="tl-empty" class="empty" style="display:none"><div class="empty-icon">📈</div><div class="empty-text">No timeline data</div></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-head"><span class="card-title">Raw Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="screen-json">// enter Screen ID and press Load</div></div></div>
+</div>
+
+<!-- ═══ AUDIENCE ═══ -->
+<div class="page" id="page-audience">
+  <div class="ph"><div><div class="ph-title">Audience Intelligence</div><div class="ph-sub">Live · Stats · Venue Intelligence · Heatmap</div></div></div>
+  <div id="aud-err"></div>
+  <div class="si-row">
+    <input type="text" id="aud-id" placeholder="Screen ID" value="69a076ad2ccbba67a5ba1c1e"/>
+    <button class="btn btn-blue" onclick="loadAudience()">↻ Load All</button>
+  </div>
+  <div class="two">
+    <div class="card"><div class="card-head"><span class="card-title">Live Audience</span><span class="tag tb"><span class="tag-dot"></span>LIVE</span></div><div class="card-body" id="aud-live"><div class="empty"><div class="empty-icon">👥</div><div class="empty-text">Loading…</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Audience Stats</span></div><div class="card-body" id="aud-stats"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
+  </div>
+  <div class="two">
+    <div class="card"><div class="card-head"><span class="card-title">Venue Intelligence</span></div><div class="card-body" id="aud-venue"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-text">Loading…</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Audience Heatmap</span></div><div class="card-body" id="aud-heatmap"><div class="empty"><div class="empty-icon">🗺️</div><div class="empty-text">Loading…</div></div></div></div>
+  </div>
+</div>
+
+<!-- ═══ EARNINGS ═══ -->
+<div class="page" id="page-earnings">
+  <div class="ph"><div><div class="ph-title">Earnings</div><div class="ph-sub">GET /v1/partner/earnings · transactions · breakdown</div></div><button class="btn btn-blue" onclick="loadEarnings()">↻ Load</button></div>
+  <div id="earn-err"></div>
+  <div class="earn-row" id="earn-cards">
+    <div class="earn-card"><div class="earn-lbl">Total Earned</div><div class="earn-val sk" style="height:24px;width:120px"> </div></div>
+    <div class="earn-card"><div class="earn-lbl">Available</div><div class="earn-val">—</div></div>
+    <div class="earn-card"><div class="earn-lbl">Pending</div><div class="earn-val">—</div></div>
+    <div class="earn-card"><div class="earn-lbl">Rev Share</div><div class="earn-val">—</div></div>
+  </div>
+  <div class="two">
+    <div class="card"><div class="card-head"><span class="card-title">Breakdown</span></div><div class="card-body" id="earn-breakdown"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Transactions</span></div><div id="earn-tx"><div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">Loading…</div></div></div></div>
+  </div>
+</div>
+
+<!-- ═══ API USAGE ═══ -->
+<div class="page" id="page-usage">
+  <div class="ph"><div><div class="ph-title">API Usage</div><div class="ph-sub">GET /v1/partner/usage · rate-limit · dashboard</div></div><button class="btn btn-blue" onclick="loadUsage()">↻ Load</button></div>
+  <div id="usage-err"></div>
+  <div class="two">
+    <div class="card"><div class="card-head"><span class="card-title">Rate Limits</span></div><div class="card-body" id="rate-body"><div class="empty"><div class="empty-icon">⏱</div><div class="empty-text">Loading…</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Usage Dashboard</span></div><div class="card-body" id="usage-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
+  </div>
+  <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="usage-json">// press Load</div></div></div>
+</div>
+
+<!-- ═══ RAW API ═══ -->
+<div class="page" id="page-raw">
+  <div class="ph"><div><div class="ph-title">Raw API Tester</div><div class="ph-sub">Call any Trillboards endpoint directly</div></div></div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head"><span class="card-title">Request</span></div>
+    <div class="card-body">
+      <div class="raw-form">
+        <select id="r-method"><option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option></select>
+        <input type="text" id="r-path" value="/v1/partner/dashboard" placeholder="/v1/partner/...">
+        <button class="btn btn-blue" onclick="rawCall()">▶ Send</button>
+      </div>
+      <textarea id="r-body" placeholder='JSON body for POST/PATCH (optional)'></textarea>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">Response</span><span id="r-badge" class="tag ts">—</span></div>
+    <div class="card-body" style="padding:12px"><div class="jv" id="r-json">// send a request</div></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// CONFIG  (edit API_KEY if token changes)
+// ─────────────────────────────────────────
+const API_KEY  = 'trb_partner_srddcJroSLYdOrWqSKBksBwc7yyi2R37';
+const PARTNER  = '69a0754f15842a1159a06c08';
+const SCREEN   = '69a076ad2ccbba67a5ba1c1e';
+
+// Trillboards allows CORS from any origin, but if they block it
+// we fall through to corsproxy.io as backup
+const DIRECT = 'https://api.trillboards.com';
+const PROXY  = 'https://corsproxy.io/?url=https://api.trillboards.com';
+let BASE = DIRECT;
+
+let period = '7d';
+let cd = 30;
+
+// ─────────────────────────────────────────
+// API
+// ─────────────────────────────────────────
+async function api(path, method='GET', body=null) {
+  const opts = {
+    method,
+    headers: { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const res = await fetch(BASE + path, opts);
+    const data = await res.json();
+    return { status: res.status, ok: res.ok, data };
+  } catch (e) {
+    // If direct fails with network error, try proxy once
+    if (BASE === DIRECT) {
+      console.warn('Direct API failed, trying CORS proxy…', e.message);
+      BASE = PROXY;
+      const res2 = await fetch(BASE + path, opts);
+      const data2 = await res2.json();
+      return { status: res2.status, ok: res2.ok, data: data2 };
+    }
+    throw e;
+  }
+}
+
+// ─────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const fn = n  => n == null ? '—' : Number(n).toLocaleString();
+const fc = c  => c == null ? '—' : '$' + (c/100).toLocaleString('en-US',{minimumFractionDigits:2});
+const fd = s  => s ? new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+const rmsk = el => el && el.classList.remove('sk');
+
+function setVal(id, val) {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = val;
+  rmsk(el);
+}
+
+function log(id, type, msg) {
+  const box = $(id);
+  if (!box) return;
+  const ts = new Date().toLocaleTimeString('en-US',{hour12:false});
+  const d = document.createElement('div');
+  d.className='ll';
+  d.innerHTML = `<span class="lts">${ts}</span><span class="l${type}">${msg}</span>`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function cj(obj) {
+  return JSON.stringify(obj, null, 2)
+    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?)/g,
+      m => /:$/.test(m) ? `<span class="jk">${m}</span>` : `<span class="js">${m}</span>`)
+    .replace(/\b(-?\d+\.?\d*)\b/g,'<span class="jn">$1</span>')
+    .replace(/\b(true|false)\b/g,'<span class="jb">$1</span>');
+}
+
+function tagStatus(s) {
+  if (!s) return `<span class="tag ts">—</span>`;
+  const c = s==='active'||s==='online' ? 'tg' : s==='pending' ? 'ty' : 'tr';
+  return `<span class="tag ${c}">${s.toUpperCase()}</span>`;
+}
+
+function kv(k, v) { return `<div class="kv-row"><div class="kv-k">${k}</div><div class="kv-v">${v}</div></div>`; }
+
+function renderObj(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj))
+    return `<div class="kv">${kv('value', JSON.stringify(obj))}</div>`;
+  return '<div class="kv">' + Object.entries(obj).slice(0,18).map(([k,v]) => {
+    let d;
+    if (typeof v === 'object' && v !== null) d = `<span class="tag ts">${Array.isArray(v)?`[${v.length}]`:'{…}'}</span>`;
+    else if (typeof v === 'boolean') d = v ? '<span class="tag tg">TRUE</span>' : '<span class="tag tr">FALSE</span>';
+    else if (String(k).includes('cents')) d = fc(v);
+    else if (String(k).includes('_at') || String(k).endsWith('_date')) d = fd(v);
+    else d = String(v ?? '—');
+    return kv(k.replace(/_/g,' '), d);
+  }).join('') + '</div>';
+}
+
+function setLive(ok) {
+  const pill = $('live-pill');
+  const txt  = $('live-text');
+  if (!pill || !txt) return;
+  if (ok) { pill.className='live-pill'; txt.textContent='LIVE'; }
+  else    { pill.className='live-pill dead'; txt.textContent='ERROR'; }
+}
+
+function errBox(id, msg) {
+  const el = $(id);
+  if (!el) return;
+  el.innerHTML = `<div class="alert alert-red"><strong>⚠ API Error</strong>${msg}</div>`;
+}
+
+// ─────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────
+function nav(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  $('page-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ─────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────
+async function loadDashboard() {
+  $('dash-err').innerHTML = '';
+  $('dash-cors-warn').innerHTML = '';
+  log('dash-log','i','→ GET /v1/partner/dashboard');
+  try {
+    const {status, ok, data} = await api('/v1/partner/dashboard');
+    if (!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
+    setLive(true);
+    log('dash-log','o',`← ${status} OK${BASE.includes('corsproxy') ? ' (via proxy)' : ''}`);
+    if (BASE.includes('corsproxy')) {
+      $('dash-cors-warn').innerHTML = `<div class="alert alert-info"><strong>ℹ️ Running via CORS proxy</strong>Direct calls to api.trillboards.com were blocked. Using <code>corsproxy.io</code> as fallback. For production, host this dashboard on your own domain or ask Trillboards to whitelist your origin.</div>`;
+    }
+
+    const d = data.data || data;
+    const stats = d.stats || {};
+    const earn  = d.earnings || {};
+    const partner = d.partner || {};
+    const stripe  = d.stripe_status || {};
+
+    setVal('s-total',    fn(stats.total_screens));
+    setVal('s-active',   fn(stats.active_screens));
+    setVal('s-offline',  fn(stats.offline_screens));
+    setVal('s-imp-today',fn(stats.total_impressions_today));
+    setVal('s-imp-week', fn(stats.total_impressions_week));
+    setVal('s-rev',      (earn.revenue_share_percent ?? '—') + '%');
+    $('s-total-f').textContent  = `${stats.active_screens||0} active · ${stats.offline_screens||0} offline`;
+    $('s-active-f').textContent = `${stats.pending_screens||0} pending`;
+    $('s-imp-month').textContent = fn(stats.total_impressions_month) + ' this month';
+
+    $('partner-kv').innerHTML =
+      kv('Name',    partner.name || '—') +
+      kv('Slug',    partner.slug || '—') +
+      kv('Status',  tagStatus(partner.status)) +
+      kv('Stripe',  tagStatus(stripe.account_status)) +
+      kv('Created', fd(partner.created_at));
+
+    const ptag = $('p-status-tag');
+    if (ptag) {
+      ptag.className = 'tag ' + (partner.status === 'active' ? 'tg' : 'ts');
+      ptag.textContent = (partner.status || 'unknown').toUpperCase();
+    }
+
+    $('earnings-kv').innerHTML =
+      kv('Total Earned',    fc(earn.total_earned_cents)) +
+      kv('Available Payout',fc(earn.available_payout_cents)) +
+      kv('Pending Payout',  fc(earn.pending_payout_cents)) +
+      kv('Next Payout',     fd(earn.next_payout_date));
+
+    const ts = d.top_screens || [];
+    if (!ts.length) {
+      $('top-screens').innerHTML = '<div class="empty"><div class="empty-icon">📺</div><div class="empty-text">No screen data yet</div></div>';
+    } else {
+      const mx = Math.max(...ts.map(s => s.impressions_today||0), 1);
+      $('top-screens').innerHTML = '<div class="bar-chart">' + ts.map(s => `
+        <div class="bar-row">
+          <div class="bar-lbl" title="${s.name||s.screen_id}">${(s.name||s.screen_id||'').slice(0,22)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(((s.impressions_today||0)/mx)*100)}%;background:#2563eb"></div></div>
+          <div class="bar-val">${fn(s.impressions_today)}</div>
+        </div>`).join('') + '</div>';
+    }
+
+    const ra = d.recent_activity || [];
+    if (!ra.length) {
+      $('activity').innerHTML = '<div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">No activity</div></div>';
+    } else {
+      $('activity').innerHTML = '<div class="act">' + ra.slice(0,8).map(a => `
+        <div class="act-row">
+          <div class="act-dot" style="background:${a.type==='impression'?'#2563eb':'#16a34a'}"></div>
+          <div>
+            <div class="act-text"><strong>${a.type||'event'}</strong> · ${a.ad_id ? `ad <code style="font-family:monospace;font-size:11px;background:#f1f5f9;padding:1px 5px;border-radius:3px">${(a.ad_id||'').slice(-10)}</code>` : ''}</div>
+            <div class="act-time">${fd(a.timestamp)}</div>
+          </div>
+        </div>`).join('') + '</div>';
+    }
+    log('dash-log','g',`partner="${partner.name}" · screens=${stats.total_screens} · active=${stats.active_screens}`);
+  } catch(e) {
+    setLive(false);
+    log('dash-log','e','✕ ' + e.message);
+    errBox('dash-err', e.message);
+  }
+}
+
+// ─────────────────────────────────────────
+// HEALTH
+// ─────────────────────────────────────────
+async function loadHealth() {
+  $('health-err').innerHTML = '';
+  try {
+    const {status, ok, data} = await api('/v1/partner/connect/health');
+    if (!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
+    const d = data.data || data;
+    const sc = d.screens || d.screen_health || {};
+    $('health-grid').innerHTML = `
+      <div class="hc"><div class="hc-num">${fn(sc.total)}</div><div class="hc-lbl">Total</div></div>
+      <div class="hc"><div class="hc-num" style="color:#16a34a">${fn(sc.online||sc.active)}</div><div class="hc-lbl">Online</div></div>
+      <div class="hc"><div class="hc-num" style="color:#dc2626">${fn(sc.offline)}</div><div class="hc-lbl">Offline</div></div>`;
+    const ce = d.earnings || {};
+    $('connect-earn').innerHTML = '<div class="kv">' +
+      kv('Total Earned', fc(ce.total_earned_cents)) +
+      kv('Available',    fc(ce.available_payout_cents)) +
+      kv('Pending',      fc(ce.pending_payout_cents)) + '</div>';
+    $('health-json').innerHTML = cj(data);
+  } catch(e) { errBox('health-err', e.message); $('health-json').innerHTML = cj({error:e.message}); }
+}
+
+// ─────────────────────────────────────────
+// FLEET
+// ─────────────────────────────────────────
+async function loadFleet() {
+  $('fleet-err').innerHTML = '';
+  try {
+    const [ov, an] = await Promise.all([api('/v1/partner/fleet/overview'), api('/v1/partner/fleet/analytics')]);
+    $('fleet-ov').innerHTML = ov.ok ? renderObj((ov.data||{}).data||ov.data) : `<div class="alert alert-red"><strong>HTTP ${ov.status}</strong>${JSON.stringify(ov.data).slice(0,200)}</div>`;
+    $('fleet-an').innerHTML = an.ok ? renderObj((an.data||{}).data||an.data) : `<div class="alert alert-red"><strong>HTTP ${an.status}</strong>${JSON.stringify(an.data).slice(0,200)}</div>`;
+    $('fleet-json').innerHTML = cj({overview: ov.data, analytics: an.data});
+  } catch(e) { errBox('fleet-err', e.message); }
+}
+
+// ─────────────────────────────────────────
+// SCREEN ANALYTICS
+// ─────────────────────────────────────────
+function setPeriod(el, p) {
+  period = p;
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function loadScreen() {
+  const sid = $('sc-id').value.trim();
+  if (!sid) { alert('Enter a Screen ID'); return; }
+  $('screen-err').innerHTML = '';
+  $('screen-json').textContent = 'Loading…';
+  try {
+    const {status, ok, data} = await api(`/v1/partner/screens/${sid}/analytics?period=${period}`);
+    if (!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
+    const d = data.data || data;
+    const imp = d.impressions || {};
+    const scr = d.screen || {};
+    setVal('sc-total', fn(imp.total));
+    setVal('sc-avg',   fn(imp.daily_average));
+    $('sc-name').textContent = scr.name || sid.slice(-12);
+    const ss = $('sc-status');
+    if (ss) {
+      const s = scr.online_status || scr.status || '—';
+      ss.textContent = s.toUpperCase();
+      ss.style.color = s === 'online' ? '#16a34a' : '#dc2626';
+    }
+    const tr = $('sc-trend');
+    if (tr) {
+      const tp = imp.trend_percent;
+      tr.textContent = tp != null ? (tp > 0 ? '+' : '') + tp + '%' : '—';
+      tr.style.color = (tp||0) >= 0 ? '#16a34a' : '#dc2626';
+    }
+    drawTimeline(d.timeline || []);
+    $('screen-json').innerHTML = cj(data);
+  } catch(e) { errBox('screen-err', e.message); $('screen-json').innerHTML = cj({error:e.message}); }
+}
+
+function drawTimeline(tl) {
+  const canvas = $('tl-canvas');
+  const empty  = $('tl-empty');
+  if (!tl.length) { canvas.style.display='none'; empty.style.display='block'; return; }
+  canvas.style.display='block'; empty.style.display='none';
+  const W = canvas.offsetWidth || 750; const H = 160;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const vals = tl.map(t => t.impressions || 0);
+  const mx = Math.max(...vals, 1);
+  const p = {t:10, r:12, b:28, l:54};
+  const w = W-p.l-p.r; const h = H-p.t-p.b;
+  ctx.clearRect(0,0,W,H);
+  // grid
+  for (let i=0;i<=4;i++) {
+    const y = p.t + h - (i/4)*h;
+    ctx.strokeStyle='#f1f5f9'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(p.l,y); ctx.lineTo(p.l+w,y); ctx.stroke();
+    ctx.fillStyle='#94a3b8'; ctx.font='9px Inter,sans-serif'; ctx.textAlign='right';
+    ctx.fillText(fn(Math.round((i/4)*mx)), p.l-6, y+3);
+  }
+  const xi = i => p.l + (i/(vals.length-1||1))*w;
+  const yi = v => p.t + h - (v/mx)*h;
+  // fill
+  const grad = ctx.createLinearGradient(0,p.t,0,p.t+h);
+  grad.addColorStop(0,'rgba(37,99,235,0.2)'); grad.addColorStop(1,'rgba(37,99,235,0)');
+  ctx.beginPath(); ctx.moveTo(xi(0),yi(vals[0]));
+  vals.forEach((v,i) => { if(i>0) ctx.lineTo(xi(i),yi(v)); });
+  ctx.lineTo(xi(vals.length-1),p.t+h); ctx.lineTo(xi(0),p.t+h); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+  // line
+  ctx.beginPath(); ctx.strokeStyle='#2563eb'; ctx.lineWidth=2.5;
+  vals.forEach((v,i) => i===0 ? ctx.moveTo(xi(i),yi(v)) : ctx.lineTo(xi(i),yi(v)));
+  ctx.stroke();
+  // dots
+  ctx.fillStyle='#2563eb';
+  vals.forEach((v,i) => { ctx.beginPath(); ctx.arc(xi(i),yi(v),3.5,0,Math.PI*2); ctx.fill(); });
+  // x labels
+  const step = Math.max(1, Math.floor(vals.length/8));
+  ctx.fillStyle='#94a3b8'; ctx.font='9px Inter,sans-serif'; ctx.textAlign='center';
+  tl.forEach((t,i) => {
+    if (i%step!==0 && i!==vals.length-1) return;
+    const d = new Date(t.date);
+    ctx.fillText(`${d.getMonth()+1}/${d.getDate()}`, xi(i), H-7);
+  });
+}
+
+// ─────────────────────────────────────────
+// AUDIENCE
+// ─────────────────────────────────────────
+async function loadAudience() {
+  const sid = $('aud-id').value.trim() || SCREEN;
+  $('aud-err').innerHTML = '';
+  const targets = [
+    { url: `/v1/partner/audience/live/${sid}`,        el: 'aud-live' },
+    { url: `/v1/partner/audience/stats`,              el: 'aud-stats' },
+    { url: `/v1/partner/venues/${sid}/intelligence`,  el: 'aud-venue' },
+    { url: `/v1/partner/audience/heatmap`,            el: 'aud-heatmap' },
+  ];
+  targets.forEach(t => { $(t.el).innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Loading…</div></div>'; });
+  await Promise.all(targets.map(async t => {
+    try {
+      const {status,ok,data} = await api(t.url);
+      $(t.el).innerHTML = ok
+        ? renderObj((data||{}).data||data)
+        : `<div class="alert alert-red"><strong>HTTP ${status}</strong>${JSON.stringify(data).slice(0,200)}</div>`;
+    } catch(e) { $(t.el).innerHTML = `<div class="alert alert-red"><strong>Error</strong>${e.message}</div>`; }
+  }));
+}
+
+// ─────────────────────────────────────────
+// EARNINGS
+// ─────────────────────────────────────────
+async function loadEarnings() {
+  $('earn-err').innerHTML = '';
+  try {
+    const [er,tr,br] = await Promise.all([
+      api('/v1/partner/earnings'),
+      api('/v1/partner/earnings/transactions'),
+      api('/v1/partner/earnings/breakdown'),
+    ]);
+    const earn = (er.data||{}).data || er.data || {};
+    $('earn-cards').innerHTML = `
+      <div class="earn-card"><div class="earn-lbl">Total Earned</div><div class="earn-val" style="color:#16a34a">${fc(earn.total_earned_cents)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Available</div><div class="earn-val">${fc(earn.available_payout_cents)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Pending</div><div class="earn-val" style="color:#d97706">${fc(earn.pending_payout_cents)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Rev Share</div><div class="earn-val">${earn.revenue_share_percent??'—'}%</div></div>`;
+    $('earn-breakdown').innerHTML = renderObj((br.data||{}).data||br.data||{});
+    const txd = (tr.data||{}).data || tr.data || {};
+    const txl = Array.isArray(txd) ? txd : (txd.transactions||txd.items||[]);
+    $('earn-tx').innerHTML = txl.length
+      ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead><tbody>${txl.slice(0,20).map(tx=>`<tr><td>${fd(tx.created_at||tx.date)}</td><td><span class="tag ts">${tx.type||'—'}</span></td><td style="font-family:monospace;font-size:12px">${fc(tx.amount_cents||tx.amount)}</td><td>${tagStatus(tx.status)}</td></tr>`).join('')}</tbody></table>`
+      : '<div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">No transactions</div></div>';
+  } catch(e) { errBox('earn-err', e.message); }
+}
+
+// ─────────────────────────────────────────
+// USAGE
+// ─────────────────────────────────────────
+async function loadUsage() {
+  $('usage-err').innerHTML = '';
+  try {
+    const [ur,rr,dr] = await Promise.all([api('/v1/partner/usage'),api('/v1/partner/usage/rate-limit'),api('/v1/partner/usage/dashboard')]);
+    const rate = (rr.data||{}).data || rr.data || {};
+    const meter = (lbl,used,limit,color='#2563eb') => {
+      if (limit==null) return kv(lbl, String(used??'—'));
+      const pct = Math.min(100, Math.round((used/limit)*100));
+      const c = pct>80?'#dc2626':pct>60?'#d97706':color;
+      return `<div class="um"><div class="um-head"><span>${lbl}</span><span>${fn(used)} / ${fn(limit)}</span></div><div class="um-track"><div class="um-fill" style="width:${pct}%;background:${c}"></div></div></div>`;
+    };
+    $('rate-body').innerHTML =
+      meter('Requests / Hour', rate.requests_used, rate.requests_limit) +
+      meter('Requests / Day',  rate.daily_used,    rate.daily_limit) +
+      renderObj(rate);
+    $('usage-body').innerHTML = renderObj((dr.data||{}).data||dr.data||{});
+    $('usage-json').innerHTML = cj({rate_limit:rr.data, dashboard:dr.data, usage:ur.data});
+  } catch(e) { errBox('usage-err', e.message); }
+}
+
+// ─────────────────────────────────────────
+// RAW API
+// ─────────────────────────────────────────
+async function rawCall() {
+  const method = $('r-method').value;
+  const path   = $('r-path').value.trim();
+  const bodyTx = $('r-body').value.trim();
+  const badge  = $('r-badge');
+  $('r-json').textContent = 'Loading…';
+  badge.textContent='…'; badge.className='tag ts';
+  try {
+    const body = bodyTx ? JSON.parse(bodyTx) : null;
+    const {status,ok,data} = await api(path, method, body);
+    badge.textContent = status;
+    badge.className   = 'tag ' + (ok ? 'tg' : 'tr');
+    $('r-json').innerHTML = cj(data);
+  } catch(e) {
+    badge.textContent='ERR'; badge.className='tag tr';
+    $('r-json').innerHTML = cj({error:e.message});
+  }
+}
+
+// ─────────────────────────────────────────
+// AUTO REFRESH
+// ─────────────────────────────────────────
+function refreshAll() { loadDashboard(); }
+
+setInterval(() => {
+  cd--;
+  const el = $('cd');
+  if (el) el.textContent = cd;
+  if (cd <= 0) { cd = 30; refreshAll(); }
+}, 1000);
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+</body>
+</html>
