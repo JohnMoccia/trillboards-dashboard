@@ -547,10 +547,11 @@ let cd = 30;
 // ════════════════════════════════════════
 async function api(path, method='GET', body=null) {
   const headers = { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' };
-  const opts = { method, headers };
+  const opts = { method, headers, cache: 'no-store' };
   if (body) opts.body = JSON.stringify(body);
+  const bust = (path.includes('?') ? '&' : '?') + '_=' + Date.now();
   try {
-    const res = await fetch(BASE + path, opts);
+    const res = await fetch(BASE + path + bust, opts);
     const data = await res.json();
     if (!usingProxy) setPill(true, 'LIVE');
     return { status: res.status, ok: res.ok, data };
@@ -558,7 +559,7 @@ async function api(path, method='GET', body=null) {
     if (BASE === DIRECT) {
       console.warn('Direct blocked, trying proxy…');
       BASE = PROXY; usingProxy = true;
-      const res2 = await fetch(BASE + path, opts);
+      const res2 = await fetch(BASE + path + bust, opts);
       const data2 = await res2.json();
       setPill(true, 'LIVE (PROXY)');
       return { status: res2.status, ok: res2.ok, data: data2 };
@@ -682,10 +683,12 @@ async function loadDashboard() {
     if(pt){ pt.className='tag '+(partner.status==='active'?'tg':'ts'); pt.textContent=(partner.status||'unknown').toUpperCase(); }
 
     $('earnings-kv').innerHTML=
-      kv('Total Earned',    fc(earn.total_earned_cents))+
-      kv('Available Payout',fc(earn.available_payout_cents))+
-      kv('Pending Payout',  fc(earn.pending_payout_cents))+
-      kv('Next Payout',     fd(earn.next_payout_date));
+      kv('Total Earned',    fc(earn.total_lifetime_cents||earn.total_earned_cents))+
+      kv('Available Payout',fc(earn.available_for_payout_cents||earn.available_payout_cents))+
+      kv('Pending Payout',  fc(earn.pending_confirmation_cents||earn.pending_payout_cents))+
+      kv('Next Payout',     fd((earn.next_payout_estimate||{}).date || earn.next_payout_date))+
+      kv('This Month',      fc(earn.this_month_cents))+
+      kv('Payout Threshold',fc(earn.payout_threshold_cents));
 
     const ts=d.top_screens||[];
     if(!ts.length) {
@@ -906,9 +909,9 @@ async function loadEarnings() {
     const [er,tr,br]=await Promise.all([api('/v1/partner/earnings'),api('/v1/partner/earnings/transactions'),api('/v1/partner/earnings/breakdown')]);
     const earn=(er.data||{}).data||er.data||{};
     $('earn-cards').innerHTML=`
-      <div class="earn-card"><div class="earn-lbl">Total Earned</div><div class="earn-val" style="color:#16a34a">${fc(earn.total_earned_cents)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Available</div><div class="earn-val">${fc(earn.available_payout_cents)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Pending</div><div class="earn-val" style="color:#d97706">${fc(earn.pending_payout_cents)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Total Earned</div><div class="earn-val" style="color:#16a34a">${fc(earn.total_lifetime_cents||earn.total_earned_cents)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Available</div><div class="earn-val">${fc(earn.available_for_payout_cents||earn.available_payout_cents)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Pending</div><div class="earn-val" style="color:#d97706">${fc(earn.pending_confirmation_cents||earn.pending_payout_cents)}</div></div>
       <div class="earn-card"><div class="earn-lbl">Rev Share</div><div class="earn-val">${earn.revenue_share_percent??'—'}%</div></div>`;
     $('earn-breakdown').innerHTML=renderObj((br.data||{}).data||br.data||{});
     const txd=(tr.data||{}).data||tr.data||{};
