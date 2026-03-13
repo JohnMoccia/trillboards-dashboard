@@ -537,6 +537,7 @@ const DEVICE_ID  = 'P_691cbdd4b3117cb1b692f4ae';
 
 const DIRECT = 'https://api.trillboards.com';
 const PROXY  = 'https://corsproxy.io/?url=https://api.trillboards.com';
+const EARNER_BASE = 'https://trillboards.com/api/v1/earner';
 let BASE = DIRECT;
 let usingProxy = false;
 let period = '7d';
@@ -903,23 +904,67 @@ async function loadAudience() {
 // ════════════════════════════════════════
 // EARNINGS
 // ════════════════════════════════════════
+// EARNER API (uses trillboards_earner_access_token from localStorage)
+// ════════════════════════════════════════
+function getEarnerToken() {
+  return localStorage.getItem('trillboards_earner_access_token') || null;
+}
+
+async function earnerApi(path) {
+  const token = getEarnerToken();
+  if (!token) throw new Error('No earner token found — please log in to trillboards.com first');
+  const bust = (path.includes('?') ? '&' : '?') + '_=' + Date.now();
+  const res = await fetch(EARNER_BASE + path + bust, {
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    cache: 'no-store'
+  });
+  const data = await res.json();
+  return { status: res.status, ok: res.ok, data };
+}
+
+// ════════════════════════════════════════
 async function loadEarnings() {
-  $('earn-err').innerHTML=''; if($('earn-err').dataset) $('earn-err').dataset.loaded='1';
+  $('earn-err').innerHTML='';
   try {
-    const [er,tr,br]=await Promise.all([api('/v1/partner/earnings'),api('/v1/partner/earnings/transactions'),api('/v1/partner/earnings/breakdown')]);
-    const earn=(er.data||{}).data||er.data||{};
+    const [dash, tx] = await Promise.all([
+      earnerApi('/dashboard-data?portal=earner'),
+      earnerApi('/payment-list?page=1&limit=50')
+    ]);
+
+    const d = dash.data || {};
+    // dashboard-data returns amounts in dollars directly (not cents)
+    const fmt = v => (v==null||v===undefined) ? '—' : '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
     $('earn-cards').innerHTML=`
-      <div class="earn-card"><div class="earn-lbl">Total Earned</div><div class="earn-val" style="color:#16a34a">${fc(earn.total_lifetime_cents||earn.total_earned_cents)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Available</div><div class="earn-val">${fc(earn.available_for_payout_cents||earn.available_payout_cents)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Pending</div><div class="earn-val" style="color:#d97706">${fc(earn.pending_confirmation_cents||earn.pending_payout_cents)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Rev Share</div><div class="earn-val">${earn.revenue_share_percent??'—'}%</div></div>`;
-    $('earn-breakdown').innerHTML=renderObj((br.data||{}).data||br.data||{});
-    const txd=(tr.data||{}).data||tr.data||{};
-    const txl=Array.isArray(txd)?txd:(txd.transactions||txd.items||[]);
-    $('earn-tx').innerHTML=txl.length
-      ?`<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead><tbody>${txl.slice(0,20).map(tx=>`<tr><td>${fd(tx.created_at||tx.date)}</td><td><span class="tag ts">${tx.type||'—'}</span></td><td style="font-family:monospace;font-size:11px">${fc(tx.amount_cents||tx.amount)}</td><td>${tgStatus(tx.status)}</td></tr>`).join('')}</tbody></table>`
-      :'<div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">No transactions yet</div></div>';
-  } catch(e){errBox('earn-err',e.message);}
+      <div class="earn-card"><div class="earn-lbl">Total Earned</div><div class="earn-val" style="color:#16a34a">${fmt(d.amount)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Available</div><div class="earn-val">${fmt(d.available_for_withdrawal)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Pending (est)</div><div class="earn-val" style="color:#d97706">${fmt(d.programmatic_breakdown?.estimated)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Impressions</div><div class="earn-val">${fn(d.programmatic_impressions)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Ad Plays</div><div class="earn-val">${fn(d.advertisementPlay)}</div></div>
+      <div class="earn-card"><div class="earn-lbl">Screen Time</div><div class="earn-val" style="font-size:13px">${d.total_hours||'—'}</div></div>`;
+
+    $('earn-breakdown').innerHTML=
+      kv('Programmatic',fmt(d.programmatic_earnings))+
+      kv('Direct',fmt(d.direct_earnings))+
+      kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+
+      kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+
+      kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+
+      kv('Available',fmt(d.available_for_withdrawal));
+
+    const txList = tx.data?.data || [];
+    $('earn-tx').innerHTML = txList.length
+      ? `<table class="tbl"><thead><tr><th>Date</th><th>Screen</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead><tbody>${
+          txList.map(t=>`<tr>
+            <td>${fd(t.createdAt)}</td>
+            <td style="font-size:11px">${t.screen?.name||'—'}</td>
+            <td style="font-size:11px">${t.advertisement?.name||t.source_provider||'—'}</td>
+            <td style="font-family:monospace;font-size:11px;color:#16a34a">${fmt(t.amount_received??t.amount)}</td>
+            <td><span class="tag ${t.programmatic_status==='estimated'?'ty':t.programmatic_status==='confirmed'?'tg':'ts'}">${t.programmatic_status||t.event_type||'—'}</span></td>
+          </tr>`).join('')
+        }</tbody></table>`
+      : '<div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">No transactions yet</div></div>';
+
+  } catch(e){ errBox('earn-err', e.message); }
 }
 
 // ════════════════════════════════════════
