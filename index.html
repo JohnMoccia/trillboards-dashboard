@@ -538,6 +538,8 @@ const DEVICE_ID  = 'P_691cbdd4b3117cb1b692f4ae';
 const DIRECT = 'https://api.trillboards.com';
 const PROXY  = 'https://corsproxy.io/?url=https://api.trillboards.com';
 const EARNER_BASE = 'https://trillboards.com/api/v1/earner';
+const EARNER_PROXY = 'https://trillboards-proxy.johnm-af2.workers.dev/earner';
+const EARNER_PROXY_SECRET = 'curb2026';
 let BASE = DIRECT;
 let usingProxy = false;
 let period = '7d';
@@ -911,9 +913,28 @@ function getEarnerToken() {
 }
 
 async function earnerApi(path) {
-  const token = getEarnerToken();
-  if (!token) throw new Error('No earner token found — please log in to trillboards.com first');
   const bust = (path.includes('?') ? '&' : '?') + '_=' + Date.now();
+
+  // Try proxy first (works from any browser/domain)
+  if (EARNER_PROXY && !EARNER_PROXY.includes('YOURSUBDOMAIN')) {
+    try {
+      const res = await fetch(EARNER_PROXY + path + bust, {
+        headers: {
+          'X-Proxy-Secret': EARNER_PROXY_SECRET,
+          'Content-Type': 'application/json'
+        },
+        cache: 'no-store'
+      });
+      const data = await res.json();
+      return { status: res.status, ok: res.ok, data };
+    } catch(e) {
+      console.warn('Proxy failed, trying localStorage token…', e);
+    }
+  }
+
+  // Fallback: use localStorage token (only works if logged into trillboards.com in same browser)
+  const token = getEarnerToken();
+  if (!token) throw new Error('No earner token found — deploy the Cloudflare proxy or log in to trillboards.com in this browser');
   const res = await fetch(EARNER_BASE + path + bust, {
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
     cache: 'no-store'
