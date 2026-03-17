@@ -7,48 +7,50 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#f1f5f9;color:#1e293b;font-family:'Inter',sans-serif;min-height:100vh;font-size:14px}
+body{background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;min-height:100vh;font-size:14px}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
 
-/* TOPBAR */
-.topbar{background:#0f172a;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100}
+/* TOPBAR — white like their portal */
+.topbar{background:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;border-bottom:1px solid #e2e8f0}
 .brand{display:flex;align-items:center;gap:10px}
-.brand-icon{width:32px;height:32px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;font-family:'JetBrains Mono',monospace}
-.brand-name{font-size:15px;font-weight:700;color:#f8fafc}
-.brand-sep{color:#334155;font-size:18px}
-.brand-sub{font-size:12px;color:#64748b;font-family:'JetBrains Mono',monospace}
-.topbar-right{display:flex;align-items:center;gap:8px}
-.pill{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
-.pill-green{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80}
-.pill-red{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171}
-.pill-gray{background:rgba(100,116,139,.15);border:1px solid rgba(100,116,139,.3);color:#94a3b8}
+.brand-icon{width:32px;height:32px;background:#2563eb;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;font-family:'Inter',sans-serif}
+.brand-name{font-size:15px;font-weight:700;color:#1e293b}
+.brand-sep{color:#e2e8f0;font-size:18px}
+.brand-sub{font-size:12px;color:#94a3b8}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.pill{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600}
+.pill-green{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a}
+.pill-red{background:#fef2f2;border:1px solid #fecaca;color:#dc2626}
+.pill-gray{background:#f8fafc;border:1px solid #e2e8f0;color:#94a3b8}
 .pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 1.8s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 .pill-gray .dot{animation:none}
-.cd-badge{background:rgba(255,255,255,.05);border:1px solid #1e293b;color:#64748b;padding:5px 10px;border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace}
-.topbar-btn{background:rgba(255,255,255,.06);border:1px solid #1e293b;color:#94a3b8;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
-.topbar-btn:hover{background:rgba(255,255,255,.1);color:#f8fafc}
+.cd-badge{background:#f8fafc;border:1px solid #e2e8f0;color:#94a3b8;padding:5px 10px;border-radius:6px;font-size:12px}
+.topbar-btn{background:#fff;border:1px solid #e2e8f0;color:#374151;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.topbar-btn:hover{background:#f8fafc;border-color:#d1d5db}
+.topbar-org{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#1e293b}
+.topbar-avatar{width:30px;height:30px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
 
 /* LAYOUT */
 .layout{display:flex}
-.sidebar{width:196px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;padding:14px 8px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sidebar{width:220px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;padding:16px 10px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
 .nav-group{margin-bottom:18px}
 .nav-group-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;color:#94a3b8;text-transform:uppercase;padding:0 8px;margin-bottom:5px;display:block}
 .nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;color:#475569;transition:all .12s;margin-bottom:1px}
 .nav-item:hover{background:#f8fafc;color:#1e293b}
-.nav-item.active{background:#eff6ff;color:#1d4ed8;font-weight:600}
+.nav-item.active{background:#eff6ff;color:#2563eb;font-weight:600;border-left:3px solid #2563eb;padding-left:7px}
 .nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
 .nav-badge{margin-left:auto;background:#ef4444;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;display:none}
 .nav-badge.show{display:block}
 
 /* MAIN */
-.main{flex:1;padding:22px;overflow-x:hidden}
+.main{flex:1;padding:28px 32px;overflow-x:hidden}
 .page{display:none}.page.active{display:block}
 
 /* PAGE HEADER */
 .ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.ph-left .ph-title{font-size:20px;font-weight:700;color:#0f172a}
-.ph-left .ph-sub{font-size:12px;color:#64748b;margin-top:3px;font-family:'JetBrains Mono',monospace}
+.ph-left .ph-title{font-size:22px;font-weight:700;color:#111827}
+.ph-left .ph-sub{font-size:13px;color:#6b7280;margin-top:4px}
 .ph-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
 /* BUTTONS */
@@ -60,13 +62,13 @@ body{background:#f1f5f9;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 
 /* STAT CARDS */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:18px}
-.stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;transition:box-shadow .2s}
-.stat-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:box-shadow .2s}
+.stat-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,#2563eb)}
 .stat-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .stat-label{font-size:11px;font-weight:700;letter-spacing:.04em;color:#64748b;text-transform:uppercase}
 .stat-icon{font-size:18px;opacity:.6}
-.stat-value{font-size:28px;font-weight:700;color:#0f172a;line-height:1;margin-bottom:4px;font-family:'JetBrains Mono',monospace}
+.stat-value{font-size:28px;font-weight:700;color:#0f172a;line-height:1;margin-bottom:4px}
 .stat-footer{font-size:12px;color:#94a3b8}
 
 /* SKELETON */
@@ -74,9 +76,9 @@ body{background:#f1f5f9;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 @keyframes sk{0%{background-position:200%}100%{background-position:-200%}}
 
 /* CARD */
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px}
-.card-head{padding:13px 18px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;background:#fafbfd}
-.card-title{font-size:13px;font-weight:700;color:#374151}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:16px}
+.card-head{padding:14px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;background:#fff}
+.card-title{font-size:14px;font-weight:600;color:#111827}
 .card-body{padding:18px}
 
 /* GRID */
@@ -127,7 +129,7 @@ body{background:#f1f5f9;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 .bar-lbl{font-size:12px;color:#64748b;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bar-track{height:7px;background:#f1f5f9;border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-.bar-val{font-size:12px;font-weight:700;color:#374151;text-align:right;font-family:'JetBrains Mono',monospace}
+.bar-val{font-size:12px;font-weight:700;color:#374151;text-align:right}
 
 /* TIMELINE CANVAS */
 canvas{display:block;width:100%;height:160px}
@@ -135,7 +137,7 @@ canvas{display:block;width:100%;height:160px}
 /* DEVICE HEALTH GRID */
 .device-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .device-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center}
-.device-num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
+.device-num{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
 .device-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
 
 /* LIVE IMPRESSION FEED */
@@ -180,7 +182,7 @@ canvas{display:block;width:100%;height:160px}
 .earn-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:16px}
 .earn-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px}
 .earn-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.earn-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#0f172a}
+.earn-val{font-size:22px;font-weight:700;color:#0f172a}
 
 /* USAGE METER */
 .um{margin-bottom:12px}
@@ -206,15 +208,19 @@ canvas{display:block;width:100%;height:160px}
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">
-    <div class="brand-icon">TB</div>
+    <div class="brand-icon">T</div>
     <span class="brand-name">Trillboards</span>
-    <span class="brand-sep"> · </span>
-    <span class="brand-sub">Curb Fleet Monitor</span>
+    <span class="brand-sep">|</span>
+    <span class="brand-sub">Venue Portal</span>
   </div>
   <div class="topbar-right">
-    <div class="pill pill-gray" id="api-pill"><div class="dot"></div><span id="api-pill-txt">CONNECTING</span></div>
+    <div class="pill pill-gray" id="api-pill"><div class="dot"></div><span id="api-pill-txt">Connecting</span></div>
     <div class="cd-badge">↻ <span id="cd">30</span>s</div>
-    <button class="topbar-btn" onclick="loadAll()">↻ Refresh All</button>
+    <button class="topbar-btn" onclick="loadAll()">Refresh</button>
+    <div class="topbar-org">
+      <div class="topbar-avatar">C</div>
+      <span>Curb Mobility</span>
+    </div>
   </div>
 </div>
 
@@ -459,19 +465,51 @@ canvas{display:block;width:100%;height:160px}
 <!-- ═══ EARNINGS ═══ -->
 <div class="page" id="page-earnings">
   <div class="ph">
-    <div class="ph-left"><div class="ph-title">Earnings</div><div class="ph-sub">earnings · transactions · breakdown</div></div>
+    <div class="ph-left">
+      <div class="ph-title">Earnings</div>
+      <div class="ph-sub">Track your screen earnings and transaction history</div>
+    </div>
     <div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadEarnings()">↻ Reload</button></div>
   </div>
   <div id="earn-err"></div>
-  <div class="earn-row" id="earn-cards">
-    <div class="earn-card"><div class="earn-lbl">Total Earned</div><div class="earn-val sk" style="height:22px;width:110px"> </div></div>
-    <div class="earn-card"><div class="earn-lbl">Available</div><div class="earn-val">—</div></div>
-    <div class="earn-card"><div class="earn-lbl">Pending</div><div class="earn-val">—</div></div>
-    <div class="earn-card"><div class="earn-lbl">Rev Share</div><div class="earn-val">—</div></div>
+  <div class="stat-grid" id="earn-cards" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
+    <div class="stat-card" style="--c:#16a34a">
+      <div class="stat-top"><div class="stat-label">Total Earnings</div><div class="stat-icon">$</div></div>
+      <div class="stat-value sk" id="earn-total" style="height:28px;width:100px;color:#16a34a"> </div>
+      <div class="stat-footer" id="earn-total-sub">—</div>
+    </div>
+    <div class="stat-card" style="--c:#2563eb">
+      <div class="stat-top"><div class="stat-label">Available Balance</div><div class="stat-icon">↗</div></div>
+      <div class="stat-value" id="earn-available">—</div>
+      <div class="stat-footer">Ready to withdraw</div>
+    </div>
+    <div class="stat-card" style="--c:#7c3aed">
+      <div class="stat-top"><div class="stat-label">Active Screens</div><div class="stat-icon">📺</div></div>
+      <div class="stat-value" id="earn-screens">—</div>
+      <div class="stat-footer" id="earn-screens-sub">of 0 total screens</div>
+    </div>
+    <div class="stat-card" style="--c:#d97706">
+      <div class="stat-top"><div class="stat-label">Ad Plays</div><div class="stat-icon">↝</div></div>
+      <div class="stat-value" id="earn-plays">—</div>
+      <div class="stat-footer">Total impressions</div>
+    </div>
   </div>
-  <div class="two">
-    <div class="card"><div class="card-head"><span class="card-title">Breakdown</span></div><div class="card-body" id="earn-breakdown"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
-    <div class="card"><div class="card-head"><span class="card-title">Transactions</span></div><div id="earn-tx"><div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">Loading…</div></div></div></div>
+  <div class="two" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-head"><span class="card-title">Programmatic Earnings</span></div>
+      <div class="card-body" id="earn-breakdown"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Breakdown by Type</span></div>
+      <div class="card-body" id="earn-bytype"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Transaction History</span>
+      <span style="font-size:12px;color:#94a3b8">All your earnings and payout transactions</span>
+    </div>
+    <div id="earn-tx"><div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">Loading…</div></div></div>
   </div>
 </div>
 
@@ -956,32 +994,54 @@ async function loadEarnings() {
     // dashboard-data returns amounts in dollars directly (not cents)
     const fmt = v => (v==null||v===undefined) ? '—' : '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-    $('earn-cards').innerHTML=`
-      <div class="earn-card"><div class="earn-lbl">Total Earned</div><div class="earn-val" style="color:#16a34a">${fmt(d.amount)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Available</div><div class="earn-val">${fmt(d.available_for_withdrawal)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Pending (est)</div><div class="earn-val" style="color:#d97706">${fmt(d.programmatic_breakdown?.estimated)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Impressions</div><div class="earn-val">${fn(d.programmatic_impressions)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Ad Plays</div><div class="earn-val">${fn(d.advertisementPlay)}</div></div>
-      <div class="earn-card"><div class="earn-lbl">Screen Time</div><div class="earn-val" style="font-size:13px">${d.total_hours||'—'}</div></div>`;
+    // Populate new stat cards
+    const totalEl = $('earn-total');
+    if(totalEl){ totalEl.textContent = fmt(d.amount); totalEl.className='stat-value'; totalEl.style.color='#16a34a'; }
+    const totalSub = $('earn-total-sub');
+    if(totalSub) totalSub.textContent = '$0.00 direct + ' + fmt(d.programmatic_earnings||d.amount) + ' programmatic';
+    const availEl = $('earn-available');
+    if(availEl){ availEl.textContent = fmt(d.available_for_withdrawal); availEl.className='stat-value'; }
+    const screensEl = $('earn-screens');
+    if(screensEl){ screensEl.textContent = fn(d.active_screens||0); screensEl.className='stat-value'; }
+    const screensSub = $('earn-screens-sub');
+    if(screensSub) screensSub.textContent = 'of ' + fn(d.total_screens||0) + ' total screens';
+    const playsEl = $('earn-plays');
+    if(playsEl){ playsEl.textContent = fn(d.advertisementPlay||d.programmatic_impressions||0); playsEl.className='stat-value'; }
 
-    $('earn-breakdown').innerHTML=
-      kv('Programmatic',fmt(d.programmatic_earnings))+
-      kv('Direct',fmt(d.direct_earnings))+
+    $('earn-breakdown').innerHTML=`
+      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:8px">
+        <div style="font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:500">Programmatic Earnings</div>
+        <div style="font-size:26px;font-weight:700;color:#2563eb;margin-bottom:4px">${fmt(d.programmatic_earnings||d.amount)}</div>
+        <div style="font-size:12px;color:#94a3b8">Pending (net-60) <span style="float:right;color:#6b7280">${fmt(d.programmatic_breakdown?.estimated||d.amount)}</span></div>
+      </div>`;
+    $('earn-bytype').innerHTML=
+      kv('Direct',fmt(d.direct_earnings||0))+
       kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+
       kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+
       kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+
+      kv('Rev Share',(d.revenue_share_percent??'70')+'%')+
       kv('Available',fmt(d.available_for_withdrawal));
 
     const txList = tx.data?.data || [];
     $('earn-tx').innerHTML = txList.length
-      ? `<table class="tbl"><thead><tr><th>Date</th><th>Screen</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead><tbody>${
-          txList.map(t=>`<tr>
-            <td>${fd(t.createdAt)}</td>
-            <td style="font-size:11px">${t.screen?.name||'—'}</td>
-            <td style="font-size:11px">${t.advertisement?.name||t.source_provider||'—'}</td>
-            <td style="font-family:monospace;font-size:11px;color:#16a34a">${fmt(t.amount_received??t.amount)}</td>
-            <td><span class="tag ${t.programmatic_status==='estimated'?'ty':t.programmatic_status==='confirmed'?'tg':'ts'}">${t.programmatic_status||t.event_type||'—'}</span></td>
-          </tr>`).join('')
+      ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Screen</th><th>Amount</th><th>Fees</th><th>Net</th></tr></thead><tbody>${
+          txList.map(t=>{
+            const net=fmt(t.amount_received??t.amount);
+            const gross=fmt(t.gross_amount??t.amount_received??t.amount);
+            const fees=t.fees?fmt(t.fees):'-';
+            const impressions=t.impressions?fn(t.impressions)+' impressions':t.advertisement?.name||t.source_provider||'—';
+            const cpm=t.cpm?' @ $'+Number(t.cpm).toFixed(2)+' CPM':'';
+            const status=t.programmatic_status||t.event_type||'pending';
+            return `<tr>
+              <td style="white-space:nowrap">${fd(t.createdAt)}</td>
+              <td><span class="tag ${status==='estimated'||status==='pending'?'ty':status==='confirmed'?'tg':'ts'}" style="white-space:nowrap">+ Programmatic<br><span style="font-weight:400;font-size:10px">(${status.charAt(0).toUpperCase()+status.slice(1)})</span></span></td>
+              <td style="font-size:12px">${impressions}${cpm}</td>
+              <td style="font-size:12px;color:#374151">${t.screen?.name||'Curb Taxi Advertising Screen - New York City'}</td>
+              <td style="font-weight:600;color:#374151">${gross}</td>
+              <td style="color:#94a3b8">${fees}</td>
+              <td style="font-weight:600;color:#16a34a">${net}</td>
+            </tr>`;
+          }).join('')
         }</tbody></table>`
       : '<div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">No transactions yet</div></div>';
 
