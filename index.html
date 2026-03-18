@@ -9,8 +9,6 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;min-height:100vh;font-size:14px}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-
-/* TOPBAR — white like their portal */
 .topbar{background:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;border-bottom:1px solid #e2e8f0}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-icon{width:32px;height:32px;background:#2563eb;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;font-family:'Inter',sans-serif}
@@ -30,8 +28,6 @@ body{background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 .topbar-btn:hover{background:#f8fafc;border-color:#d1d5db}
 .topbar-org{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#1e293b}
 .topbar-avatar{width:30px;height:30px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
-
-/* LAYOUT */
 .layout{display:flex}
 .sidebar{width:220px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;padding:16px 10px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
 .nav-group{margin-bottom:18px}
@@ -42,25 +38,18 @@ body{background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 .nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
 .nav-badge{margin-left:auto;background:#ef4444;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;display:none}
 .nav-badge.show{display:block}
-
-/* MAIN */
 .main{flex:1;padding:28px 32px;overflow-x:hidden}
 .page{display:none}.page.active{display:block}
-
-/* PAGE HEADER */
 .ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
 .ph-left .ph-title{font-size:22px;font-weight:700;color:#111827}
 .ph-left .ph-sub{font-size:13px;color:#6b7280;margin-top:4px}
 .ph-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
 .btn-blue{background:#2563eb;color:#fff}.btn-blue:hover{background:#1d4ed8}
 .btn-white{background:#fff;color:#374151;border:1px solid #d1d5db}.btn-white:hover{background:#f9fafb}
+.btn-red{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}.btn-red:hover{background:#fee2e2}
 .btn-sm{padding:5px 12px;font-size:12px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-
-/* STAT CARDS */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:18px}
 .stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:box-shadow .2s}
 .stat-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -70,30 +59,20 @@ body{background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 .stat-icon{font-size:18px;opacity:.6}
 .stat-value{font-size:28px;font-weight:700;color:#0f172a;line-height:1;margin-bottom:4px}
 .stat-footer{font-size:12px;color:#94a3b8}
-
-/* SKELETON */
 .sk{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200%;animation:sk 1.3s infinite;border-radius:5px;color:transparent!important}
 @keyframes sk{0%{background-position:200%}100%{background-position:-200%}}
-
-/* CARD */
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:16px}
 .card-head{padding:14px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;background:#fff}
 .card-title{font-size:14px;font-weight:600;color:#111827}
 .card-body{padding:18px}
-
-/* GRID */
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 @media(max-width:860px){.two,.three{grid-template-columns:1fr}.sidebar{display:none}}
-
-/* KV */
 .kv{display:flex;flex-direction:column}
 .kv-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f8fafc}
 .kv-row:last-child{border-bottom:none}
 .kv-k{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
 .kv-v{font-size:13px;color:#1e293b;font-weight:500;text-align:right;max-width:65%;word-break:break-all}
-
-/* TAGS */
 .tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
 .tg{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
 .tr{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
@@ -101,8 +80,6 @@ body{background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 .tb{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
 .ts{background:#f8fafc;color:#64748b;border:1px solid #e2e6ed}
 .tp{background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff}
-
-/* ALERTS */
 .alert{border-radius:8px;padding:13px 16px;margin-bottom:14px;font-size:13px;line-height:1.6}
 .alert-red{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
 .alert-red strong{display:block;font-size:13px;margin-bottom:4px;color:#dc2626}
@@ -111,8 +88,6 @@ body{background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 .alert-blue code{background:#dbeafe;padding:1px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
 .alert-green{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}
 .alert-green strong{display:block;font-size:13px;margin-bottom:4px;color:#16a34a}
-
-/* WATERFALL SOURCE LIST */
 .source-list{display:flex;flex-direction:column;gap:6px}
 .source-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:7px;border:1px solid #e2e8f0;background:#fafbfd;transition:border-color .15s}
 .source-row:hover{border-color:#93c5fd}
@@ -121,26 +96,13 @@ body{background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;min-height:
 .source-name{font-size:13px;font-weight:600;color:#1e293b}
 .source-domain{font-size:11px;color:#94a3b8;margin-top:1px;font-family:'JetBrains Mono',monospace}
 .source-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.source-stats{font-size:11px;color:#64748b;text-align:right;font-family:'JetBrains Mono',monospace}
-
-/* BAR CHART */
 .bar-chart{display:flex;flex-direction:column;gap:8px}
 .bar-row{display:grid;grid-template-columns:130px 1fr 70px;align-items:center;gap:10px}
 .bar-lbl{font-size:12px;color:#64748b;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bar-track{height:7px;background:#f1f5f9;border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1)}
 .bar-val{font-size:12px;font-weight:700;color:#374151;text-align:right}
-
-/* TIMELINE CANVAS */
 canvas{display:block;width:100%;height:160px}
-
-/* DEVICE HEALTH GRID */
-.device-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.device-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center}
-.device-num{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
-.device-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
-
-/* LIVE IMPRESSION FEED */
 .imp-feed{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto}
 .imp-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:#f8fafc;border:1px solid #f1f5f9;animation:fadeIn .3s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
@@ -148,64 +110,47 @@ canvas{display:block;width:100%;height:160px}
 .imp-text{flex:1;font-size:12px;color:#475569}
 .imp-text strong{color:#1e293b;font-weight:600}
 .imp-time{font-size:10px;color:#94a3b8;font-family:'JetBrains Mono',monospace;flex-shrink:0}
-
-/* LOG */
 .log-box{background:#0f172a;border-radius:8px;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:10px;max-height:160px;overflow-y:auto;line-height:2;border:1px solid #1e293b}
 .ll{display:flex;gap:8px}
 .lts{color:#334155;flex-shrink:0}
 .li{color:#38bdf8}.lo{color:#4ade80}.le{color:#f87171}.lw{color:#fbbf24}.lg{color:#475569}
-
-/* JSON */
 .jv{background:#0f172a;border-radius:8px;padding:13px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;max-height:280px;overflow:auto;white-space:pre;color:#94a3b8;border:1px solid #1e293b}
 .jk{color:#c4b5fd}.js{color:#86efac}.jn{color:#fbbf24}.jb{color:#f87171}
-
-/* SCREEN INPUT */
 .si-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
 .si-row input,.raw-input{background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 12px;border-radius:7px;outline:none;transition:border-color .2s}
 .si-row input{flex:1;min-width:220px}
 .si-row input:focus,.raw-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-
-/* PERIOD TABS */
 .ptabs{display:flex;gap:4px}
 .ptab{font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid #e2e8f0;color:#64748b;background:#fff;transition:all .12s}
 .ptab:hover{border-color:#93c5fd;color:#1d4ed8}
 .ptab.active{background:#eff6ff;color:#1d4ed8;border-color:#93c5fd}
-
-/* TABLE */
 .tbl{width:100%;border-collapse:collapse}
 .tbl th{font-size:10px;font-weight:700;letter-spacing:.05em;color:#94a3b8;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid #f1f5f9;background:#fafbfd}
 .tbl td{padding:10px 14px;border-bottom:1px solid #f8fafc;font-size:12px;color:#475569;vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:#fafbfd;color:#1e293b}
-
-/* EARN CARDS */
 .earn-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:16px}
 .earn-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px}
 .earn-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
 .earn-val{font-size:22px;font-weight:700;color:#0f172a}
-
-/* USAGE METER */
 .um{margin-bottom:12px}
 .um-head{display:flex;justify-content:space-between;margin-bottom:4px}
 .um-head span:first-child{font-size:12px;color:#64748b;font-weight:500}
 .um-head span:last-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:#374151;font-weight:600}
 .um-track{height:7px;background:#f1f5f9;border-radius:4px;overflow:hidden}
 .um-fill{height:100%;border-radius:4px;transition:width .8s}
-
-/* EMPTY */
 .empty{text-align:center;padding:32px 16px;color:#94a3b8}
 .empty-icon{font-size:28px;margin-bottom:8px;opacity:.4}
 .empty-text{font-size:13px}
-
-/* RAW */
 .raw-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .raw-form select{background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 10px;border-radius:7px;outline:none}
 .raw-form textarea{width:100%;background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 12px;border-radius:7px;outline:none;resize:vertical;height:65px}
+/* Reconcile specific */
+.rec-match{color:#16a34a;font-weight:700}
+.rec-mismatch{color:#dc2626;font-weight:700}
 </style>
 </head>
 <body>
-
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">
     <div class="brand-icon">T</div>
@@ -225,8 +170,6 @@ canvas{display:block;width:100%;height:160px}
 </div>
 
 <div class="layout">
-
-<!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="nav-group">
     <span class="nav-group-lbl">Overview</span>
@@ -243,6 +186,7 @@ canvas{display:block;width:100%;height:160px}
   <div class="nav-group">
     <span class="nav-group-lbl">Finance</span>
     <div class="nav-item" onclick="nav('earnings',this)"><span class="nav-icon">💰</span>Earnings</div>
+    <div class="nav-item" onclick="nav('reconcile',this)"><span class="nav-icon">🔁</span>Reconcile</div>
   </div>
   <div class="nav-group">
     <span class="nav-group-lbl">Dev</span>
@@ -251,159 +195,55 @@ canvas{display:block;width:100%;height:160px}
   </div>
 </nav>
 
-<!-- CONTENT -->
 <main class="main">
 
-<!-- ═══ DASHBOARD ═══ -->
+<!-- DASHBOARD PAGE -->
 <div class="page active" id="page-dashboard">
   <div class="ph">
-    <div class="ph-left">
-      <div class="ph-title">Dashboard</div>
-      <div class="ph-sub">partner/dashboard · connect/health · device ads</div>
-    </div>
-    <div class="ph-right">
-      <button class="btn btn-white btn-sm" onclick="loadDashboard()">↻ Reload</button>
-    </div>
+    <div class="ph-left"><div class="ph-title">Dashboard</div><div class="ph-sub">partner/dashboard · connect/health · device ads</div></div>
+    <div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadDashboard()">↻ Reload</button></div>
   </div>
-  <div id="dash-warn"></div>
-  <div id="dash-err"></div>
-
+  <div id="dash-warn"></div><div id="dash-err"></div>
   <div class="stat-grid">
-    <div class="stat-card" style="--c:#2563eb">
-      <div class="stat-top"><div class="stat-label">Total Screens</div><div class="stat-icon">📺</div></div>
-      <div class="stat-value sk" id="s-total" style="height:30px;width:70px"> </div>
-      <div class="stat-footer" id="s-total-f"> </div>
-    </div>
-    <div class="stat-card" style="--c:#16a34a">
-      <div class="stat-top"><div class="stat-label">Active</div><div class="stat-icon">🟢</div></div>
-      <div class="stat-value sk" id="s-active" style="height:30px;width:70px;color:#16a34a"> </div>
-      <div class="stat-footer" id="s-active-f"> </div>
-    </div>
-    <div class="stat-card" style="--c:#ef4444">
-      <div class="stat-top"><div class="stat-label">Offline</div><div class="stat-icon">🔴</div></div>
-      <div class="stat-value sk" id="s-offline" style="height:30px;width:70px;color:#ef4444"> </div>
-      <div class="stat-footer">current</div>
-    </div>
-    <div class="stat-card" style="--c:#d97706">
-      <div class="stat-top"><div class="stat-label">Impressions Today</div><div class="stat-icon">📈</div></div>
-      <div class="stat-value sk" id="s-imp-today" style="height:30px;width:70px"> </div>
-      <div class="stat-footer" id="s-imp-month"> </div>
-    </div>
-    <div class="stat-card" style="--c:#7c3aed">
-      <div class="stat-top"><div class="stat-label">Impressions / Week</div><div class="stat-icon">📊</div></div>
-      <div class="stat-value sk" id="s-imp-week" style="height:30px;width:70px"> </div>
-      <div class="stat-footer">7-day total</div>
-    </div>
-    <div class="stat-card" style="--c:#0891b2">
-      <div class="stat-top"><div class="stat-label">Revenue Share</div><div class="stat-icon">💸</div></div>
-      <div class="stat-value sk" id="s-rev" style="height:30px;width:60px"> </div>
-      <div class="stat-footer">partner cut</div>
-    </div>
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Total Screens</div><div class="stat-icon">📺</div></div><div class="stat-value sk" id="s-total" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-total-f"> </div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Active</div><div class="stat-icon">🟢</div></div><div class="stat-value sk" id="s-active" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-active-f"> </div></div>
+    <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">Offline</div><div class="stat-icon">🔴</div></div><div class="stat-value sk" id="s-offline" style="height:30px;width:70px;color:#ef4444"> </div><div class="stat-footer">current</div></div>
+    <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Impressions Today</div><div class="stat-icon">📈</div></div><div class="stat-value sk" id="s-imp-today" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-imp-month"> </div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Impressions / Week</div><div class="stat-icon">📊</div></div><div class="stat-value sk" id="s-imp-week" style="height:30px;width:70px"> </div><div class="stat-footer">7-day total</div></div>
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Revenue Share</div><div class="stat-icon">💸</div></div><div class="stat-value sk" id="s-rev" style="height:30px;width:60px"> </div><div class="stat-footer">partner cut</div></div>
   </div>
-
   <div class="two">
-    <div class="card">
-      <div class="card-head"><span class="card-title">Partner Info</span><span id="p-status-tag" class="tag ts">—</span></div>
-      <div class="card-body"><div class="kv" id="partner-kv">
-        <div class="kv-row"><div class="kv-k">Name</div><div class="kv-v sk" style="height:13px;width:120px"> </div></div>
-        <div class="kv-row"><div class="kv-k">Slug</div><div class="kv-v sk" style="height:13px;width:80px"> </div></div>
-        <div class="kv-row"><div class="kv-k">Status</div><div class="kv-v">—</div></div>
-        <div class="kv-row"><div class="kv-k">Stripe</div><div class="kv-v">—</div></div>
-        <div class="kv-row"><div class="kv-k">Created</div><div class="kv-v">—</div></div>
-      </div></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><span class="card-title">Earnings Summary</span></div>
-      <div class="card-body"><div class="kv" id="earnings-kv">
-        <div class="kv-row"><div class="kv-k">Total Earned</div><div class="kv-v sk" style="height:13px;width:90px"> </div></div>
-        <div class="kv-row"><div class="kv-k">Available</div><div class="kv-v">—</div></div>
-        <div class="kv-row"><div class="kv-k">Pending</div><div class="kv-v">—</div></div>
-        <div class="kv-row"><div class="kv-k">Next Payout</div><div class="kv-v">—</div></div>
-      </div></div>
-    </div>
+    <div class="card"><div class="card-head"><span class="card-title">Partner Info</span><span id="p-status-tag" class="tag ts">—</span></div><div class="card-body"><div class="kv" id="partner-kv"><div class="kv-row"><div class="kv-k">Name</div><div class="kv-v sk" style="height:13px;width:120px"> </div></div><div class="kv-row"><div class="kv-k">Slug</div><div class="kv-v sk" style="height:13px;width:80px"> </div></div><div class="kv-row"><div class="kv-k">Status</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Stripe</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Created</div><div class="kv-v">—</div></div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Earnings Summary</span></div><div class="card-body"><div class="kv" id="earnings-kv"><div class="kv-row"><div class="kv-k">Total Earned</div><div class="kv-v sk" style="height:13px;width:90px"> </div></div><div class="kv-row"><div class="kv-k">Available</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Pending</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Next Payout</div><div class="kv-v">—</div></div></div></div></div>
   </div>
-
   <div class="two">
-    <div class="card">
-      <div class="card-head"><span class="card-title">Top Screens</span></div>
-      <div class="card-body" id="top-screens"><div class="empty"><div class="empty-icon">📺</div><div class="empty-text">Loading…</div></div></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><span class="card-title">Recent Activity</span></div>
-      <div class="card-body" id="activity"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Loading…</div></div></div>
-    </div>
+    <div class="card"><div class="card-head"><span class="card-title">Top Screens</span></div><div class="card-body" id="top-screens"><div class="empty"><div class="empty-icon">📺</div><div class="empty-text">Loading…</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Recent Activity</span></div><div class="card-body" id="activity"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Loading…</div></div></div></div>
   </div>
-
-  <div class="card">
-    <div class="card-head"><span class="card-title">Request Log</span></div>
-    <div class="card-body" style="padding:12px"><div class="log-box" id="dash-log"></div></div>
-  </div>
+  <div class="card"><div class="card-head"><span class="card-title">Request Log</span></div><div class="card-body" style="padding:12px"><div class="log-box" id="dash-log"></div></div></div>
 </div>
 
-<!-- ═══ DEVICE ═══ -->
+<!-- DEVICE PAGE -->
 <div class="page" id="page-device">
-  <div class="ph">
-    <div class="ph-left">
-      <div class="ph-title">Device Monitor</div>
-      <div class="ph-sub">device/{fingerprint}/ads · heartbeat · waterfall sources</div>
-    </div>
-    <div class="ph-right">
-      <button class="btn btn-white btn-sm" onclick="loadDevice()">↻ Reload</button>
-    </div>
-  </div>
+  <div class="ph"><div class="ph-left"><div class="ph-title">Device Monitor</div><div class="ph-sub">device/{fingerprint}/ads · heartbeat · waterfall sources</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadDevice()">↻ Reload</button></div></div>
   <div id="device-err"></div>
-
   <div class="stat-grid">
-    <div class="stat-card" style="--c:#2563eb">
-      <div class="stat-top"><div class="stat-label">Waterfall Sources</div><div class="stat-icon">🔗</div></div>
-      <div class="stat-value" id="d-sources">—</div>
-      <div class="stat-footer">configured SSPs</div>
-    </div>
-    <div class="stat-card" style="--c:#16a34a">
-      <div class="stat-top"><div class="stat-label">Device Status</div><div class="stat-icon">📱</div></div>
-      <div class="stat-value" id="d-status" style="font-size:14px;padding-top:8px">—</div>
-      <div class="stat-footer" id="d-status-f">fingerprint</div>
-    </div>
-    <div class="stat-card" style="--c:#d97706">
-      <div class="stat-top"><div class="stat-label">Enrichment</div><div class="stat-icon">🧠</div></div>
-      <div class="stat-value" id="d-enrich" style="font-size:14px;padding-top:8px">—</div>
-      <div class="stat-footer" id="d-enrich-f">AI enrichment status</div>
-    </div>
-    <div class="stat-card" style="--c:#7c3aed">
-      <div class="stat-top"><div class="stat-label">Venue Type</div><div class="stat-icon">🏢</div></div>
-      <div class="stat-value" id="d-venue" style="font-size:13px;padding-top:8px">—</div>
-      <div class="stat-footer" id="d-venue-f">—</div>
-    </div>
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Waterfall Sources</div><div class="stat-icon">🔗</div></div><div class="stat-value" id="d-sources">—</div><div class="stat-footer">configured SSPs</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Device Status</div><div class="stat-icon">📱</div></div><div class="stat-value" id="d-status" style="font-size:14px;padding-top:8px">—</div><div class="stat-footer" id="d-status-f">fingerprint</div></div>
+    <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Enrichment</div><div class="stat-icon">🧠</div></div><div class="stat-value" id="d-enrich" style="font-size:14px;padding-top:8px">—</div><div class="stat-footer" id="d-enrich-f">AI enrichment status</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Venue Type</div><div class="stat-icon">🏢</div></div><div class="stat-value" id="d-venue" style="font-size:13px;padding-top:8px">—</div><div class="stat-footer" id="d-venue-f">—</div></div>
   </div>
-
-  <div class="card">
-    <div class="card-head"><span class="card-title">Waterfall Sources</span><span class="tag tb" id="d-waterfall-tag">—</span></div>
-    <div class="card-body" id="device-waterfall"><div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">Loading…</div></div></div>
-  </div>
-
+  <div class="card"><div class="card-head"><span class="card-title">Waterfall Sources</span><span class="tag tb" id="d-waterfall-tag">—</span></div><div class="card-body" id="device-waterfall"><div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">Loading…</div></div></div></div>
   <div class="two">
-    <div class="card">
-      <div class="card-head"><span class="card-title">Device Config</span></div>
-      <div class="card-body"><div class="kv" id="device-kv"><div class="empty"><div class="empty-icon">📱</div><div class="empty-text">Loading…</div></div></div></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><span class="card-title">Header Bidding Settings</span></div>
-      <div class="card-body"><div class="kv" id="device-hb-kv"><div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Loading…</div></div></div></div>
-    </div>
+    <div class="card"><div class="card-head"><span class="card-title">Device Config</span></div><div class="card-body"><div class="kv" id="device-kv"><div class="empty"><div class="empty-icon">📱</div><div class="empty-text">Loading…</div></div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Header Bidding Settings</span></div><div class="card-body"><div class="kv" id="device-hb-kv"><div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Loading…</div></div></div></div></div>
   </div>
-
-  <div class="card">
-    <div class="card-head"><span class="card-title">Raw Device Response</span></div>
-    <div class="card-body" style="padding:12px"><div class="jv" id="device-json">// press Reload</div></div>
-  </div>
+  <div class="card"><div class="card-head"><span class="card-title">Raw Device Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="device-json">// press Reload</div></div></div>
 </div>
 
-<!-- ═══ FLEET ═══ -->
+<!-- FLEET PAGE -->
 <div class="page" id="page-fleet">
-  <div class="ph">
-    <div class="ph-left"><div class="ph-title">Fleet</div><div class="ph-sub">fleet/overview · fleet/analytics</div></div>
-    <div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadFleet()">↻ Reload</button></div>
-  </div>
+  <div class="ph"><div class="ph-left"><div class="ph-title">Fleet</div><div class="ph-sub">fleet/overview · fleet/analytics</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadFleet()">↻ Reload</button></div></div>
   <div id="fleet-err"></div>
   <div class="two">
     <div class="card"><div class="card-head"><span class="card-title">Fleet Overview</span></div><div class="card-body" id="fleet-ov"><div class="empty"><div class="empty-icon">🚕</div><div class="empty-text">Loading…</div></div></div></div>
@@ -412,19 +252,13 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="fleet-json">// press Reload</div></div></div>
 </div>
 
-<!-- ═══ SCREEN ═══ -->
+<!-- SCREEN PAGE -->
 <div class="page" id="page-screen">
-  <div class="ph">
-    <div class="ph-left"><div class="ph-title">Screen Analytics</div><div class="ph-sub">screens/{screenId}/analytics</div></div>
-  </div>
+  <div class="ph"><div class="ph-left"><div class="ph-title">Screen Analytics</div><div class="ph-sub">screens/{screenId}/analytics</div></div></div>
   <div id="screen-err"></div>
   <div class="si-row">
     <input type="text" id="sc-id" placeholder="Screen ID" value="69a076ad2ccbba67a5ba1c1e"/>
-    <div class="ptabs">
-      <div class="ptab active" onclick="setPeriod(this,'7d')">7D</div>
-      <div class="ptab" onclick="setPeriod(this,'30d')">30D</div>
-      <div class="ptab" onclick="setPeriod(this,'90d')">90D</div>
-    </div>
+    <div class="ptabs"><div class="ptab active" onclick="setPeriod(this,'7d')">7D</div><div class="ptab" onclick="setPeriod(this,'30d')">30D</div><div class="ptab" onclick="setPeriod(this,'90d')">90D</div></div>
     <button class="btn btn-blue btn-sm" onclick="loadScreen()">↻ Load</button>
   </div>
   <div class="stat-grid">
@@ -433,26 +267,15 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Trend</div></div><div class="stat-value" id="sc-trend">—</div><div class="stat-footer">vs prior period</div></div>
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Status</div></div><div class="stat-value" id="sc-status" style="font-size:13px;padding-top:8px">—</div><div class="stat-footer" id="sc-name">—</div></div>
   </div>
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-head"><span class="card-title">Impression Timeline</span></div>
-    <div class="card-body">
-      <canvas id="tl-canvas" width="800" height="160"></canvas>
-      <div id="tl-empty" class="empty" style="display:none"><div class="empty-icon">📈</div><div class="empty-text">No timeline data</div></div>
-    </div>
-  </div>
+  <div class="card" style="margin-bottom:16px"><div class="card-head"><span class="card-title">Impression Timeline</span></div><div class="card-body"><canvas id="tl-canvas" width="800" height="160"></canvas><div id="tl-empty" class="empty" style="display:none"><div class="empty-icon">📈</div><div class="empty-text">No timeline data</div></div></div></div>
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="screen-json">// enter Screen ID and press Load</div></div></div>
 </div>
 
-<!-- ═══ AUDIENCE ═══ -->
+<!-- AUDIENCE PAGE -->
 <div class="page" id="page-audience">
-  <div class="ph">
-    <div class="ph-left"><div class="ph-title">Audience</div><div class="ph-sub">audience/live · audience/stats · venues/intelligence</div></div>
-  </div>
+  <div class="ph"><div class="ph-left"><div class="ph-title">Audience</div><div class="ph-sub">audience/live · audience/stats · venues/intelligence</div></div></div>
   <div id="aud-err"></div>
-  <div class="si-row">
-    <input type="text" id="aud-id" placeholder="Screen ID" value="69a076ad2ccbba67a5ba1c1e"/>
-    <button class="btn btn-blue btn-sm" onclick="loadAudience()">↻ Load All</button>
-  </div>
+  <div class="si-row"><input type="text" id="aud-id" placeholder="Screen ID" value="69a076ad2ccbba67a5ba1c1e"/><button class="btn btn-blue btn-sm" onclick="loadAudience()">↻ Load All</button></div>
   <div class="two">
     <div class="card"><div class="card-head"><span class="card-title">Live Audience</span><span class="tag tb">LIVE</span></div><div class="card-body" id="aud-live"><div class="empty"><div class="empty-icon">👥</div><div class="empty-text">Loading…</div></div></div></div>
     <div class="card"><div class="card-head"><span class="card-title">Audience Stats</span></div><div class="card-body" id="aud-stats"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
@@ -463,63 +286,59 @@ canvas{display:block;width:100%;height:160px}
   </div>
 </div>
 
-<!-- ═══ EARNINGS ═══ -->
+<!-- EARNINGS PAGE -->
 <div class="page" id="page-earnings">
-  <div class="ph">
-    <div class="ph-left">
-      <div class="ph-title">Earnings</div>
-      <div class="ph-sub">Track your screen earnings and transaction history</div>
-    </div>
-    <div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadEarnings()">↻ Reload</button></div>
-  </div>
+  <div class="ph"><div class="ph-left"><div class="ph-title">Earnings</div><div class="ph-sub">Track your screen earnings and transaction history</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadEarnings()">↻ Reload</button></div></div>
   <div id="earn-err"></div>
   <div class="stat-grid" id="earn-cards" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
-    <div class="stat-card" style="--c:#16a34a">
-      <div class="stat-top"><div class="stat-label">Total Earnings</div><div class="stat-icon">$</div></div>
-      <div class="stat-value sk" id="earn-total" style="height:28px;width:100px;color:#16a34a"> </div>
-      <div class="stat-footer" id="earn-total-sub">—</div>
-    </div>
-    <div class="stat-card" style="--c:#2563eb">
-      <div class="stat-top"><div class="stat-label">Available Balance</div><div class="stat-icon">↗</div></div>
-      <div class="stat-value" id="earn-available">—</div>
-      <div class="stat-footer">Ready to withdraw</div>
-    </div>
-    <div class="stat-card" style="--c:#7c3aed">
-      <div class="stat-top"><div class="stat-label">Active Screens</div><div class="stat-icon">📺</div></div>
-      <div class="stat-value" id="earn-screens">—</div>
-      <div class="stat-footer" id="earn-screens-sub">of 0 total screens</div>
-    </div>
-    <div class="stat-card" style="--c:#d97706">
-      <div class="stat-top"><div class="stat-label">Ad Plays</div><div class="stat-icon">↝</div></div>
-      <div class="stat-value" id="earn-plays">—</div>
-      <div class="stat-footer">Total impressions</div>
-    </div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Total Earnings</div><div class="stat-icon">$</div></div><div class="stat-value sk" id="earn-total" style="height:28px;width:100px;color:#16a34a"> </div><div class="stat-footer" id="earn-total-sub">—</div></div>
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Available Balance</div><div class="stat-icon">↗</div></div><div class="stat-value" id="earn-available">—</div><div class="stat-footer">Ready to withdraw</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Active Screens</div><div class="stat-icon">📺</div></div><div class="stat-value" id="earn-screens">—</div><div class="stat-footer" id="earn-screens-sub">of 0 total screens</div></div>
+    <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Ad Plays</div><div class="stat-icon">↝</div></div><div class="stat-value" id="earn-plays">—</div><div class="stat-footer">Total impressions</div></div>
   </div>
   <div class="two" style="margin-bottom:16px">
+    <div class="card"><div class="card-head"><span class="card-title">Programmatic Earnings</span></div><div class="card-body" id="earn-breakdown"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Breakdown by Type</span></div><div class="card-body" id="earn-bytype"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div></div>
+  </div>
+  <div class="card"><div class="card-head"><span class="card-title">Transaction History</span><span style="font-size:12px;color:#94a3b8">All your earnings and payout transactions</span></div><div id="earn-tx"><div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">Loading…</div></div></div></div>
+</div>
+
+<!-- RECONCILE PAGE -->
+<div class="page" id="page-reconcile">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title">Impression Reconciliation</div><div class="ph-sub">Our local KV log vs Trillboards API — spot discrepancies instantly</div></div>
+    <div class="ph-right">
+      <button class="btn btn-red btn-sm" onclick="clearKVImpressions()">🗑 Clear Log</button>
+      <button class="btn btn-blue btn-sm" onclick="loadReconcile()">↻ Reload</button>
+    </div>
+  </div>
+  <div id="rec-err"></div>
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:18px">
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Our Count (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today">—</div><div class="stat-footer">from KV log</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Trillboards (Today)</div><div class="stat-icon">📡</div></div><div class="stat-value" id="rec-trill-today">—</div><div class="stat-footer">from API</div></div>
+    <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">Discrepancy</div><div class="stat-icon">⚠</div></div><div class="stat-value" id="rec-delta">—</div><div class="stat-footer" id="rec-delta-pct">—</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Our Total (All Time)</div><div class="stat-icon">🗂</div></div><div class="stat-value" id="rec-our-total">—</div><div class="stat-footer">all in KV</div></div>
+  </div>
+  <div id="rec-alert" style="margin-bottom:16px"></div>
+  <div class="two" style="margin-bottom:16px">
     <div class="card">
-      <div class="card-head"><span class="card-title">Programmatic Earnings</span></div>
-      <div class="card-body" id="earn-breakdown"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div>
+      <div class="card-head"><span class="card-title">Our Local Log</span><span class="tag tb" id="rec-our-tag">KV</span></div>
+      <div class="card-body" id="rec-our-body"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Loading…</div></div></div>
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">Breakdown by Type</span></div>
-      <div class="card-body" id="earn-bytype"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div>
+      <div class="card-head"><span class="card-title">Trillboards API</span><span class="tag tg" id="rec-trill-tag">LIVE</span></div>
+      <div class="card-body" id="rec-trill-body"><div class="empty"><div class="empty-icon">📡</div><div class="empty-text">Loading…</div></div></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-head">
-      <span class="card-title">Transaction History</span>
-      <span style="font-size:12px;color:#94a3b8">All your earnings and payout transactions</span>
-    </div>
-    <div id="earn-tx"><div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">Loading…</div></div></div>
+    <div class="card-head"><span class="card-title">Local Impression Log</span><span style="font-size:12px;color:#94a3b8">Last 500 impressions — newest first</span></div>
+    <div id="rec-log-body"><div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">Loading…</div></div></div>
   </div>
 </div>
 
-<!-- ═══ USAGE ═══ -->
+<!-- USAGE PAGE -->
 <div class="page" id="page-usage">
-  <div class="ph">
-    <div class="ph-left"><div class="ph-title">API Usage</div><div class="ph-sub">usage · usage/rate-limit · usage/dashboard</div></div>
-    <div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadUsage()">↻ Reload</button></div>
-  </div>
+  <div class="ph"><div class="ph-left"><div class="ph-title">API Usage</div><div class="ph-sub">usage · usage/rate-limit · usage/dashboard</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadUsage()">↻ Reload</button></div></div>
   <div id="usage-err"></div>
   <div class="two">
     <div class="card"><div class="card-head"><span class="card-title">Rate Limits</span></div><div class="card-body" id="rate-body"><div class="empty"><div class="empty-icon">⏱</div><div class="empty-text">Loading…</div></div></div></div>
@@ -528,134 +347,57 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="usage-json">// press Reload</div></div></div>
 </div>
 
-<!-- ═══ RAW API ═══ -->
+<!-- RAW API PAGE -->
 <div class="page" id="page-raw">
-  <div class="ph">
-    <div class="ph-left"><div class="ph-title">Raw API Tester</div><div class="ph-sub">Call any endpoint directly</div></div>
-  </div>
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-head"><span class="card-title">Quick Endpoints</span></div>
-    <div class="card-body" style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/dashboard')">Dashboard</button>
-      <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/device/P_691cbdd4b3117cb1b692f4ae/ads')">Device Ads</button>
-      <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/connect/health')">Health</button>
-      <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/earnings')">Earnings</button>
-      <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/fleet/overview')">Fleet</button>
-      <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/usage/rate-limit')">Rate Limit</button>
-      <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/screens/69a076ad2ccbba67a5ba1c1e/analytics?period=7d')">Screen 7D</button>
+  <div class="ph"><div class="ph-left"><div class="ph-title">Raw API Tester</div><div class="ph-sub">Call any endpoint directly</div></div></div>
+  <div class="card" style="margin-bottom:16px"><div class="card-head"><span class="card-title">Quick Endpoints</span></div><div class="card-body" style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/dashboard')">Dashboard</button>
+    <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/device/P_691cbdd4b3117cb1b692f4ae/ads')">Device Ads</button>
+    <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/connect/health')">Health</button>
+    <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/earnings')">Earnings</button>
+    <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/fleet/overview')">Fleet</button>
+    <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/usage/rate-limit')">Rate Limit</button>
+    <button class="btn btn-white btn-sm" onclick="quickCall('/v1/partner/screens/69a076ad2ccbba67a5ba1c1e/analytics?period=7d')">Screen 7D</button>
+  </div></div>
+  <div class="card" style="margin-bottom:16px"><div class="card-head"><span class="card-title">Request</span></div><div class="card-body">
+    <div class="raw-form">
+      <select id="r-method"><option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option></select>
+      <input class="raw-input" type="text" id="r-path" value="/v1/partner/dashboard" placeholder="/v1/partner/..." style="flex:1;min-width:220px">
+      <button class="btn btn-blue btn-sm" onclick="rawCall()">▶ Send</button>
     </div>
-  </div>
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-head"><span class="card-title">Request</span></div>
-    <div class="card-body">
-      <div class="raw-form">
-        <select id="r-method"><option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option></select>
-        <input class="raw-input" type="text" id="r-path" value="/v1/partner/dashboard" placeholder="/v1/partner/..." style="flex:1;min-width:220px">
-        <button class="btn btn-blue btn-sm" onclick="rawCall()">▶ Send</button>
-      </div>
-      <textarea class="raw-form" id="r-body" placeholder='JSON body for POST/PATCH (optional)' style="width:100%"></textarea>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-head"><span class="card-title">Response</span><span id="r-badge" class="tag ts">—</span></div>
-    <div class="card-body" style="padding:12px"><div class="jv" id="r-json">// send a request above</div></div>
-  </div>
+    <textarea class="raw-form" id="r-body" placeholder='JSON body for POST/PATCH (optional)' style="width:100%"></textarea>
+  </div></div>
+  <div class="card"><div class="card-head"><span class="card-title">Response</span><span id="r-badge" class="tag ts">—</span></div><div class="card-body" style="padding:12px"><div class="jv" id="r-json">// send a request above</div></div></div>
 </div>
 
-<!-- ═══ TELEMETRY ═══ -->
+<!-- TELEMETRY PAGE -->
 <div class="page" id="page-telemetry">
-  <div class="ph">
-    <div class="ph-left">
-      <div class="ph-title">Screen Telemetry</div>
-      <div class="ph-sub">Unified telemetry for screen 69a076ad2ccbba67a5ba1c1e</div>
-    </div>
-    <div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadTelemetry()">↻ Reload</button></div>
-  </div>
+  <div class="ph"><div class="ph-left"><div class="ph-title">Screen Telemetry</div><div class="ph-sub">Unified telemetry for screen 69a076ad2ccbba67a5ba1c1e</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadTelemetry()">↻ Reload</button></div></div>
   <div id="tele-err"></div>
   <div id="tele-insight" style="margin-bottom:16px"></div>
-
   <div class="two" style="margin-bottom:16px">
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title" style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">🖥</span> Device Health
-        </span>
+    <div class="card"><div class="card-head"><span class="card-title" style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">🖥</span> Device Health</span></div><div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Errors (7d)</div><div style="font-size:20px;font-weight:700;color:#dc2626" id="t-errors">—</div></div>
+        <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Disconnects (7d)</div><div style="font-size:20px;font-weight:700;color:#d97706" id="t-disconnects">—</div></div>
       </div>
-      <div class="card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Errors (7d)</div><div style="font-size:20px;font-weight:700;color:#dc2626" id="t-errors">—</div></div>
-          <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Disconnects (7d)</div><div style="font-size:20px;font-weight:700;color:#d97706" id="t-disconnects">—</div></div>
-        </div>
-        <div style="font-size:12px;color:#6b7280">Top error: <span style="color:#374151;font-weight:500" id="t-top-error">—</span></div>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px">Last error: <span style="color:#374151" id="t-last-error">—</span></div>
+      <div style="font-size:12px;color:#6b7280">Top error: <span style="color:#374151;font-weight:500" id="t-top-error">—</span></div>
+      <div style="font-size:12px;color:#6b7280;margin-top:4px">Last error: <span style="color:#374151" id="t-last-error">—</span></div>
+    </div></div>
+    <div class="card"><div class="card-head"><span class="card-title" style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">↗</span> Ad Performance</span></div><div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Fill Rate</div><div style="font-size:20px;font-weight:700;color:#2563eb" id="t-fill-rate">—</div></div>
+        <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Avg CPM</div><div style="font-size:20px;font-weight:700;color:#16a34a" id="t-cpm">—</div></div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title" style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">↗</span> Ad Performance
-        </span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="font-size:12px;color:#6b7280">Requests (7d): <span style="color:#374151;font-weight:500" id="t-requests">—</span></div>
+        <div style="font-size:12px;color:#6b7280">Fills (7d): <span style="color:#374151;font-weight:500" id="t-fills">—</span></div>
+        <div style="font-size:12px;color:#6b7280">No bids (7d): <span style="color:#dc2626;font-weight:500" id="t-nobids">—</span></div>
+        <div style="font-size:12px;color:#6b7280">Avg latency: <span style="color:#374151;font-weight:500" id="t-latency">—</span></div>
       </div>
-      <div class="card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Fill Rate</div><div style="font-size:20px;font-weight:700;color:#2563eb" id="t-fill-rate">—</div></div>
-          <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Avg CPM</div><div style="font-size:20px;font-weight:700;color:#16a34a" id="t-cpm">—</div></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div style="font-size:12px;color:#6b7280">Requests (7d): <span style="color:#374151;font-weight:500" id="t-requests">—</span></div>
-          <div style="font-size:12px;color:#6b7280">Fills (7d): <span style="color:#374151;font-weight:500" id="t-fills">—</span></div>
-          <div style="font-size:12px;color:#6b7280">No bids (7d): <span style="color:#dc2626;font-weight:500" id="t-nobids">—</span></div>
-          <div style="font-size:12px;color:#6b7280">Avg latency: <span style="color:#374151;font-weight:500" id="t-latency">—</span></div>
-        </div>
-      </div>
-    </div>
+    </div></div>
   </div>
-
-  <div class="two" style="margin-bottom:16px">
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title" style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">👥</span> Audience
-        </span>
-      </div>
-      <div class="card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Avg Viewers</div><div style="font-size:20px;font-weight:700" id="t-viewers">—</div></div>
-          <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Attention</div><div style="font-size:20px;font-weight:700" id="t-attention">—</div></div>
-        </div>
-        <div style="font-size:12px;color:#6b7280">Receptivity: <span style="color:#374151;font-weight:500" id="t-receptivity">—</span></div>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px">Dominant mood: <span style="color:#374151" id="t-mood">—</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title" style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">⚡</span> Portal Engagement
-        </span>
-      </div>
-      <div class="card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Route Views (7d)</div><div style="font-size:20px;font-weight:700" id="t-route-views">—</div></div>
-          <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Last Visit</div><div style="font-size:14px;font-weight:500;color:#374151;padding-top:4px" id="t-last-visit">—</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <span class="card-title" style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:16px">📈</span> Quality Score
-      </span>
-      <span style="font-size:12px;color:#94a3b8" id="t-computed-at"></span>
-    </div>
-    <div class="card-body" id="t-quality">
-      <div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div>
-    </div>
-  </div>
-
+  <div class="card"><div class="card-head"><span class="card-title" style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">📈</span> Quality Score</span><span style="font-size:12px;color:#94a3b8" id="t-computed-at"></span></div><div class="card-body" id="t-quality"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div></div>
   <div style="font-size:11px;color:#94a3b8;text-align:right;margin-top:8px" id="t-refreshed"></div>
 </div>
 
@@ -663,27 +405,17 @@ canvas{display:block;width:100%;height:160px}
 </div>
 
 <script>
-// ════════════════════════════════════════
-// CONFIG
-// ════════════════════════════════════════
 const API_KEY    = 'trb_partner_srddcJroSLYdOrWqSKBksBwc7yyi2R37';
 const PARTNER_ID = '69a0754f15842a1159a06c08';
 const SCREEN_ID  = '69a076ad2ccbba67a5ba1c1e';
 const DEVICE_ID  = 'P_691cbdd4b3117cb1b692f4ae';
-
 const DIRECT = 'https://api.trillboards.com';
 const PROXY  = 'https://corsproxy.io/?url=https://api.trillboards.com';
-const EARNER_BASE = 'https://trillboards.com/api/v1/earner';
 const EARNER_PROXY = 'https://trillboards-proxy.johnm-af2.workers.dev/earner';
 const EARNER_PROXY_SECRET = 'curb2026';
-let BASE = DIRECT;
-let usingProxy = false;
-let period = '7d';
-let cd = 30;
+const WORKER_BASE = 'https://trillboards-proxy.johnm-af2.workers.dev';
+let BASE = DIRECT, usingProxy = false, period = '7d', cd = 30;
 
-// ════════════════════════════════════════
-// API CORE
-// ════════════════════════════════════════
 async function api(path, method='GET', body=null) {
   const headers = { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' };
   const opts = { method, headers, cache: 'no-store' };
@@ -696,21 +428,42 @@ async function api(path, method='GET', body=null) {
     return { status: res.status, ok: res.ok, data };
   } catch(e) {
     if (BASE === DIRECT) {
-      console.warn('Direct blocked, trying proxy…');
       BASE = PROXY; usingProxy = true;
       const res2 = await fetch(BASE + path + bust, opts);
       const data2 = await res2.json();
       setPill(true, 'LIVE (PROXY)');
       return { status: res2.status, ok: res2.ok, data: data2 };
     }
-    setPill(false, 'ERROR');
-    throw e;
+    setPill(false, 'ERROR'); throw e;
   }
 }
 
-// ════════════════════════════════════════
-// HELPERS
-// ════════════════════════════════════════
+async function workerGet(path) {
+  const res = await fetch(WORKER_BASE + path + '?_=' + Date.now(), {
+    headers: { 'X-Proxy-Secret': EARNER_PROXY_SECRET }
+  });
+  return res.json();
+}
+
+async function workerPost(path, body) {
+  const res = await fetch(WORKER_BASE + path, {
+    method: 'POST',
+    headers: { 'X-Proxy-Secret': EARNER_PROXY_SECRET, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+async function earnerApi(path) {
+  const bust = (path.includes('?') ? '&' : '?') + '_=' + Date.now();
+  const res = await fetch(EARNER_PROXY + path + bust, {
+    headers: { 'X-Proxy-Secret': EARNER_PROXY_SECRET, 'Content-Type': 'application/json' },
+    cache: 'no-store'
+  });
+  const data = await res.json();
+  return { status: res.status, ok: res.ok, data };
+}
+
 const $ = id => document.getElementById(id);
 const fn = n => n == null ? '—' : Number(n).toLocaleString();
 const fc = c => c == null ? '—' : '$' + (c/100).toLocaleString('en-US',{minimumFractionDigits:2});
@@ -768,192 +521,81 @@ function errBox(id, msg) {
   el.innerHTML=`<div class="alert alert-red"><strong>⚠ API Error</strong>${msg}</div>`;
 }
 
-// ════════════════════════════════════════
-// NAV
-// ════════════════════════════════════════
 function nav(name, el) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   $('page-'+name).classList.add('active');
   if(el) el.classList.add('active');
-  // Auto-load on first visit
   if(name==='device'&&$('device-json').textContent.includes('press')) loadDevice();
   if(name==='fleet'&&$('fleet-json').textContent.includes('press')) loadFleet();
   if(name==='earnings'&&$('earn-err')&&!$('earn-err').dataset.loaded) loadEarnings();
   if(name==='usage'&&$('usage-json').textContent.includes('press')) loadUsage();
   if(name==='telemetry'&&$('t-quality').textContent.includes('Loading')) loadTelemetry();
+  if(name==='reconcile') loadReconcile();
 }
 
-// ════════════════════════════════════════
-// DASHBOARD
-// ════════════════════════════════════════
 async function loadDashboard() {
   $('dash-err').innerHTML=''; $('dash-warn').innerHTML='';
   log('dash-log','i','→ GET /v1/partner/dashboard');
   try {
     const {status,ok,data} = await api('/v1/partner/dashboard');
     if(!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
-    log('dash-log','o',`← ${status} OK${usingProxy?' (via corsproxy.io)':''}`);
-    if(usingProxy) $('dash-warn').innerHTML=`<div class="alert alert-blue"><strong>ℹ Running via CORS proxy</strong>Ask Trillboards to whitelist <code>https://johnmoccia.github.io</code> in their CORS config for direct access.</div>`;
-
-    const d=data.data||data;
-    const stats=d.stats||{};
-    const earn=d.earnings||{};
-    const partner=d.partner||{};
-    const stripe=d.stripe_status||{};
-
-    setVal('s-total',    fn(stats.total_screens));
-    setVal('s-active',   fn(stats.active_screens));
-    setVal('s-offline',  fn(stats.offline_screens));
-    setVal('s-imp-today',fn(stats.total_impressions_today));
-    setVal('s-imp-week', fn(stats.total_impressions_week));
-    setVal('s-rev',      (earn.revenue_share_percent??'—')+'%');
+    log('dash-log','o',`← ${status} OK`);
+    if(usingProxy) $('dash-warn').innerHTML=`<div class="alert alert-blue"><strong>ℹ Running via CORS proxy</strong>Ask Trillboards to whitelist <code>https://johnmoccia.github.io</code></div>`;
+    const d=data.data||data, stats=d.stats||{}, earn=d.earnings||{}, partner=d.partner||{}, stripe=d.stripe_status||{};
+    setVal('s-total',fn(stats.total_screens)); setVal('s-active',fn(stats.active_screens));
+    setVal('s-offline',fn(stats.offline_screens)); setVal('s-imp-today',fn(stats.total_impressions_today));
+    setVal('s-imp-week',fn(stats.total_impressions_week)); setVal('s-rev',(earn.revenue_share_percent??'—')+'%');
     $('s-total-f').textContent=`${fn(stats.active_screens)} active · ${fn(stats.offline_screens)} offline`;
     $('s-active-f').textContent=`${fn(stats.pending_screens)} pending`;
     $('s-imp-month').textContent=fn(stats.total_impressions_month)+' this month';
-
-    $('partner-kv').innerHTML=
-      kv('Name', partner.name||'—')+
-      kv('Slug', partner.slug||'—')+
-      kv('Status', tgStatus(partner.status))+
-      kv('Stripe', tgStatus(stripe.account_status))+
-      kv('Created', fd(partner.created_at));
-
+    $('partner-kv').innerHTML=kv('Name',partner.name||'—')+kv('Slug',partner.slug||'—')+kv('Status',tgStatus(partner.status))+kv('Stripe',tgStatus(stripe.account_status))+kv('Created',fd(partner.created_at));
     const pt=$('p-status-tag');
     if(pt){ pt.className='tag '+(partner.status==='active'?'tg':'ts'); pt.textContent=(partner.status||'unknown').toUpperCase(); }
-
-    $('earnings-kv').innerHTML=
-      kv('Total Earned',    fc(earn.total_lifetime_cents||earn.total_earned_cents))+
-      kv('Available Payout',fc(earn.available_for_payout_cents||earn.available_payout_cents))+
-      kv('Pending Payout',  fc(earn.pending_confirmation_cents||earn.pending_payout_cents))+
-      kv('Next Payout',     fd((earn.next_payout_estimate||{}).date || earn.next_payout_date))+
-      kv('This Month',      fc(earn.this_month_cents))+
-      kv('Payout Threshold',fc(earn.payout_threshold_cents));
-
+    $('earnings-kv').innerHTML=kv('Total Earned',fc(earn.total_lifetime_cents||earn.total_earned_cents))+kv('Available Payout',fc(earn.available_for_payout_cents||earn.available_payout_cents))+kv('Pending Payout',fc(earn.pending_confirmation_cents||earn.pending_payout_cents))+kv('Next Payout',fd((earn.next_payout_estimate||{}).date||earn.next_payout_date))+kv('This Month',fc(earn.this_month_cents))+kv('Payout Threshold',fc(earn.payout_threshold_cents));
     const ts=d.top_screens||[];
-    if(!ts.length) {
-      $('top-screens').innerHTML='<div class="empty"><div class="empty-icon">📺</div><div class="empty-text">No screen data yet</div></div>';
-    } else {
-      const mx=Math.max(...ts.map(s=>s.impressions_today||0),1);
-      $('top-screens').innerHTML='<div class="bar-chart">'+ts.map(s=>`
-        <div class="bar-row">
-          <div class="bar-lbl" title="${s.name||s.screen_id}">${(s.name||s.screen_id||'—').slice(0,22)}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(((s.impressions_today||0)/mx)*100)}%;background:#2563eb"></div></div>
-          <div class="bar-val">${fn(s.impressions_today)}</div>
-        </div>`).join('')+'</div>';
-    }
-
+    if(!ts.length) { $('top-screens').innerHTML='<div class="empty"><div class="empty-icon">📺</div><div class="empty-text">No screen data yet</div></div>'; }
+    else { const mx=Math.max(...ts.map(s=>s.impressions_today||0),1); $('top-screens').innerHTML='<div class="bar-chart">'+ts.map(s=>`<div class="bar-row"><div class="bar-lbl" title="${s.name||s.screen_id}">${(s.name||s.screen_id||'—').slice(0,22)}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(((s.impressions_today||0)/mx)*100)}%;background:#2563eb"></div></div><div class="bar-val">${fn(s.impressions_today)}</div></div>`).join('')+'</div>'; }
     const ra=d.recent_activity||[];
-    if(!ra.length) {
-      $('activity').innerHTML='<div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">No activity yet</div></div>';
-    } else {
-      $('activity').innerHTML='<div class="imp-feed">'+ra.slice(0,8).map(a=>`
-        <div class="imp-row">
-          <div class="imp-dot" style="background:${a.type==='impression'?'#2563eb':'#16a34a'}"></div>
-          <div class="imp-text"><strong>${a.type||'event'}</strong>${a.ad_id?' · ad <code style="font-size:10px;background:#f1f5f9;padding:1px 5px;border-radius:3px;font-family:monospace">'+a.ad_id.slice(-10)+'</code>':''}</div>
-          <div class="imp-time">${fd(a.timestamp)}</div>
-        </div>`).join('')+'</div>';
-    }
+    if(!ra.length) { $('activity').innerHTML='<div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">No activity yet</div></div>'; }
+    else { $('activity').innerHTML='<div class="imp-feed">'+ra.slice(0,8).map(a=>`<div class="imp-row"><div class="imp-dot" style="background:${a.type==='impression'?'#2563eb':'#16a34a'}"></div><div class="imp-text"><strong>${a.type||'event'}</strong>${a.ad_id?' · '+a.ad_id.slice(-10):''}</div><div class="imp-time">${fd(a.timestamp)}</div></div>`).join('')+'</div>'; }
     log('dash-log','g',`partner="${partner.name}" · screens=${stats.total_screens} · imp_today=${stats.total_impressions_today}`);
-  } catch(e) {
-    setPill(false,'ERROR');
-    log('dash-log','e','✕ '+e.message);
-    errBox('dash-err', e.message);
-  }
+  } catch(e) { setPill(false,'ERROR'); log('dash-log','e','✕ '+e.message); errBox('dash-err', e.message); }
 }
 
-// ════════════════════════════════════════
-// DEVICE
-// ════════════════════════════════════════
 async function loadDevice() {
   $('device-err').innerHTML='';
   try {
     const {status,ok,data} = await api(`/v1/partner/device/${DEVICE_ID}/ads`);
     $('device-json').innerHTML=cj(data);
-    if(!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
-
-    const d=data.data||data;
-    const dev=d.device||d;
-    const hbs=d.header_bidding_settings||dev.header_bidding_settings||{};
-    const wf=hbs.vast_waterfall||{};
-    const sources=(wf.sources||[]).sort((a,b)=>(a.priority||0)-(b.priority||0));
-    const enrich=dev.enrichment||d.enrichment||{};
-    const venue=dev.venue||d.venue||{};
-
+    if(!ok) throw new Error(`HTTP ${status}`);
+    const d=data.data||data, dev=d.device||d, hbs=d.header_bidding_settings||dev.header_bidding_settings||{};
+    const wf=hbs.vast_waterfall||{}, sources=(wf.sources||[]).sort((a,b)=>(a.priority||0)-(b.priority||0));
+    const enrich=dev.enrichment||d.enrichment||{}, venue=dev.venue||d.venue||{};
     setVal('d-sources', sources.length||'—');
-    const dstat=dev.status||d.status||'—';
-    setVal('d-status', dstat.toUpperCase());
-    $('d-status-f').textContent=DEVICE_ID.slice(0,20)+'…';
-
-    const es=enrich.status||'—';
-    setVal('d-enrich', es.toUpperCase());
-    $('d-enrich-f').textContent=`confidence: ${enrich.confidence??'null'}`;
-    const nb=$('nb-device');
-    if(nb){ if(es==='pending'){nb.classList.add('show')}else{nb.classList.remove('show')} }
-
-    const vt=venue.venue_type||dev.venue_type||d.venue_type||'—';
-    setVal('d-venue', vt);
-    $('d-venue-f').textContent=venue.name||venue.address||'—';
-
-    const dwt=$('d-waterfall-tag');
-    if(dwt){ dwt.textContent=sources.length+' sources'; }
-
+    const dstat=dev.status||d.status||'—'; setVal('d-status', dstat.toUpperCase()); $('d-status-f').textContent=DEVICE_ID.slice(0,20)+'…';
+    const es=enrich.status||'—'; setVal('d-enrich', es.toUpperCase()); $('d-enrich-f').textContent=`confidence: ${enrich.confidence??'null'}`;
+    const nb=$('nb-device'); if(nb){ if(es==='pending'){nb.classList.add('show')}else{nb.classList.remove('show')} }
+    const vt=venue.venue_type||dev.venue_type||d.venue_type||'—'; setVal('d-venue', vt); $('d-venue-f').textContent=venue.name||venue.address||'—';
+    const dwt=$('d-waterfall-tag'); if(dwt){ dwt.textContent=sources.length+' sources'; }
     if(sources.length) {
-      $('device-waterfall').innerHTML='<div class="source-list">'+sources.map((s,i)=>`
-        <div class="source-row">
-          <div class="source-left">
-            <div class="source-num">${i+1}</div>
-            <div>
-              <div class="source-name">${s.name||s.id||'Source '+(i+1)}</div>
-              <div class="source-domain">${s.vast_url?(new URL(s.vast_url).hostname):'no url'}</div>
-            </div>
-          </div>
-          <div class="source-right">
-            <span class="tag ts" style="font-family:monospace">priority ${s.priority||i+1}</span>
-            ${s.enabled===false?'<span class="tag tr">DISABLED</span>':'<span class="tag tg">ENABLED</span>'}
-          </div>
-        </div>`).join('')+'</div>';
-    } else {
-      $('device-waterfall').innerHTML='<div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">No waterfall sources found</div></div>';
-    }
-
-    $('device-kv').innerHTML=renderObj({
-      device_id: DEVICE_ID,
-      screen_id: SCREEN_ID,
-      status: dstat,
-      venue_type: vt,
-      address: venue.address||dev.address||'—',
-      city: venue.city||dev.city||'—',
-      country: venue.country||dev.country||'—',
-    });
-
-    $('device-hb-kv').innerHTML=renderObj({
-      timeout_ms: hbs.timeout_ms,
-      refresh_interval: hbs.refresh_interval,
-      floor_cpm: hbs.floor_cpm,
-      currency: hbs.currency,
-      sources_count: sources.length,
-    });
-
-  } catch(e) { errBox('device-err', e.message); $('device-json').innerHTML=cj({error:e.message}); }
+      $('device-waterfall').innerHTML='<div class="source-list">'+sources.map((s,i)=>`<div class="source-row"><div class="source-left"><div class="source-num">${i+1}</div><div><div class="source-name">${s.name||s.id||'Source '+(i+1)}</div><div class="source-domain">${s.vast_url?(new URL(s.vast_url).hostname):'no url'}</div></div></div><div class="source-right"><span class="tag ts" style="font-family:monospace">priority ${s.priority||i+1}</span>${s.enabled===false?'<span class="tag tr">DISABLED</span>':'<span class="tag tg">ENABLED</span>'}</div></div>`).join('')+'</div>';
+    } else { $('device-waterfall').innerHTML='<div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">No waterfall sources found</div></div>'; }
+    $('device-kv').innerHTML=renderObj({device_id:DEVICE_ID,screen_id:SCREEN_ID,status:dstat,venue_type:vt,address:venue.address||dev.address||'—',city:venue.city||dev.city||'—',country:venue.country||dev.country||'—'});
+    $('device-hb-kv').innerHTML=renderObj({timeout_ms:hbs.timeout_ms,refresh_interval:hbs.refresh_interval,floor_cpm:hbs.floor_cpm,currency:hbs.currency,sources_count:sources.length});
+  } catch(e) { errBox('device-err', e.message); }
 }
 
-// ════════════════════════════════════════
-// FLEET
-// ════════════════════════════════════════
 async function loadFleet() {
   $('fleet-err').innerHTML='';
   try {
     const [ov,an]=await Promise.all([api('/v1/partner/fleet/overview'),api('/v1/partner/fleet/analytics')]);
-    $('fleet-ov').innerHTML=ov.ok?renderObj((ov.data||{}).data||ov.data):`<div class="alert alert-red"><strong>HTTP ${ov.status}</strong>${JSON.stringify(ov.data).slice(0,200)}</div>`;
-    $('fleet-an').innerHTML=an.ok?renderObj((an.data||{}).data||an.data):`<div class="alert alert-red"><strong>HTTP ${an.status}</strong>${JSON.stringify(an.data).slice(0,200)}</div>`;
+    $('fleet-ov').innerHTML=ov.ok?renderObj((ov.data||{}).data||ov.data):`<div class="alert alert-red"><strong>HTTP ${ov.status}</strong></div>`;
+    $('fleet-an').innerHTML=an.ok?renderObj((an.data||{}).data||an.data):`<div class="alert alert-red"><strong>HTTP ${an.status}</strong></div>`;
     $('fleet-json').innerHTML=cj({overview:ov.data,analytics:an.data});
   } catch(e) { errBox('fleet-err',e.message); }
 }
 
-// ════════════════════════════════════════
-// SCREEN
-// ════════════════════════════════════════
 function setPeriod(el,p) {
   period=p;
   document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
@@ -965,16 +607,11 @@ async function loadScreen() {
   $('screen-err').innerHTML=''; $('screen-json').textContent='Loading…';
   try {
     const {status,ok,data}=await api(`/v1/partner/screens/${sid}/analytics?period=${period}`);
-    if(!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
-    const d=data.data||data;
-    const imp=d.impressions||{}; const scr=d.screen||{};
-    setVal('sc-total',fn(imp.total));
-    setVal('sc-avg',  fn(imp.daily_average));
-    $('sc-name').textContent=scr.name||sid.slice(-12);
-    const ss=$('sc-status');
-    if(ss){ const s=scr.online_status||scr.status||'—'; ss.textContent=s.toUpperCase(); ss.style.color=s==='online'?'#16a34a':'#ef4444'; }
-    const tr=$('sc-trend');
-    if(tr){ const tp=imp.trend_percent; tr.textContent=tp!=null?(tp>0?'+':'')+tp+'%':'—'; tr.style.color=(tp||0)>=0?'#16a34a':'#ef4444'; }
+    if(!ok) throw new Error(`HTTP ${status}`);
+    const d=data.data||data, imp=d.impressions||{}, scr=d.screen||{};
+    setVal('sc-total',fn(imp.total)); setVal('sc-avg',fn(imp.daily_average)); $('sc-name').textContent=scr.name||sid.slice(-12);
+    const ss=$('sc-status'); if(ss){ const s=scr.online_status||scr.status||'—'; ss.textContent=s.toUpperCase(); ss.style.color=s==='online'?'#16a34a':'#ef4444'; }
+    const tr=$('sc-trend'); if(tr){ const tp=imp.trend_percent; tr.textContent=tp!=null?(tp>0?'+':'')+tp+'%':'—'; tr.style.color=(tp||0)>=0?'#16a34a':'#ef4444'; }
     drawTimeline(d.timeline||[]);
     $('screen-json').innerHTML=cj(data);
   } catch(e) { errBox('screen-err',e.message); $('screen-json').innerHTML=cj({error:e.message}); }
@@ -987,169 +624,112 @@ function drawTimeline(tl) {
   const W=canvas.offsetWidth||750; const H=160;
   canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext('2d');
-  const vals=tl.map(t=>t.impressions||0);
-  const mx=Math.max(...vals,1);
-  const p={t:10,r:12,b:28,l:54};
-  const w=W-p.l-p.r; const h=H-p.t-p.b;
+  const vals=tl.map(t=>t.impressions||0); const mx=Math.max(...vals,1);
+  const p={t:10,r:12,b:28,l:54}; const w=W-p.l-p.r; const h=H-p.t-p.b;
   ctx.clearRect(0,0,W,H);
-  for(let i=0;i<=4;i++){
-    const y=p.t+h-(i/4)*h;
-    ctx.strokeStyle='#f1f5f9';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(p.l+w,y);ctx.stroke();
-    ctx.fillStyle='#94a3b8';ctx.font='9px Inter,sans-serif';ctx.textAlign='right';
-    ctx.fillText(fn(Math.round((i/4)*mx)),p.l-5,y+3);
-  }
-  const xi=i=>p.l+(i/(vals.length-1||1))*w;
-  const yi=v=>p.t+h-(v/mx)*h;
-  const grad=ctx.createLinearGradient(0,p.t,0,p.t+h);
-  grad.addColorStop(0,'rgba(37,99,235,0.18)');grad.addColorStop(1,'rgba(37,99,235,0)');
-  ctx.beginPath();ctx.moveTo(xi(0),yi(vals[0]));
-  vals.forEach((v,i)=>{if(i>0)ctx.lineTo(xi(i),yi(v));});
-  ctx.lineTo(xi(vals.length-1),p.t+h);ctx.lineTo(xi(0),p.t+h);ctx.closePath();
-  ctx.fillStyle=grad;ctx.fill();
-  ctx.beginPath();ctx.strokeStyle='#2563eb';ctx.lineWidth=2.5;
-  vals.forEach((v,i)=>i===0?ctx.moveTo(xi(i),yi(v)):ctx.lineTo(xi(i),yi(v)));ctx.stroke();
-  ctx.fillStyle='#2563eb';
-  vals.forEach((v,i)=>{ctx.beginPath();ctx.arc(xi(i),yi(v),3.5,0,Math.PI*2);ctx.fill();});
-  const step=Math.max(1,Math.floor(vals.length/8));
-  ctx.fillStyle='#94a3b8';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';
-  tl.forEach((t,i)=>{
-    if(i%step!==0&&i!==vals.length-1)return;
-    const d=new Date(t.date);ctx.fillText(`${d.getMonth()+1}/${d.getDate()}`,xi(i),H-7);
-  });
+  for(let i=0;i<=4;i++){const y=p.t+h-(i/4)*h;ctx.strokeStyle='#f1f5f9';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(p.l+w,y);ctx.stroke();ctx.fillStyle='#94a3b8';ctx.font='9px Inter,sans-serif';ctx.textAlign='right';ctx.fillText(fn(Math.round((i/4)*mx)),p.l-5,y+3);}
+  const xi=i=>p.l+(i/(vals.length-1||1))*w; const yi=v=>p.t+h-(v/mx)*h;
+  const grad=ctx.createLinearGradient(0,p.t,0,p.t+h); grad.addColorStop(0,'rgba(37,99,235,0.18)'); grad.addColorStop(1,'rgba(37,99,235,0)');
+  ctx.beginPath();ctx.moveTo(xi(0),yi(vals[0]));vals.forEach((v,i)=>{if(i>0)ctx.lineTo(xi(i),yi(v));});ctx.lineTo(xi(vals.length-1),p.t+h);ctx.lineTo(xi(0),p.t+h);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='#2563eb';ctx.lineWidth=2.5;vals.forEach((v,i)=>i===0?ctx.moveTo(xi(i),yi(v)):ctx.lineTo(xi(i),yi(v)));ctx.stroke();
+  ctx.fillStyle='#2563eb';vals.forEach((v,i)=>{ctx.beginPath();ctx.arc(xi(i),yi(v),3.5,0,Math.PI*2);ctx.fill();});
+  const step=Math.max(1,Math.floor(vals.length/8));ctx.fillStyle='#94a3b8';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';
+  tl.forEach((t,i)=>{if(i%step!==0&&i!==vals.length-1)return;const d=new Date(t.date);ctx.fillText(`${d.getMonth()+1}/${d.getDate()}`,xi(i),H-7);});
 }
 
-// ════════════════════════════════════════
-// AUDIENCE
-// ════════════════════════════════════════
 async function loadAudience() {
   const sid=$('aud-id').value.trim()||SCREEN_ID;
   $('aud-err').innerHTML='';
-  const targets=[
-    {url:`/v1/partner/audience/live/${sid}`,el:'aud-live'},
-    {url:`/v1/partner/audience/stats`,      el:'aud-stats'},
-    {url:`/v1/partner/venues/${sid}/intelligence`,el:'aud-venue'},
-    {url:`/v1/partner/audience/heatmap`,    el:'aud-heatmap'},
-  ];
+  const targets=[{url:`/v1/partner/audience/live/${sid}`,el:'aud-live'},{url:`/v1/partner/audience/stats`,el:'aud-stats'},{url:`/v1/partner/venues/${sid}/intelligence`,el:'aud-venue'},{url:`/v1/partner/audience/heatmap`,el:'aud-heatmap'}];
   targets.forEach(t=>{$(t.el).innerHTML='<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Loading…</div></div>';});
   await Promise.all(targets.map(async t=>{
-    try {
-      const {status,ok,data}=await api(t.url);
-      $(t.el).innerHTML=ok?renderObj((data||{}).data||data):`<div class="alert alert-red"><strong>HTTP ${status}</strong>${JSON.stringify(data).slice(0,200)}</div>`;
-    } catch(e){$(t.el).innerHTML=`<div class="alert alert-red"><strong>Error</strong>${e.message}</div>`;}
+    try { const {status,ok,data}=await api(t.url); $(t.el).innerHTML=ok?renderObj((data||{}).data||data):`<div class="alert alert-red"><strong>HTTP ${status}</strong></div>`; }
+    catch(e){$(t.el).innerHTML=`<div class="alert alert-red"><strong>Error</strong>${e.message}</div>`;}
   }));
 }
 
-// ════════════════════════════════════════
-// EARNINGS
-// ════════════════════════════════════════
-// EARNER API (uses trillboards_earner_access_token from localStorage)
-// ════════════════════════════════════════
-function getEarnerToken() {
-  return localStorage.getItem('trillboards_earner_access_token') || null;
-}
-
-async function earnerApi(path) {
-  const bust = (path.includes('?') ? '&' : '?') + '_=' + Date.now();
-
-  // Try proxy first (works from any browser/domain)
-  if (EARNER_PROXY && !EARNER_PROXY.includes('YOURSUBDOMAIN')) {
-    try {
-      const res = await fetch(EARNER_PROXY + path + bust, {
-        headers: {
-          'X-Proxy-Secret': EARNER_PROXY_SECRET,
-          'Content-Type': 'application/json'
-        },
-        cache: 'no-store'
-      });
-      const data = await res.json();
-      return { status: res.status, ok: res.ok, data };
-    } catch(e) {
-      console.warn('Proxy failed, trying localStorage token…', e);
-    }
-  }
-
-  // Fallback: use localStorage token (only works if logged into trillboards.com in same browser)
-  const token = getEarnerToken();
-  if (!token) throw new Error('No earner token found — deploy the Cloudflare proxy or log in to trillboards.com in this browser');
-  const res = await fetch(EARNER_BASE + path + bust, {
-    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-    cache: 'no-store'
-  });
-  const data = await res.json();
-  return { status: res.status, ok: res.ok, data };
-}
-
-// ════════════════════════════════════════
 async function loadEarnings() {
   $('earn-err').innerHTML='';
   try {
-    const [dash, tx] = await Promise.all([
-      earnerApi('/dashboard-data?portal=earner'),
-      earnerApi('/payment-list?page=1&limit=50')
-    ]);
-
+    const [dash, tx] = await Promise.all([earnerApi('/dashboard-data?portal=earner'), earnerApi('/payment-list?page=1&limit=50')]);
     const d = dash.data || {};
-    // dashboard-data returns amounts in dollars directly (not cents)
-    const fmt = v => (v==null||v===undefined) ? '—' : '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-
-    // Populate new stat cards
-    const totalEl = $('earn-total');
-    if(totalEl){ totalEl.textContent = fmt(d.amount); totalEl.className='stat-value'; totalEl.style.color='#16a34a'; }
-    const totalSub = $('earn-total-sub');
-    if(totalSub) totalSub.textContent = '$0.00 direct + ' + fmt(d.programmatic_earnings||d.amount) + ' programmatic';
-    const availEl = $('earn-available');
-    if(availEl){ availEl.textContent = fmt(d.available_for_withdrawal); availEl.className='stat-value'; }
-    const screensEl = $('earn-screens');
-    if(screensEl){ screensEl.textContent = fn(d.active_screens||0); screensEl.className='stat-value'; }
-    const screensSub = $('earn-screens-sub');
-    if(screensSub) screensSub.textContent = 'of ' + fn(d.total_screens||0) + ' total screens';
-    const playsEl = $('earn-plays');
-    if(playsEl){ playsEl.textContent = fn(d.advertisementPlay||d.programmatic_impressions||0); playsEl.className='stat-value'; }
-
-    $('earn-breakdown').innerHTML=`
-      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:8px">
-        <div style="font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:500">Programmatic Earnings</div>
-        <div style="font-size:26px;font-weight:700;color:#2563eb;margin-bottom:4px">${fmt(d.programmatic_earnings||d.amount)}</div>
-        <div style="font-size:12px;color:#94a3b8">Pending (net-60) <span style="float:right;color:#6b7280">${fmt(d.programmatic_breakdown?.estimated||d.amount)}</span></div>
-      </div>`;
-    $('earn-bytype').innerHTML=
-      kv('Direct',fmt(d.direct_earnings||0))+
-      kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+
-      kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+
-      kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+
-      kv('Rev Share',(d.revenue_share_percent??'70')+'%')+
-      kv('Available',fmt(d.available_for_withdrawal));
-
+    const fmt = v => (v==null) ? '—' : '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const totalEl = $('earn-total'); if(totalEl){ totalEl.textContent = fmt(d.amount); totalEl.className='stat-value'; totalEl.style.color='#16a34a'; }
+    const totalSub = $('earn-total-sub'); if(totalSub) totalSub.textContent = '$0.00 direct + ' + fmt(d.programmatic_earnings||d.amount) + ' programmatic';
+    const availEl = $('earn-available'); if(availEl){ availEl.textContent = fmt(d.available_for_withdrawal); availEl.className='stat-value'; }
+    const screensEl = $('earn-screens'); if(screensEl){ screensEl.textContent = fn(d.active_screens||0); screensEl.className='stat-value'; }
+    const screensSub = $('earn-screens-sub'); if(screensSub) screensSub.textContent = 'of ' + fn(d.total_screens||0) + ' total screens';
+    const playsEl = $('earn-plays'); if(playsEl){ playsEl.textContent = fn(d.advertisementPlay||d.programmatic_impressions||0); playsEl.className='stat-value'; }
+    $('earn-breakdown').innerHTML=`<div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:8px"><div style="font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:500">Programmatic Earnings</div><div style="font-size:26px;font-weight:700;color:#2563eb;margin-bottom:4px">${fmt(d.programmatic_earnings||d.amount)}</div><div style="font-size:12px;color:#94a3b8">Pending (net-60) <span style="float:right;color:#6b7280">${fmt(d.programmatic_breakdown?.estimated||d.amount)}</span></div></div>`;
+    $('earn-bytype').innerHTML=kv('Direct',fmt(d.direct_earnings||0))+kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+kv('Rev Share',(d.revenue_share_percent??'70')+'%')+kv('Available',fmt(d.available_for_withdrawal));
     const txList = tx.data?.data || [];
     $('earn-tx').innerHTML = txList.length
-      ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Screen</th><th>Amount</th><th>Fees</th><th>Net</th></tr></thead><tbody>${
-          txList.map(t=>{
-            const net=fmt(t.amount_received??t.amount);
-            const gross=fmt(t.gross_amount??t.amount_received??t.amount);
-            const fees=t.fees?fmt(t.fees):'-';
-            const impressions=t.impressions?fn(t.impressions)+' impressions':t.advertisement?.name||t.source_provider||'—';
-            const cpm=t.cpm?' @ $'+Number(t.cpm).toFixed(2)+' CPM':'';
-            const status=t.programmatic_status||t.event_type||'pending';
-            return `<tr>
-              <td style="white-space:nowrap">${fd(t.createdAt)}</td>
-              <td><span class="tag ${status==='estimated'||status==='pending'?'ty':status==='confirmed'?'tg':'ts'}" style="white-space:nowrap">+ Programmatic<br><span style="font-weight:400;font-size:10px">(${status.charAt(0).toUpperCase()+status.slice(1)})</span></span></td>
-              <td style="font-size:12px">${impressions}${cpm}</td>
-              <td style="font-size:12px;color:#374151">${t.screen?.name||'Curb Taxi Advertising Screen - New York City'}</td>
-              <td style="font-weight:600;color:#374151">${gross}</td>
-              <td style="color:#94a3b8">${fees}</td>
-              <td style="font-weight:600;color:#16a34a">${net}</td>
-            </tr>`;
-          }).join('')
-        }</tbody></table>`
+      ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Screen</th><th>Amount</th><th>Net</th></tr></thead><tbody>${txList.map(t=>{const net=fmt(t.amount_received??t.amount);const gross=fmt(t.gross_amount??t.amount_received??t.amount);const impressions=t.impressions?fn(t.impressions)+' impressions':t.advertisement?.name||t.source_provider||'—';const cpm=t.cpm?' @ $'+Number(t.cpm).toFixed(2)+' CPM':'';const status=t.programmatic_status||t.event_type||'pending';return`<tr><td style="white-space:nowrap">${fd(t.createdAt)}</td><td><span class="tag ${status==='estimated'||status==='pending'?'ty':status==='confirmed'?'tg':'ts'}">Programmatic</span></td><td style="font-size:12px">${impressions}${cpm}</td><td style="font-size:12px">${t.screen?.name||'Curb Taxi - NYC'}</td><td style="font-weight:600">${gross}</td><td style="font-weight:600;color:#16a34a">${net}</td></tr>`;}).join('')}</tbody></table>`
       : '<div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">No transactions yet</div></div>';
-
   } catch(e){ errBox('earn-err', e.message); }
 }
 
-// ════════════════════════════════════════
-// USAGE
-// ════════════════════════════════════════
+// ════ RECONCILE ════
+async function loadReconcile() {
+  $('rec-err').innerHTML = '';
+  $('rec-alert').innerHTML = '';
+  try {
+    const [kvData, dashData] = await Promise.all([
+      workerGet('/get-impressions'),
+      api('/v1/partner/dashboard')
+    ]);
+    const ourTotal = kvData.total || 0;
+    const ourToday = kvData.today || 0;
+    const imps = kvData.impressions || [];
+    const d = dashData.data?.data || dashData.data || {};
+    const trillToday = d.stats?.total_impressions_today || 0;
+    const trillWeek  = d.stats?.total_impressions_week  || 0;
+    const delta = ourToday - trillToday;
+    const deltaPct = trillToday > 0 ? ((delta / trillToday) * 100).toFixed(1) : null;
+
+    setVal('rec-our-today', fn(ourToday));
+    setVal('rec-trill-today', fn(trillToday));
+    setVal('rec-our-total', fn(ourTotal));
+
+    const deltaEl = $('rec-delta');
+    if (deltaEl) { deltaEl.textContent = (delta >= 0 ? '+' : '') + fn(delta); deltaEl.style.color = delta === 0 ? '#16a34a' : '#ef4444'; }
+    const deltaPctEl = $('rec-delta-pct');
+    if (deltaPctEl) deltaPctEl.textContent = deltaPct !== null ? Math.abs(deltaPct) + '% variance' : 'no trill data yet';
+
+    const alertEl = $('rec-alert');
+    if (delta === 0 && ourToday === 0 && trillToday === 0) {
+      alertEl.innerHTML = `<div class="alert alert-blue"><strong>ℹ No impressions today yet</strong>Waiting for first impression from the tablet.</div>`;
+    } else if (delta === 0) {
+      alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Counts match</strong>Both our log and Trillboards API show ${fn(ourToday)} impressions today.</div>`;
+    } else {
+      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy detected</strong>Our log: <strong>${fn(ourToday)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: ${fn(Math.abs(delta))} (${deltaPct !== null ? Math.abs(deltaPct)+'%' : '—'})</div>`;
+    }
+
+    $('rec-our-body').innerHTML = `<div class="kv">${kv('Today', fn(ourToday))}${kv('All Time', fn(ourTotal))}${kv('Last Impression', imps.length ? new Date(imps[imps.length-1].ts).toLocaleString() : '—')}${kv('Log Entries', fn(imps.length))}</div>`;
+    $('rec-trill-body').innerHTML = `<div class="kv">${kv('Today', fn(trillToday))}${kv('This Week', fn(trillWeek))}${kv('Active Screens', fn(d.stats?.active_screens))}${kv('Total Screens', fn(d.stats?.total_screens))}</div>`;
+
+    if (!imps.length) {
+      $('rec-log-body').innerHTML = '<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No impressions logged yet — make sure the ad unit dual-post is active</div></div>';
+    } else {
+      const rows = [...imps].reverse().slice(0, 200).map(i => `
+        <tr>
+          <td style="white-space:nowrap;font-family:monospace;font-size:11px">${new Date(i.ts).toLocaleString()}</td>
+          <td style="font-family:monospace;font-size:11px">${(i.ad_id||'—').slice(-20)}</td>
+          <td>${i.completed ? '<span class="tag tg">✓ Complete</span>' : '<span class="tag ty">Start</span>'}</td>
+          <td style="font-family:monospace;font-size:11px">${i.duration_ms ? Math.round(i.duration_ms/1000)+'s' : '—'}</td>
+          <td style="font-family:monospace;font-size:10px;color:#94a3b8">${(i.impression_id||'—').slice(0,28)}</td>
+        </tr>`).join('');
+      $('rec-log-body').innerHTML = `<table class="tbl"><thead><tr><th>Time</th><th>Ad ID</th><th>Status</th><th>Duration</th><th>Impression ID</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+  } catch(e) { errBox('rec-err', e.message); }
+}
+
+async function clearKVImpressions() {
+  if (!confirm('Clear all local impression logs? This cannot be undone.')) return;
+  try { await workerPost('/clear-impressions', {}); alert('Log cleared.'); loadReconcile(); }
+  catch(e) { alert('Error: ' + e.message); }
+}
+
 async function loadUsage() {
   $('usage-err').innerHTML='';
   try {
@@ -1157,8 +737,7 @@ async function loadUsage() {
     const rate=(rr.data||{}).data||rr.data||{};
     const meter=(lbl,used,limit,color='#2563eb')=>{
       if(limit==null) return kv(lbl,String(used??'—'));
-      const pct=Math.min(100,Math.round((used/limit)*100));
-      const c=pct>80?'#ef4444':pct>60?'#d97706':color;
+      const pct=Math.min(100,Math.round((used/limit)*100)); const c=pct>80?'#ef4444':pct>60?'#d97706':color;
       return `<div class="um"><div class="um-head"><span>${lbl}</span><span>${fn(used)} / ${fn(limit)}</span></div><div class="um-track"><div class="um-fill" style="width:${pct}%;background:${c}"></div></div></div>`;
     };
     $('rate-body').innerHTML=meter('Requests / Hour',rate.requests_used,rate.requests_limit)+meter('Requests / Day',rate.daily_used,rate.daily_limit)+renderObj(rate);
@@ -1167,15 +746,9 @@ async function loadUsage() {
   } catch(e){errBox('usage-err',e.message);}
 }
 
-// ════════════════════════════════════════
-// RAW API
-// ════════════════════════════════════════
 function quickCall(path) { $('r-path').value=path; rawCall(); }
-
 async function rawCall() {
-  const method=$('r-method').value;
-  const path=$('r-path').value.trim();
-  const bodyTx=$('r-body').value.trim();
+  const method=$('r-method').value, path=$('r-path').value.trim(), bodyTx=$('r-body').value.trim();
   const badge=$('r-badge');
   $('r-json').textContent='Loading…'; badge.textContent='…'; badge.className='tag ts';
   try {
@@ -1186,83 +759,34 @@ async function rawCall() {
   } catch(e){ badge.textContent='ERR'; badge.className='tag tr'; $('r-json').innerHTML=cj({error:e.message}); }
 }
 
-// ════════════════════════════════════════
-// AUTO REFRESH + INIT
-// ════════════════════════════════════════
-// ════════════════════════════════════════
-// TELEMETRY
-// ════════════════════════════════════════
 async function loadTelemetry() {
   $('tele-err').innerHTML = '';
   try {
-    const SCREEN_ID = '69a076ad2ccbba67a5ba1c1e';
     const bust = '?_=' + Date.now();
     const res = await fetch(EARNER_PROXY + '/screens/' + SCREEN_ID + '/unified-telemetry' + bust, {
       headers: { 'X-Proxy-Secret': EARNER_PROXY_SECRET, 'Content-Type': 'application/json' }
     });
     const t = await res.json();
     if (!res.ok) throw new Error(JSON.stringify(t));
-
-    // Insight badge
-    const insightMap = {
-      'device_errors_impacting_fill': { label: 'Errors Impacting Fill', cls: 'tr' },
-      'low_fill_rate': { label: 'Low Fill Rate', cls: 'ty' },
-      'good_performance': { label: 'Good Performance', cls: 'tg' },
-    };
+    const insightMap = {'device_errors_impacting_fill':{label:'Errors Impacting Fill',cls:'tr'},'low_fill_rate':{label:'Low Fill Rate',cls:'ty'},'good_performance':{label:'Good Performance',cls:'tg'}};
     const ins = insightMap[t.screen_insight] || { label: t.screen_insight || '—', cls: 'ts' };
-    $('tele-insight').innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#6b7280">
-      Insight: <span class="tag ${ins.cls}" style="font-size:12px">${ins.label}</span>
-    </div>`;
-
-    // Device Health
+    $('tele-insight').innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#6b7280">Insight: <span class="tag ${ins.cls}" style="font-size:12px">${ins.label}</span></div>`;
     const dh = t.device_health || {};
     $('t-errors').textContent = dh.error_count_7d || '0';
     $('t-disconnects').textContent = dh.disconnect_count_7d || '0';
     $('t-top-error').textContent = dh.dominant_error_class || '—';
     $('t-last-error').textContent = dh.last_error_at ? fd(dh.last_error_at) : '—';
-
-    // Ad Performance
     const ap = t.ad_performance || {};
     $('t-fill-rate').textContent = (ap.fill_rate_pct || 0).toFixed(1) + '%';
     $('t-fill-rate').style.color = ap.fill_rate_pct > 20 ? '#16a34a' : ap.fill_rate_pct > 5 ? '#d97706' : '#dc2626';
     $('t-cpm').textContent = ap.avg_cpm ? '$' + Number(ap.avg_cpm).toFixed(2) : '—';
-    $('t-requests').textContent = fn(ap.total_requests_7d);
-    $('t-fills').textContent = fn(ap.total_fills_7d);
-    $('t-nobids').textContent = fn(ap.no_fill_count_7d);
-    $('t-latency').textContent = ap.avg_latency_ms ? Math.round(ap.avg_latency_ms) + 'ms' : '—';
-
-    // Audience
-    const aud = t.audience || {};
-    $('t-viewers').textContent = Number(aud.avg_face_count || 0).toFixed(1);
-    $('t-attention').textContent = Math.round((aud.avg_attention || 0) * 100) + '%';
-    $('t-receptivity').textContent = Math.round((aud.avg_receptivity || 0) * 100) + '%';
-    $('t-mood').textContent = aud.dominant_mood || '—';
-
-    // Portal engagement
-    const pe = t.portal_engagement || {};
-    $('t-route-views').textContent = fn(pe.route_views_7d);
-    $('t-last-visit').textContent = pe.last_portal_visit ? fd(pe.last_portal_visit) : 'Never';
-
-    // Quality Score bars
+    $('t-requests').textContent = fn(ap.total_requests_7d); $('t-fills').textContent = fn(ap.total_fills_7d);
+    $('t-nobids').textContent = fn(ap.no_fill_count_7d); $('t-latency').textContent = ap.avg_latency_ms ? Math.round(ap.avg_latency_ms) + 'ms' : '—';
     const qs = t.quality_score || {};
-    const bars = [
-      { label: 'Composite', val: qs.composite || 0, color: '#2563eb' },
-      { label: 'Reliability', val: qs.reliability || 0, color: '#16a34a' },
-      { label: 'Audience', val: qs.audience_quality || 0, color: '#7c3aed' },
-      { label: 'Fill Perf', val: qs.fill_performance || 0, color: '#d97706' },
-      { label: 'Engagement', val: qs.engagement || 0, color: '#0891b2' },
-    ];
-    $('t-quality').innerHTML = bars.map(b => `
-      <div style="display:grid;grid-template-columns:90px 1fr 48px;align-items:center;gap:12px;margin-bottom:12px">
-        <div style="font-size:13px;color:#374151">${b.label}</div>
-        <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden">
-          <div style="height:100%;width:${Math.round(b.val*100)}%;background:${b.color};border-radius:4px;transition:width .8s"></div>
-        </div>
-        <div style="font-size:13px;font-weight:600;color:#374151;text-align:right">${Math.round(b.val*100)}%</div>
-      </div>`).join('');
+    const bars = [{label:'Composite',val:qs.composite||0,color:'#2563eb'},{label:'Reliability',val:qs.reliability||0,color:'#16a34a'},{label:'Audience',val:qs.audience_quality||0,color:'#7c3aed'},{label:'Fill Perf',val:qs.fill_performance||0,color:'#d97706'},{label:'Engagement',val:qs.engagement||0,color:'#0891b2'}];
+    $('t-quality').innerHTML = bars.map(b => `<div style="display:grid;grid-template-columns:90px 1fr 48px;align-items:center;gap:12px;margin-bottom:12px"><div style="font-size:13px;color:#374151">${b.label}</div><div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.round(b.val*100)}%;background:${b.color};border-radius:4px;transition:width .8s"></div></div><div style="font-size:13px;font-weight:600;color:#374151;text-align:right">${Math.round(b.val*100)}%</div></div>`).join('');
     if(qs.computed_at) $('t-computed-at').textContent = 'Computed ' + fd(qs.computed_at);
     if(t.refreshed_at) $('t-refreshed').textContent = 'Last refreshed: ' + new Date(t.refreshed_at).toLocaleString();
-
   } catch(e) { errBox('tele-err', e.message); }
 }
 
