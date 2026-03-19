@@ -728,14 +728,11 @@ async function loadReconcile() {
 
     // For yesterday: sum impressions from transactions matching that date
     const yesterdayDate = estDate(-1); // YYYY-MM-DD in EST
-    const yesterdayTx = txList.filter(t => {
-      if (!t.createdAt) return false;
-      const txDate = new Date(t.createdAt).toLocaleDateString('en-CA', {timeZone: 'America/New_York'});
-      return txDate === yesterdayDate;
-    });
-    const trillYesterdayImps = yesterdayTx.reduce((sum, t) => sum + (t.impressions || 0), 0);
-    const trillYesterdayEarnings = yesterdayTx.reduce((sum, t) => sum + (t.amount_received ?? t.gross_amount ?? t.amount ?? 0), 0);
-    const trillYesterdayCPM = yesterdayTx.length && yesterdayTx[0].cpm ? yesterdayTx[0].cpm : null;
+    const yesterdayTx = txList.filter(t => (t.createdAt || '').slice(0, 10) === yesterdayDate);
+    const txToUse = yesterdayTx.length ? yesterdayTx : [];
+    const trillYesterdayImps = txToUse.reduce((sum, t) => sum + (t.impressions_count || 0), 0);
+    const trillYesterdayEarnings = txToUse.reduce((sum, t) => sum + (t.amount || 0), 0);
+    const trillYesterdayCPM = txToUse.length && txToUse[0].cpm_rate ? txToUse[0].cpm_rate : null;
 
     const trillToday = recDay === 'yesterday'
       ? trillYesterdayImps
