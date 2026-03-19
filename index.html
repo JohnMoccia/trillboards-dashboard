@@ -312,8 +312,9 @@ canvas{display:block;width:100%;height:160px}
     </div>
   </div>
   <div id="rec-err"></div>
-  <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:18px">
-    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Our Count (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today">—</div><div class="stat-footer">completed impressions</div></div>
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:18px">
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Completed (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today">—</div><div class="stat-footer">completed impressions</div></div>
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Requests (Today)</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="rec-requests-today">—</div><div class="stat-footer">ad requests fired</div></div>
     <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Trillboards (Today)</div><div class="stat-icon">📡</div></div><div class="stat-value" id="rec-trill-today">—</div><div class="stat-footer">from API</div></div>
     <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">Discrepancy</div><div class="stat-icon">⚠</div></div><div class="stat-value" id="rec-delta">—</div><div class="stat-footer" id="rec-delta-pct">—</div></div>
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Our Total (All Time)</div><div class="stat-icon">🗂</div></div><div class="stat-value" id="rec-our-total">—</div><div class="stat-footer">all in KV</div></div>
@@ -680,6 +681,9 @@ async function loadReconcile() {
     const ourTotal = kvData.total || 0;
     const ourToday = kvData.today || 0;  // Worker now only counts completed
     const imps = kvData.impressions || [];
+    const today = new Date().toISOString().slice(0, 10);
+    const requestsToday = imps.filter(i => i.ts.startsWith(today) && !i.completed && i.type !== 'complete').length;
+    setVal('rec-requests-today', fn(requestsToday));
     const d = dashData.data?.data || dashData.data || {};
     const trillToday = d.stats?.total_impressions_today || 0;
     const trillWeek  = d.stats?.total_impressions_week  || 0;
