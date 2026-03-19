@@ -703,9 +703,10 @@ async function loadReconcile() {
   $('rec-err').innerHTML = '';
   $('rec-alert').innerHTML = '';
   try {
-    const [kvData, dashData] = await Promise.all([
+    const [kvData, dashData, earnerData] = await Promise.all([
       workerGet('/get-impressions'),
-      api('/v1/partner/dashboard')
+      api('/v1/partner/dashboard'),
+      earnerApi('/dashboard-data?portal=earner')
     ]);
     const ourTotal = kvData.total || 0;
     const imps = kvData.impressions || [];
@@ -721,10 +722,12 @@ async function loadReconcile() {
     const requestsDay  = dayImps.filter(i => !i.completed && i.type !== 'complete').length;
 
     const d = dashData.data?.data || dashData.data || {};
+    const e = earnerData.data || {};
     const trillToday = recDay === 'yesterday'
-      ? (d.stats?.total_impressions_yesterday || 0)
+      ? (e.advertisementPlay || e.programmatic_impressions || d.stats?.total_impressions_yesterday || 0)
       : (d.stats?.total_impressions_today || 0);
     const trillWeek = d.stats?.total_impressions_week || 0;
+    const trillEarnings = recDay === 'yesterday' ? (e.amount || 0) : null;
 
     const delta = completedDay - trillToday;
     const deltaPct = trillToday > 0 ? ((delta / trillToday) * 100).toFixed(1) : null;
@@ -750,7 +753,14 @@ async function loadReconcile() {
     }
 
     $('rec-our-body').innerHTML = `<div class="kv">${kv(`${lbl.charAt(0).toUpperCase()+lbl.slice(1)} completed`, fn(completedDay))}${kv(`${lbl.charAt(0).toUpperCase()+lbl.slice(1)} requests`, fn(requestsDay))}${kv('All Time (total entries)', fn(ourTotal))}${kv('Last Entry', imps.length ? new Date(imps[imps.length-1].ts).toLocaleString() : '—')}${kv('Log Entries', fn(imps.length))}</div>`;
-    $('rec-trill-body').innerHTML = `<div class="kv">${kv(lbl.charAt(0).toUpperCase()+lbl.slice(1), fn(trillToday))}${kv('This Week', fn(trillWeek))}${kv('Active Screens', fn(d.stats?.active_screens))}${kv('Total Screens', fn(d.stats?.total_screens))}</div>`;
+    $('rec-trill-body').innerHTML = `<div class="kv">
+      ${kv(lbl.charAt(0).toUpperCase()+lbl.slice(1)+' Impressions', fn(trillToday))}
+      ${recDay === 'yesterday' ? kv('Earnings', trillEarnings != null ? '$'+Number(trillEarnings).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—') : ''}
+      ${recDay === 'yesterday' ? kv('CPM', e.avg_cpm ? '$'+Number(e.avg_cpm).toFixed(2) : '—') : ''}
+      ${kv('This Week', fn(trillWeek))}
+      ${kv('Active Screens', fn(d.stats?.active_screens))}
+      ${kv('Total Screens', fn(d.stats?.total_screens))}
+    </div>`;
 
     // Log table — show only the selected day's entries
     if (!dayImps.length) {
