@@ -687,15 +687,9 @@ function setRecDay(day, el) {
   loadReconcile();
 }
 
-// Returns YYYY-MM-DD in EST (UTC-5 / UTC-4 DST) for offset 0=today, -1=yesterday
-function estDate(offset = 0) {
-  const now = new Date();
-  // EST = UTC-5, EDT = UTC-4; use UTC-5 as safe default (slightly conservative)
-  const estOffset = -5 * 60;
-  const estNow = new Date(now.getTime() + (estOffset - (-now.getTimezoneOffset())) * 60000 + offset * 86400000);
-  // Just use local date math adjusted for EST
-  const utcMs = now.getTime() + (estOffset * 60 * 1000);
-  const d = new Date(utcMs + offset * 86400000);
+// Returns YYYY-MM-DD in UTC for offset 0=today, -1=yesterday
+function utcDate(offset = 0) {
+  const d = new Date(Date.now() + offset * 86400000);
   return d.toISOString().slice(0, 10);
 }
 
@@ -712,12 +706,9 @@ async function loadReconcile() {
     const ourTotal = kvData.total || 0;
     const imps = kvData.impressions || [];
 
-    // Filter by EST date client-side
-    const filterDate = recDay === 'yesterday' ? estDate(-1) : estDate(0);
-    const dayImps = imps.filter(i => i.ts.slice(0, 10) === filterDate ||
-      // also match by local time string conversion for entries stored in UTC
-      new Date(i.ts).toLocaleDateString('en-CA', {timeZone: 'America/New_York'}) === filterDate
-    );
+    // Filter by UTC date — both KV and Trillboards store timestamps in UTC
+    const filterDate = recDay === 'yesterday' ? utcDate(-1) : utcDate(0);
+    const dayImps = imps.filter(i => i.ts.slice(0, 10) === filterDate);
 
     const completedDay = dayImps.filter(i => i.completed === true || i.type === 'complete').length;
     const requestsDay  = dayImps.filter(i => !i.completed && i.type !== 'complete').length;
@@ -727,7 +718,7 @@ async function loadReconcile() {
     const txList = txData.data?.data || [];
 
     // For yesterday: sum impressions from transactions matching that date
-    const yesterdayDate = estDate(-1); // YYYY-MM-DD in EST
+    const yesterdayDate = utcDate(-1);
     const yesterdayTx = txList.filter(t => (t.createdAt || '').slice(0, 10) === yesterdayDate);
     const txToUse = yesterdayTx.length ? yesterdayTx : [];
     const trillYesterdayImps = txToUse.reduce((sum, t) => sum + (t.impressions_count || 0), 0);
