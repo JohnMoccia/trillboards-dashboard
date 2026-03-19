@@ -145,7 +145,6 @@ canvas{display:block;width:100%;height:160px}
 .raw-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .raw-form select{background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 10px;border-radius:7px;outline:none}
 .raw-form textarea{width:100%;background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 12px;border-radius:7px;outline:none;resize:vertical;height:65px}
-/* Reconcile specific */
 .rec-match{color:#16a34a;font-weight:700}
 .rec-mismatch{color:#dc2626;font-weight:700}
 </style>
@@ -314,7 +313,7 @@ canvas{display:block;width:100%;height:160px}
   </div>
   <div id="rec-err"></div>
   <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:18px">
-    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Our Count (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today">—</div><div class="stat-footer">from KV log</div></div>
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Our Count (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today">—</div><div class="stat-footer">completed impressions</div></div>
     <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Trillboards (Today)</div><div class="stat-icon">📡</div></div><div class="stat-value" id="rec-trill-today">—</div><div class="stat-footer">from API</div></div>
     <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">Discrepancy</div><div class="stat-icon">⚠</div></div><div class="stat-value" id="rec-delta">—</div><div class="stat-footer" id="rec-delta-pct">—</div></div>
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Our Total (All Time)</div><div class="stat-icon">🗂</div></div><div class="stat-value" id="rec-our-total">—</div><div class="stat-footer">all in KV</div></div>
@@ -331,7 +330,7 @@ canvas{display:block;width:100%;height:160px}
     </div>
   </div>
   <div class="card">
-    <div class="card-head"><span class="card-title">Local Impression Log</span><span style="font-size:12px;color:#94a3b8">Last 500 impressions — newest first</span></div>
+    <div class="card-head"><span class="card-title">Local Impression Log</span><span style="font-size:12px;color:#94a3b8">Last 500 entries — newest first</span></div>
     <div id="rec-log-body"><div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">Loading…</div></div></div>
   </div>
 </div>
@@ -679,7 +678,7 @@ async function loadReconcile() {
       api('/v1/partner/dashboard')
     ]);
     const ourTotal = kvData.total || 0;
-    const ourToday = kvData.today || 0;
+    const ourToday = kvData.today || 0;  // Worker now only counts completed
     const imps = kvData.impressions || [];
     const d = dashData.data?.data || dashData.data || {};
     const trillToday = d.stats?.total_impressions_today || 0;
@@ -705,20 +704,31 @@ async function loadReconcile() {
       alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy detected</strong>Our log: <strong>${fn(ourToday)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: ${fn(Math.abs(delta))} (${deltaPct !== null ? Math.abs(deltaPct)+'%' : '—'})</div>`;
     }
 
-    $('rec-our-body').innerHTML = `<div class="kv">${kv('Today', fn(ourToday))}${kv('All Time', fn(ourTotal))}${kv('Last Impression', imps.length ? new Date(imps[imps.length-1].ts).toLocaleString() : '—')}${kv('Log Entries', fn(imps.length))}</div>`;
+    $('rec-our-body').innerHTML = `<div class="kv">${kv('Today (completed)', fn(ourToday))}${kv('All Time (total entries)', fn(ourTotal))}${kv('Last Entry', imps.length ? new Date(imps[imps.length-1].ts).toLocaleString() : '—')}${kv('Log Entries', fn(imps.length))}</div>`;
     $('rec-trill-body').innerHTML = `<div class="kv">${kv('Today', fn(trillToday))}${kv('This Week', fn(trillWeek))}${kv('Active Screens', fn(d.stats?.active_screens))}${kv('Total Screens', fn(d.stats?.total_screens))}</div>`;
 
     if (!imps.length) {
       $('rec-log-body').innerHTML = '<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No impressions logged yet — make sure the ad unit dual-post is active</div></div>';
     } else {
-      const rows = [...imps].reverse().slice(0, 200).map(i => `
+      const rows = [...imps].reverse().slice(0, 200).map(i => {
+        // ── STATUS TAG: request / start / complete ──────────────
+        let statusTag;
+        if (i.type === 'request') {
+          statusTag = '<span class="tag tb">⬆ Request</span>';
+        } else if (i.completed || i.type === 'complete') {
+          statusTag = '<span class="tag tg">✓ Complete</span>';
+        } else {
+          statusTag = '<span class="tag ty">Start</span>';
+        }
+        return `
         <tr>
           <td style="white-space:nowrap;font-family:monospace;font-size:11px">${new Date(i.ts).toLocaleString()}</td>
           <td style="font-family:monospace;font-size:11px">${(i.ad_id||'—').slice(-20)}</td>
-          <td>${i.completed ? '<span class="tag tg">✓ Complete</span>' : '<span class="tag ty">Start</span>'}</td>
+          <td>${statusTag}</td>
           <td style="font-family:monospace;font-size:11px">${i.duration_ms ? Math.round(i.duration_ms/1000)+'s' : '—'}</td>
           <td style="font-family:monospace;font-size:10px;color:#94a3b8">${(i.impression_id||'—').slice(0,28)}</td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
       $('rec-log-body').innerHTML = `<table class="tbl"><thead><tr><th>Time</th><th>Ad ID</th><th>Status</th><th>Duration</th><th>Impression ID</th></tr></thead><tbody>${rows}</tbody></table>`;
     }
   } catch(e) { errBox('rec-err', e.message); }
