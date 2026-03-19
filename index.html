@@ -173,7 +173,6 @@ canvas{display:block;width:100%;height:160px}
 </head>
 <body>
 
-<!-- ── LOGIN OVERLAY ── -->
 <div id="login-overlay">
   <div id="login-box">
     <div class="brand-icon" style="background:#2563eb;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-family:Inter,sans-serif">T</div>
@@ -186,7 +185,6 @@ canvas{display:block;width:100%;height:160px}
   </div>
 </div>
 
-<!-- ── CREDENTIALS SETUP MODAL ── -->
 <div id="creds-modal">
   <div id="creds-box">
     <h3>🔑 Configure Credentials</h3>
@@ -253,7 +251,6 @@ canvas{display:block;width:100%;height:160px}
 
 <main class="main">
 
-<!-- DASHBOARD PAGE -->
 <div class="page active" id="page-dashboard">
   <div class="ph">
     <div class="ph-left"><div class="ph-title">Dashboard</div><div class="ph-sub">partner/dashboard · connect/health · device ads</div></div>
@@ -265,6 +262,14 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Active</div><div class="stat-icon">🟢</div></div><div class="stat-value sk" id="s-active" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-active-f"> </div></div>
     <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">Offline</div><div class="stat-icon">🔴</div></div><div class="stat-value sk" id="s-offline" style="height:30px;width:70px;color:#ef4444"> </div><div class="stat-footer">current</div></div>
     <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Impressions Today</div><div class="stat-icon">📈</div></div><div class="stat-value sk" id="s-imp-today" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-imp-month"> </div></div>
+    <div class="stat-card" style="--c:#0891b2">
+      <div class="stat-top">
+        <div class="stat-label">Requests Today</div>
+        <div class="stat-icon">⬆</div>
+      </div>
+      <div class="stat-value sk" id="s-req-today" style="height:30px;width:70px"> </div>
+      <div class="stat-footer">local kv log</div>
+    </div>
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Impressions / Week</div><div class="stat-icon">📊</div></div><div class="stat-value sk" id="s-imp-week" style="height:30px;width:70px"> </div><div class="stat-footer">7-day total</div></div>
     <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Revenue Share</div><div class="stat-icon">💸</div></div><div class="stat-value sk" id="s-rev" style="height:30px;width:60px"> </div><div class="stat-footer">partner cut</div></div>
   </div>
@@ -279,7 +284,6 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Request Log</span></div><div class="card-body" style="padding:12px"><div class="log-box" id="dash-log"></div></div></div>
 </div>
 
-<!-- DEVICE PAGE -->
 <div class="page" id="page-device">
   <div class="ph"><div class="ph-left"><div class="ph-title">Device Monitor</div><div class="ph-sub">device/{fingerprint}/ads · heartbeat · waterfall sources</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadDevice()">↻ Reload</button></div></div>
   <div id="device-err"></div>
@@ -297,7 +301,6 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw Device Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="device-json">// press Reload</div></div></div>
 </div>
 
-<!-- FLEET PAGE -->
 <div class="page" id="page-fleet">
   <div class="ph"><div class="ph-left"><div class="ph-title">Fleet</div><div class="ph-sub">fleet/overview · fleet/analytics</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadFleet()">↻ Reload</button></div></div>
   <div id="fleet-err"></div>
@@ -308,7 +311,6 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="fleet-json">// press Reload</div></div></div>
 </div>
 
-<!-- SCREEN PAGE -->
 <div class="page" id="page-screen">
   <div class="ph"><div class="ph-left"><div class="ph-title">Screen Analytics</div><div class="ph-sub">screens/{screenId}/analytics</div></div></div>
   <div id="screen-err"></div>
@@ -327,7 +329,6 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="screen-json">// enter Screen ID and press Load</div></div></div>
 </div>
 
-<!-- AUDIENCE PAGE -->
 <div class="page" id="page-audience">
   <div class="ph"><div class="ph-left"><div class="ph-title">Audience</div><div class="ph-sub">audience/live · audience/stats · venues/intelligence</div></div></div>
   <div id="aud-err"></div>
@@ -342,7 +343,6 @@ canvas{display:block;width:100%;height:160px}
   </div>
 </div>
 
-<!-- EARNINGS PAGE -->
 <div class="page" id="page-earnings">
   <div class="ph"><div class="ph-left"><div class="ph-title">Earnings</div><div class="ph-sub">Track your screen earnings and transaction history</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadEarnings()">↻ Reload</button></div></div>
   <div id="earn-err"></div>
@@ -359,7 +359,6 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Transaction History</span><span style="font-size:12px;color:#94a3b8">All your earnings and payout transactions</span></div><div id="earn-tx"><div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">Loading…</div></div></div></div>
 </div>
 
-<!-- RECONCILE PAGE -->
 <div class="page" id="page-reconcile">
   <div class="ph">
     <div class="ph-left"><div class="ph-title">Impression Reconciliation</div><div class="ph-sub">Our local KV log vs Trillboards API — spot discrepancies instantly</div></div>
@@ -397,7 +396,6 @@ canvas{display:block;width:100%;height:160px}
   </div>
 </div>
 
-<!-- USAGE PAGE -->
 <div class="page" id="page-usage">
   <div class="ph"><div class="ph-left"><div class="ph-title">API Usage</div><div class="ph-sub">usage · usage/rate-limit · usage/dashboard</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadUsage()">↻ Reload</button></div></div>
   <div id="usage-err"></div>
@@ -408,7 +406,6 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="usage-json">// press Reload</div></div></div>
 </div>
 
-<!-- RAW API PAGE -->
 <div class="page" id="page-raw">
   <div class="ph"><div class="ph-left"><div class="ph-title">Raw API Tester</div><div class="ph-sub">Call any endpoint directly</div></div></div>
   <div class="card" style="margin-bottom:16px"><div class="card-head"><span class="card-title">Quick Endpoints</span></div><div class="card-body" style="display:flex;gap:8px;flex-wrap:wrap" id="raw-quick-btns">
@@ -431,7 +428,6 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Response</span><span id="r-badge" class="tag ts">—</span></div><div class="card-body" style="padding:12px"><div class="jv" id="r-json">// send a request above</div></div></div>
 </div>
 
-<!-- TELEMETRY PAGE -->
 <div class="page" id="page-telemetry">
   <div class="ph"><div class="ph-left"><div class="ph-title">Screen Telemetry</div><div class="ph-sub" id="tele-sub">Unified telemetry</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadTelemetry()">↻ Reload</button></div></div>
   <div id="tele-err"></div>
@@ -462,7 +458,6 @@ canvas{display:block;width:100%;height:160px}
   <div style="font-size:11px;color:#94a3b8;text-align:right;margin-top:8px" id="t-refreshed"></div>
 </div>
 
-<!-- CONFIG PAGE -->
 <div class="page" id="page-config">
   <div class="ph">
     <div class="ph-left"><div class="ph-title">Device Config</div><div class="ph-sub">Push settings to ad unit remotely — no deployment needed</div></div>
@@ -772,29 +767,55 @@ function nav(name, el) {
 
 async function loadDashboard() {
   $('dash-err').innerHTML=''; $('dash-warn').innerHTML='';
-  log('dash-log','i','→ GET /v1/partner/dashboard');
+  log('dash-log','i','→ GET /v1/partner/dashboard & /get-impressions');
+  
   try {
-    const {status,ok,data} = await api('/v1/partner/dashboard');
+    // Fetch Trillboards API AND your local KV worker at the same time
+    const [dashRes, kvData] = await Promise.all([
+      api('/v1/partner/dashboard'),
+      workerGet('/get-impressions')
+    ]);
+
+    const {status,ok,data} = dashRes;
     if(!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
     log('dash-log','o',`← ${status} OK`);
+    
     if(usingProxy) $('dash-warn').innerHTML=`<div class="alert alert-blue"><strong>ℹ Running via CORS proxy</strong>Ask Trillboards to whitelist <code>https://johnmoccia.github.io</code></div>`;
+
     const d=data.data||data, stats=d.stats||{}, earn=d.earnings||{}, partner=d.partner||{}, stripe=d.stripe_status||{};
-    setVal('s-total',fn(stats.total_screens)); setVal('s-active',fn(stats.active_screens));
-    setVal('s-offline',fn(stats.offline_screens)); setVal('s-imp-today',fn(stats.total_impressions_today));
-    setVal('s-imp-week',fn(stats.total_impressions_week)); setVal('s-rev',(earn.revenue_share_percent??'—')+'%');
+
+    // Calculate your local requests for today
+    const imps = kvData.impressions || [];
+    const todayDate = new Date().toISOString().slice(0, 10); 
+    const dayImps = imps.filter(i => (i.ts || '').slice(0, 10) === todayDate);
+    const requestsToday = dayImps.filter(i => !i.completed && i.type !== 'complete' && i.type !== 'error').length;
+
+    // Update the values on the screen
+    setVal('s-req-today', fn(requestsToday)); 
+    setVal('s-total',fn(stats.total_screens)); 
+    setVal('s-active',fn(stats.active_screens));
+    setVal('s-offline',fn(stats.offline_screens)); 
+    setVal('s-imp-today',fn(stats.total_impressions_today));
+    setVal('s-imp-week',fn(stats.total_impressions_week)); 
+    setVal('s-rev',(earn.revenue_share_percent??'—')+'%');
+    
     $('s-total-f').textContent=`${fn(stats.active_screens)} active · ${fn(stats.offline_screens)} offline`;
     $('s-active-f').textContent=`${fn(stats.pending_screens)} pending`;
     $('s-imp-month').textContent=fn(stats.total_impressions_month)+' this month';
+    
     $('partner-kv').innerHTML=kv('Name',esc(partner.name||'—'))+kv('Slug',esc(partner.slug||'—'))+kv('Status',tgStatus(partner.status))+kv('Stripe',tgStatus(stripe.account_status))+kv('Created',fd(partner.created_at));
     const pt=$('p-status-tag');
     if(pt){ pt.className='tag '+(partner.status==='active'?'tg':'ts'); pt.textContent=(partner.status||'unknown').toUpperCase(); }
     $('earnings-kv').innerHTML=kv('Total Earned',fc(earn.total_lifetime_cents||earn.total_earned_cents))+kv('Available Payout',fc(earn.available_for_payout_cents||earn.available_payout_cents))+kv('Pending Payout',fc(earn.pending_confirmation_cents||earn.pending_payout_cents))+kv('Next Payout',fd((earn.next_payout_estimate||{}).date||earn.next_payout_date))+kv('This Month',fc(earn.this_month_cents))+kv('Payout Threshold',fc(earn.payout_threshold_cents));
+    
     const ts=d.top_screens||[];
     if(!ts.length) { $('top-screens').innerHTML='<div class="empty"><div class="empty-icon">📺</div><div class="empty-text">No screen data yet</div></div>'; }
     else { const mx=Math.max(...ts.map(s=>s.impressions_today||0),1); $('top-screens').innerHTML='<div class="bar-chart">'+ts.map(s=>`<div class="bar-row"><div class="bar-lbl" title="${esc(s.name||s.screen_id)}">${esc((s.name||s.screen_id||'—').slice(0,22))}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(((s.impressions_today||0)/mx)*100)}%;background:#2563eb"></div></div><div class="bar-val">${fn(s.impressions_today)}</div></div>`).join('')+'</div>'; }
+    
     const ra=d.recent_activity||[];
     if(!ra.length) { $('activity').innerHTML='<div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">No activity yet</div></div>'; }
     else { $('activity').innerHTML='<div class="imp-feed">'+ra.slice(0,8).map(a=>`<div class="imp-row"><div class="imp-dot" style="background:${a.type==='impression'?'#2563eb':'#16a34a'}"></div><div class="imp-text"><strong>${esc(a.type||'event')}</strong>${a.ad_id?' · '+esc(a.ad_id.slice(-10)):''}</div><div class="imp-time">${fd(a.timestamp)}</div></div>`).join('')+'</div>'; }
+    
     log('dash-log','g',`partner="${partner.name}" · screens=${stats.total_screens} · imp_today=${stats.total_impressions_today}`);
   } catch(e) { setPill(false,'ERROR'); log('dash-log','e','✕ '+e.message); errBox('dash-err', e.message); }
 }
@@ -939,7 +960,8 @@ async function loadReconcile() {
     const filterDate = recDay === 'yesterday' ? utcDate(-1) : utcDate(0);
     const dayImps = imps.filter(i => i.ts.slice(0, 10) === filterDate);
     const completedDay = dayImps.filter(i => i.completed === true || i.type === 'complete').length;
-    const requestsDay  = dayImps.filter(i => !i.completed && i.type !== 'complete').length;
+    // Updated line below to explicitly ignore error logs in the request count
+    const requestsDay  = dayImps.filter(i => !i.completed && i.type !== 'complete' && i.type !== 'error').length;
     const d = dashData.data?.data || dashData.data || {};
 
     let trillYesterdayImps = 0, trillYesterdayEarnings = 0, trillYesterdayCPM = null;
