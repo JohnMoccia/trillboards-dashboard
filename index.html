@@ -307,15 +307,19 @@ canvas{display:block;width:100%;height:160px}
   <div class="ph">
     <div class="ph-left"><div class="ph-title">Impression Reconciliation</div><div class="ph-sub">Our local KV log vs Trillboards API — spot discrepancies instantly</div></div>
     <div class="ph-right">
+      <div class="ptabs">
+        <div class="ptab active" id="rec-tab-today" onclick="setRecDay('today',this)">Today</div>
+        <div class="ptab" id="rec-tab-yesterday" onclick="setRecDay('yesterday',this)">Yesterday</div>
+      </div>
       <button class="btn btn-red btn-sm" onclick="clearKVImpressions()">🗑 Clear Log</button>
       <button class="btn btn-blue btn-sm" onclick="loadReconcile()">↻ Reload</button>
     </div>
   </div>
   <div id="rec-err"></div>
   <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:18px">
-    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Completed (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today">—</div><div class="stat-footer">completed impressions</div></div>
-    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Requests (Today)</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="rec-requests-today">—</div><div class="stat-footer">ad requests fired</div></div>
-    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Trillboards (Today)</div><div class="stat-icon">📡</div></div><div class="stat-value" id="rec-trill-today">—</div><div class="stat-footer">from API</div></div>
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label" id="rec-label-completed">Completed (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today">—</div><div class="stat-footer">completed impressions</div></div>
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label" id="rec-label-requests">Requests (Today)</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="rec-requests-today">—</div><div class="stat-footer">ad requests fired</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label" id="rec-label-trill">Trillboards (Today)</div><div class="stat-icon">📡</div></div><div class="stat-value" id="rec-trill-today">—</div><div class="stat-footer">from API</div></div>
     <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">Discrepancy</div><div class="stat-icon">⚠</div></div><div class="stat-value" id="rec-delta">—</div><div class="stat-footer" id="rec-delta-pct">—</div></div>
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Our Total (All Time)</div><div class="stat-icon">🗂</div></div><div class="stat-value" id="rec-our-total">—</div><div class="stat-footer">all in KV</div></div>
   </div>
@@ -670,6 +674,31 @@ async function loadEarnings() {
 }
 
 // ════ RECONCILE ════
+let recDay = 'today'; // 'today' or 'yesterday'
+
+function setRecDay(day, el) {
+  recDay = day;
+  document.querySelectorAll('#rec-tab-today,#rec-tab-yesterday').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const lbl = day === 'today' ? 'Today' : 'Yesterday';
+  const l1 = $('rec-label-completed'); if(l1) l1.textContent = `Completed (${lbl})`;
+  const l2 = $('rec-label-requests');  if(l2) l2.textContent = `Requests (${lbl})`;
+  const l3 = $('rec-label-trill');     if(l3) l3.textContent = `Trillboards (${lbl})`;
+  loadReconcile();
+}
+
+// Returns YYYY-MM-DD in EST (UTC-5 / UTC-4 DST) for offset 0=today, -1=yesterday
+function estDate(offset = 0) {
+  const now = new Date();
+  // EST = UTC-5, EDT = UTC-4; use UTC-5 as safe default (slightly conservative)
+  const estOffset = -5 * 60;
+  const estNow = new Date(now.getTime() + (estOffset - (-now.getTimezoneOffset())) * 60000 + offset * 86400000);
+  // Just use local date math adjusted for EST
+  const utcMs = now.getTime() + (estOffset * 60 * 1000);
+  const d = new Date(utcMs + offset * 86400000);
+  return d.toISOString().slice(0, 10);
+}
+
 async function loadReconcile() {
   $('rec-err').innerHTML = '';
   $('rec-alert').innerHTML = '';
@@ -679,18 +708,29 @@ async function loadReconcile() {
       api('/v1/partner/dashboard')
     ]);
     const ourTotal = kvData.total || 0;
-    const ourToday = kvData.today || 0;  // Worker now only counts completed
     const imps = kvData.impressions || [];
-    const today = new Date().toISOString().slice(0, 10);
-    const requestsToday = imps.filter(i => i.ts.startsWith(today) && !i.completed && i.type !== 'complete').length;
-    setVal('rec-requests-today', fn(requestsToday));
+
+    // Filter by EST date client-side
+    const filterDate = recDay === 'yesterday' ? estDate(-1) : estDate(0);
+    const dayImps = imps.filter(i => i.ts.slice(0, 10) === filterDate ||
+      // also match by local time string conversion for entries stored in UTC
+      new Date(i.ts).toLocaleDateString('en-CA', {timeZone: 'America/New_York'}) === filterDate
+    );
+
+    const completedDay = dayImps.filter(i => i.completed === true || i.type === 'complete').length;
+    const requestsDay  = dayImps.filter(i => !i.completed && i.type !== 'complete').length;
+
     const d = dashData.data?.data || dashData.data || {};
-    const trillToday = d.stats?.total_impressions_today || 0;
-    const trillWeek  = d.stats?.total_impressions_week  || 0;
-    const delta = ourToday - trillToday;
+    const trillToday = recDay === 'yesterday'
+      ? (d.stats?.total_impressions_yesterday || 0)
+      : (d.stats?.total_impressions_today || 0);
+    const trillWeek = d.stats?.total_impressions_week || 0;
+
+    const delta = completedDay - trillToday;
     const deltaPct = trillToday > 0 ? ((delta / trillToday) * 100).toFixed(1) : null;
 
-    setVal('rec-our-today', fn(ourToday));
+    setVal('rec-our-today', fn(completedDay));
+    setVal('rec-requests-today', fn(requestsDay));
     setVal('rec-trill-today', fn(trillToday));
     setVal('rec-our-total', fn(ourTotal));
 
@@ -699,27 +739,26 @@ async function loadReconcile() {
     const deltaPctEl = $('rec-delta-pct');
     if (deltaPctEl) deltaPctEl.textContent = deltaPct !== null ? Math.abs(deltaPct) + '% variance' : 'no trill data yet';
 
+    const lbl = recDay === 'yesterday' ? 'yesterday' : 'today';
     const alertEl = $('rec-alert');
-    if (delta === 0 && ourToday === 0 && trillToday === 0) {
-      alertEl.innerHTML = `<div class="alert alert-blue"><strong>ℹ No impressions today yet</strong>Waiting for first impression from the tablet.</div>`;
+    if (delta === 0 && completedDay === 0 && trillToday === 0) {
+      alertEl.innerHTML = `<div class="alert alert-blue"><strong>ℹ No impressions ${lbl} yet</strong>Waiting for first impression from the tablet.</div>`;
     } else if (delta === 0) {
-      alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Counts match</strong>Both our log and Trillboards API show ${fn(ourToday)} impressions today.</div>`;
+      alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Counts match</strong>Both our log and Trillboards API show ${fn(completedDay)} impressions ${lbl}.</div>`;
     } else {
-      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy detected</strong>Our log: <strong>${fn(ourToday)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: ${fn(Math.abs(delta))} (${deltaPct !== null ? Math.abs(deltaPct)+'%' : '—'})</div>`;
+      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy detected</strong>Our log: <strong>${fn(completedDay)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: ${fn(Math.abs(delta))} (${deltaPct !== null ? Math.abs(deltaPct)+'%' : '—'})<br><span style="font-size:12px;color:#991b1b">Note: Trillboards API updates ~9PM EST — intraday discrepancies are expected.</span></div>`;
     }
 
-    $('rec-our-body').innerHTML = `<div class="kv">${kv('Today (completed)', fn(ourToday))}${kv('All Time (total entries)', fn(ourTotal))}${kv('Last Entry', imps.length ? new Date(imps[imps.length-1].ts).toLocaleString() : '—')}${kv('Log Entries', fn(imps.length))}</div>`;
-    $('rec-trill-body').innerHTML = `<div class="kv">${kv('Today', fn(trillToday))}${kv('This Week', fn(trillWeek))}${kv('Active Screens', fn(d.stats?.active_screens))}${kv('Total Screens', fn(d.stats?.total_screens))}</div>`;
+    $('rec-our-body').innerHTML = `<div class="kv">${kv(`${lbl.charAt(0).toUpperCase()+lbl.slice(1)} completed`, fn(completedDay))}${kv(`${lbl.charAt(0).toUpperCase()+lbl.slice(1)} requests`, fn(requestsDay))}${kv('All Time (total entries)', fn(ourTotal))}${kv('Last Entry', imps.length ? new Date(imps[imps.length-1].ts).toLocaleString() : '—')}${kv('Log Entries', fn(imps.length))}</div>`;
+    $('rec-trill-body').innerHTML = `<div class="kv">${kv(lbl.charAt(0).toUpperCase()+lbl.slice(1), fn(trillToday))}${kv('This Week', fn(trillWeek))}${kv('Active Screens', fn(d.stats?.active_screens))}${kv('Total Screens', fn(d.stats?.total_screens))}</div>`;
 
-    if (!imps.length) {
-      $('rec-log-body').innerHTML = '<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No impressions logged yet — make sure the ad unit dual-post is active</div></div>';
+    // Log table — show only the selected day's entries
+    if (!dayImps.length) {
+      $('rec-log-body').innerHTML = `<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No entries for ${lbl}</div></div>`;
     } else {
-      const rows = [...imps].reverse().slice(0, 200).map(i => {
-        // ── STATUS TAG: request / start / complete ──────────────
+      const rows = [...dayImps].reverse().slice(0, 200).map(i => {
         let statusTag;
-        if (i.type === 'request') {
-          statusTag = '<span class="tag tb">⬆ Request</span>';
-        } else if (i.completed || i.type === 'complete') {
+        if (i.completed || i.type === 'complete') {
           statusTag = '<span class="tag tg">✓ Complete</span>';
         } else {
           statusTag = '<span class="tag tb">⬆ Request</span>';
