@@ -745,11 +745,9 @@ async function loadReconcile() {
   $('rec-err').innerHTML = '';
   $('rec-alert').innerHTML = '';
   try {
-    const [kvData, dashData, earnerData, txData] = await Promise.all([
+    const [kvData, dashData] = await Promise.all([
       workerGet('/get-impressions'),
-      api('/v1/partner/dashboard'),
-      earnerApi('/dashboard-data?portal=earner'),
-      earnerApi('/payment-list?page=1&limit=50')
+      api('/v1/partner/dashboard')
     ]);
     const ourTotal = kvData.total || 0;
     const imps = kvData.impressions || [];
@@ -762,16 +760,18 @@ async function loadReconcile() {
     const requestsDay  = dayImps.filter(i => !i.completed && i.type !== 'complete').length;
 
     const d = dashData.data?.data || dashData.data || {};
-    const e = earnerData.data || {};
-    const txList = txData.data?.data || [];
 
-    // For yesterday: sum impressions from transactions matching that date
-    const yesterdayDate = utcDate(-1);
-    const yesterdayTx = txList.filter(t => (t.createdAt || '').slice(0, 10) === yesterdayDate);
-    const txToUse = yesterdayTx.length ? yesterdayTx : [];
-    const trillYesterdayImps = txToUse.reduce((sum, t) => sum + (t.impressions_count || 0), 0);
-    const trillYesterdayEarnings = txToUse.reduce((sum, t) => sum + (t.amount || 0), 0);
-    const trillYesterdayCPM = txToUse.length && txToUse[0].cpm_rate ? txToUse[0].cpm_rate : null;
+    // Only fetch earner/payment data for yesterday — not needed for today view
+    let trillYesterdayImps = 0, trillYesterdayEarnings = 0, trillYesterdayCPM = null;
+    if (recDay === 'yesterday') {
+      const txData = await earnerApi('/payment-list?page=1&limit=50');
+      const txList = txData.data?.data || [];
+      const yesterdayDate = utcDate(-1);
+      const yesterdayTx = txList.filter(t => (t.createdAt || '').slice(0, 10) === yesterdayDate);
+      trillYesterdayImps = yesterdayTx.reduce((sum, t) => sum + (t.impressions_count || 0), 0);
+      trillYesterdayEarnings = yesterdayTx.reduce((sum, t) => sum + (t.amount || 0), 0);
+      trillYesterdayCPM = yesterdayTx.length && yesterdayTx[0].cpm_rate ? yesterdayTx[0].cpm_rate : null;
+    }
 
     const trillToday = recDay === 'yesterday'
       ? trillYesterdayImps
