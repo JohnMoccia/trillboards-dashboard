@@ -191,6 +191,7 @@ canvas{display:block;width:100%;height:160px}
     <span class="nav-group-lbl">Dev</span>
     <div class="nav-item" onclick="nav('usage',this)"><span class="nav-icon">⚡</span>API Usage</div>
     <div class="nav-item" onclick="nav('raw',this)"><span class="nav-icon">{ }</span>Raw API</div>
+    <div class="nav-item" onclick="nav('config',this)"><span class="nav-icon">⚙️</span>Device Config</div>
   </div>
 </nav>
 
@@ -404,6 +405,53 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title" style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">📈</span> Quality Score</span><span style="font-size:12px;color:#94a3b8" id="t-computed-at"></span></div><div class="card-body" id="t-quality"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div></div>
   <div style="font-size:11px;color:#94a3b8;text-align:right;margin-top:8px" id="t-refreshed"></div>
 </div>
+<!-- CONFIG PAGE -->
+<div class="page" id="page-config">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title">Device Config</div><div class="ph-sub">Push settings to ad unit remotely — no deployment needed</div></div>
+    <div class="ph-right">
+      <button class="btn btn-white btn-sm" onclick="loadConfig()">↻ Reload</button>
+      <button class="btn btn-blue btn-sm" onclick="saveConfig()">💾 Push to Device</button>
+    </div>
+  </div>
+  <div id="cfg-err"></div>
+  <div id="cfg-alert" style="margin-bottom:16px"></div>
+  <div class="two" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-head"><span class="card-title">Ad Settings</span><span class="tag tb">Live on next poll</span></div>
+      <div class="card-body">
+        <div class="kv">
+          <div class="kv-row"><div class="kv-k">Floor CPM ($)</div><div class="kv-v"><input type="number" id="cfg-cpm" step="0.01" min="0.01" style="width:80px;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px;text-align:right"></div></div>
+          <div class="kv-row"><div class="kv-k">Ad Interval (sec)</div><div class="kv-v"><input type="number" id="cfg-interval" step="1" min="5" style="width:80px;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px;text-align:right"></div></div>
+          <div class="kv-row"><div class="kv-k">Heartbeat Interval (sec)</div><div class="kv-v"><input type="number" id="cfg-hb" step="5" min="10" style="width:80px;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px;text-align:right"></div></div>
+          <div class="kv-row"><div class="kv-k">Waterfall Timeout (sec)</div><div class="kv-v"><input type="number" id="cfg-timeout" step="1" min="3" style="width:80px;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px;text-align:right"></div></div>
+          <div class="kv-row"><div class="kv-k">Force Source (0=auto)</div><div class="kv-v"><input type="number" id="cfg-force" step="1" min="0" style="width:80px;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px;text-align:right"></div></div>
+          <div class="kv-row"><div class="kv-k">Config Poll Interval (sec)</div><div class="kv-v"><input type="number" id="cfg-poll" step="30" min="30" style="width:80px;background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px;text-align:right"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Logging & Debug</span></div>
+      <div class="card-body">
+        <div class="kv">
+          <div class="kv-row"><div class="kv-k">KV Logging</div><div class="kv-v"><select id="cfg-kv" style="background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px"><option value="true">Enabled</option><option value="false">Disabled</option></select></div></div>
+          <div class="kv-row"><div class="kv-k">Error Logging</div><div class="kv-v"><select id="cfg-errlogs" style="background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px"><option value="true">Enabled</option><option value="false">Disabled</option></select></div></div>
+          <div class="kv-row"><div class="kv-k">Test Mode</div><div class="kv-v"><select id="cfg-test" style="background:#f8fafc;border:1px solid #e2e8f0;padding:4px 8px;border-radius:5px;font-size:13px"><option value="false">Off</option><option value="true">On</option></select></div></div>
+        </div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:8px">LAST PUSHED</div>
+          <div id="cfg-last-pushed" style="font-size:12px;color:#374151">—</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:12px;margin-bottom:4px">AD UNIT POLLS EVERY</div>
+          <div id="cfg-poll-display" style="font-size:12px;color:#374151">5 min (default)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">Current Remote Config</span><span class="tag ts" id="cfg-raw-tag">KV</span></div>
+    <div class="card-body" style="padding:12px"><div class="jv" id="cfg-raw">// press Reload</div></div>
+  </div>
+</div>
 
 </main>
 </div>
@@ -535,7 +583,7 @@ function nav(name, el) {
   if(name==='earnings'&&$('earn-err')&&!$('earn-err').dataset.loaded) loadEarnings();
   if(name==='usage'&&$('usage-json').textContent.includes('press')) loadUsage();
   if(name==='telemetry'&&$('t-quality').textContent.includes('Loading')) loadTelemetry();
-  if(name==='reconcile') loadReconcile();
+  if(name==='config') loadConfig();
 }
 
 async function loadDashboard() {
@@ -855,7 +903,57 @@ async function loadTelemetry() {
   } catch(e) { errBox('tele-err', e.message); }
 }
 
-function loadAll() { loadDashboard(); }
+// ════ DEVICE CONFIG ════
+async function loadConfig() {
+  $('cfg-err').innerHTML = '';
+  try {
+    const data = await workerGet('/get-config');
+    const cfg = data.config || {};
+    $('cfg-raw').innerHTML = cj(cfg);
+    // Populate form fields
+    const set = (id, val) => { const el = $(id); if (el) el.value = val; };
+    set('cfg-cpm', cfg.floor_cpm ?? 3.00);
+    set('cfg-interval', cfg.interval ?? 30);
+    set('cfg-hb', cfg.hb_interval ?? 30);
+    set('cfg-timeout', cfg.waterfall_timeout ?? 8);
+    set('cfg-force', cfg.force_source ?? 0);
+    set('cfg-poll', cfg.config_poll_interval ?? 300);
+    const setSelect = (id, val) => { const el = $(id); if (el) el.value = String(val); };
+    setSelect('cfg-kv', cfg.kv_enabled !== false);
+    setSelect('cfg-errlogs', cfg.error_logging !== false);
+    setSelect('cfg-test', !!cfg.test_mode);
+    const pushed = $('cfg-last-pushed');
+    if (pushed) pushed.textContent = cfg.updated_at ? new Date(cfg.updated_at).toLocaleString() : 'Never pushed';
+    const pollDisp = $('cfg-poll-display');
+    if (pollDisp) pollDisp.textContent = ((cfg.config_poll_interval || 300) / 60).toFixed(0) + ' min';
+  } catch(e) { errBox('cfg-err', e.message); }
+}
+
+async function saveConfig() {
+  $('cfg-err').innerHTML = '';
+  $('cfg-alert').innerHTML = '';
+  try {
+    const cfg = {
+      floor_cpm: parseFloat($('cfg-cpm').value) || 3.00,
+      interval: parseInt($('cfg-interval').value) || 30,
+      hb_interval: parseInt($('cfg-hb').value) || 30,
+      waterfall_timeout: parseInt($('cfg-timeout').value) || 8,
+      force_source: parseInt($('cfg-force').value) || 0,
+      config_poll_interval: parseInt($('cfg-poll').value) || 300,
+      kv_enabled: $('cfg-kv').value === 'true',
+      error_logging: $('cfg-errlogs').value === 'true',
+      test_mode: $('cfg-test').value === 'true'
+    };
+    const data = await workerPost('/set-config', cfg);
+    if (!data.success) throw new Error(JSON.stringify(data));
+    $('cfg-raw').innerHTML = cj(data.config);
+    $('cfg-alert').innerHTML = `<div class="alert alert-green"><strong>✓ Config pushed</strong>Ad unit will pick up changes on next poll (within ${Math.round((cfg.config_poll_interval||300)/60)} min).</div>`;
+    const pushed = $('cfg-last-pushed');
+    if (pushed) pushed.textContent = new Date().toLocaleString();
+  } catch(e) { errBox('cfg-err', e.message); }
+}
+
+
 
 setInterval(()=>{
   cd--; const el=$('cd'); if(el) el.textContent=cd;
