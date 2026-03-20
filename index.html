@@ -775,10 +775,12 @@ async function loadDashboard() {
   $('dash-err').innerHTML=''; $('dash-warn').innerHTML='';
   log('dash-log','i','→ GET /v1/partner/dashboard');
   try {
-    const [{status,ok,data}, kvData] = await Promise.all([
+    const { WORKER_SECRET } = getCreds();
+    const [apiResult, kvData] = await Promise.all([
       api('/v1/partner/dashboard'),
-      workerGet('/get-impressions').catch(() => ({}))
+      WORKER_SECRET ? workerGet('/get-impressions').catch(() => ({})) : Promise.resolve({})
     ]);
+    const {status,ok,data} = apiResult;
     if(!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
     log('dash-log','o',`← ${status} OK`);
     if(usingProxy) $('dash-warn').innerHTML=`<div class="alert alert-blue"><strong>ℹ Running via CORS proxy</strong>Ask Trillboards to whitelist <code>https://johnmoccia.github.io</code></div>`;
@@ -792,9 +794,10 @@ async function loadDashboard() {
     const todayImps = kvImps.filter(i => i.ts && i.ts.slice(0,10) === todayDate);
     const requestsToday = todayImps.filter(i => i.type !== 'error').length;
     const completedToday = todayImps.filter(i => i.completed === true || i.type === 'complete').length;
-    setVal('s-ad-requests', fn(requestsToday));
+    const adReqEl = $('s-ad-requests');
+    if (adReqEl) { adReqEl.textContent = kvData.impressions != null ? fn(requestsToday) : '—'; adReqEl.classList.remove('sk'); }
     const adReqFooter = $('s-ad-requests-f');
-    if(adReqFooter) adReqFooter.textContent = `${fn(completedToday)} completed · ${fn(requestsToday - completedToday)} pending`;
+    if (adReqFooter) adReqFooter.textContent = kvData.impressions != null ? `${fn(completedToday)} completed · ${fn(requestsToday - completedToday)} pending` : 'see Reconcile page';
     $('s-total-f').textContent=`${fn(stats.active_screens)} active · ${fn(stats.offline_screens)} offline`;
     $('s-active-f').textContent=`${fn(stats.pending_screens)} pending`;
     $('s-imp-month').textContent=fn(stats.total_impressions_month)+' this month';
