@@ -110,7 +110,7 @@ canvas{display:block;width:100%;height:160px}
 .imp-text{flex:1;font-size:12px;color:#475569}
 .imp-text strong{color:#1e293b;font-weight:600}
 .imp-time{font-size:10px;color:#94a3b8;font-family:'JetBrains Mono',monospace;flex-shrink:0}
-.log-box{background:#0f172a;border-radius:8px;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:10px;max-height:160px;overflow-y:auto;line-height:2;border:1px solid #1e293b}
+.log-box{background:#0f172a;border-radius:8px;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:10px;min-height:60px;max-height:160px;overflow-y:auto;line-height:2;border:1px solid #1e293b}
 .ll{display:flex;gap:8px}
 .lts{color:#334155;flex-shrink:0}
 .li{color:#38bdf8}.lo{color:#4ade80}.le{color:#f87171}.lw{color:#fbbf24}.lg{color:#475569}
@@ -267,7 +267,8 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Impressions Today</div><div class="stat-icon">📈</div></div><div class="stat-value sk" id="s-imp-today" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-imp-month"> </div></div>
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Impressions / Week</div><div class="stat-icon">📊</div></div><div class="stat-value sk" id="s-imp-week" style="height:30px;width:70px"> </div><div class="stat-footer">7-day total</div></div>
     <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Revenue Share</div><div class="stat-icon">💸</div></div><div class="stat-value sk" id="s-rev" style="height:30px;width:60px"> </div><div class="stat-footer">partner cut</div></div>
-    <div class="stat-card" style="--c:#0ea5e9"><div class="stat-top"><div class="stat-label">Ad Requests Today</div><div class="stat-icon">⬆</div></div><div class="stat-value sk" id="s-ad-requests" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-ad-requests-f">from KV log</div></div>
+    <div class="stat-card" style="--c:#0ea5e9"><div class="stat-top"><div class="stat-label">Ad Requests Today</div><div class="stat-icon">⬆</div></div><div class="stat-value sk" id="s-ad-requests" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-ad-requests-f">requests fired</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Completed Today</div><div class="stat-icon">✓</div></div><div class="stat-value sk" id="s-ad-completed" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-ad-completed-f">impressions logged</div></div>
   </div>
   <div class="two">
     <div class="card"><div class="card-head"><span class="card-title">Partner Info</span><span id="p-status-tag" class="tag ts">—</span></div><div class="card-body"><div class="kv" id="partner-kv"><div class="kv-row"><div class="kv-k">Name</div><div class="kv-v sk" style="height:13px;width:120px"> </div></div><div class="kv-row"><div class="kv-k">Slug</div><div class="kv-v sk" style="height:13px;width:80px"> </div></div><div class="kv-row"><div class="kv-k">Status</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Stripe</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Created</div><div class="kv-v">—</div></div></div></div></div>
@@ -277,7 +278,7 @@ canvas{display:block;width:100%;height:160px}
     <div class="card"><div class="card-head"><span class="card-title">Top Screens</span></div><div class="card-body" id="top-screens"><div class="empty"><div class="empty-icon">📺</div><div class="empty-text">Loading…</div></div></div></div>
     <div class="card"><div class="card-head"><span class="card-title">Recent Activity</span></div><div class="card-body" id="activity"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Loading…</div></div></div></div>
   </div>
-  <div class="card"><div class="card-head"><span class="card-title">Request Log</span></div><div class="card-body" style="padding:12px"><div class="log-box" id="dash-log"></div></div></div>
+  <div class="card"><div class="card-head"><span class="card-title">Request Log</span></div><div class="card-body" style="padding:12px"><div class="log-box" id="dash-log"><div class="ll"><span class="lts">--:--:--</span><span class="lg">Waiting for dashboard load…</span></div></div></div></div>
 </div>
 
 <!-- DEVICE PAGE -->
@@ -775,12 +776,7 @@ async function loadDashboard() {
   $('dash-err').innerHTML=''; $('dash-warn').innerHTML='';
   log('dash-log','i','→ GET /v1/partner/dashboard');
   try {
-    const { WORKER_SECRET } = getCreds();
-    const [apiResult, kvData] = await Promise.all([
-      api('/v1/partner/dashboard'),
-      WORKER_SECRET ? workerGet('/get-impressions').catch(() => ({})) : Promise.resolve({})
-    ]);
-    const {status,ok,data} = apiResult;
+    const {status,ok,data} = await api('/v1/partner/dashboard');
     if(!ok) throw new Error(`HTTP ${status}: ${JSON.stringify(data).slice(0,300)}`);
     log('dash-log','o',`← ${status} OK`);
     if(usingProxy) $('dash-warn').innerHTML=`<div class="alert alert-blue"><strong>ℹ Running via CORS proxy</strong>Ask Trillboards to whitelist <code>https://johnmoccia.github.io</code></div>`;
@@ -788,16 +784,6 @@ async function loadDashboard() {
     setVal('s-total',fn(stats.total_screens)); setVal('s-active',fn(stats.active_screens));
     setVal('s-offline',fn(stats.offline_screens)); setVal('s-imp-today',fn(stats.total_impressions_today));
     setVal('s-imp-week',fn(stats.total_impressions_week)); setVal('s-rev',(earn.revenue_share_percent??'—')+'%');
-    // Ad requests today from KV log
-    const todayDate = utcDate(0);
-    const kvImps = kvData.impressions || [];
-    const todayImps = kvImps.filter(i => i.ts && i.ts.slice(0,10) === todayDate);
-    const requestsToday = todayImps.filter(i => i.type !== 'error').length;
-    const completedToday = todayImps.filter(i => i.completed === true || i.type === 'complete').length;
-    const adReqEl = $('s-ad-requests');
-    if (adReqEl) { adReqEl.textContent = kvData.impressions != null ? fn(requestsToday) : '—'; adReqEl.classList.remove('sk'); }
-    const adReqFooter = $('s-ad-requests-f');
-    if (adReqFooter) adReqFooter.textContent = kvData.impressions != null ? `${fn(completedToday)} completed · ${fn(requestsToday - completedToday)} pending` : 'see Reconcile page';
     $('s-total-f').textContent=`${fn(stats.active_screens)} active · ${fn(stats.offline_screens)} offline`;
     $('s-active-f').textContent=`${fn(stats.pending_screens)} pending`;
     $('s-imp-month').textContent=fn(stats.total_impressions_month)+' this month';
@@ -813,6 +799,36 @@ async function loadDashboard() {
     else { $('activity').innerHTML='<div class="imp-feed">'+ra.slice(0,8).map(a=>`<div class="imp-row"><div class="imp-dot" style="background:${a.type==='impression'?'#2563eb':'#16a34a'}"></div><div class="imp-text"><strong>${esc(a.type||'event')}</strong>${a.ad_id?' · '+esc(a.ad_id.slice(-10)):''}</div><div class="imp-time">${fd(a.timestamp)}</div></div>`).join('')+'</div>'; }
     log('dash-log','g',`partner="${partner.name}" · screens=${stats.total_screens} · imp_today=${stats.total_impressions_today}`);
   } catch(e) { setPill(false,'ERROR'); log('dash-log','e','✕ '+e.message); errBox('dash-err', e.message); }
+  // Lazy load KV ad request count separately — does not block dashboard or logs
+  loadDashboardKV();
+}
+
+async function loadDashboardKV() {
+  const { WORKER_SECRET } = getCreds();
+  if (!WORKER_SECRET) return;
+  const adReqEl = $('s-ad-requests');
+  const adReqFooter = $('s-ad-requests-f');
+  try {
+    log('dash-log','i','→ GET /get-impressions (KV)');
+    const kvData = await workerGet('/get-impressions');
+    const todayDate = utcDate(0);
+    const kvImps = kvData.impressions || [];
+    const todayImps = kvImps.filter(i => i.ts && i.ts.slice(0,10) === todayDate);
+    // All non-error entries = requests fired; subset that completed = impressions
+    const requestsToday = todayImps.filter(i => i.type !== 'error').length;
+    const completedToday = todayImps.filter(i => i.completed === true || i.type === 'complete').length;
+    const pendingToday = requestsToday - completedToday;
+    if (adReqEl) { adReqEl.textContent = fn(requestsToday); adReqEl.classList.remove('sk'); }
+    if (adReqFooter) adReqFooter.textContent = `${fn(pendingToday)} pending · ${fn(todayImps.filter(i=>i.type==='error').length)} errors`;
+    const compEl = $('s-ad-completed'), compFooter = $('s-ad-completed-f');
+    if (compEl) { compEl.textContent = fn(completedToday); compEl.classList.remove('sk'); compEl.style.color = completedToday > 0 ? '#16a34a' : ''; }
+    if (compFooter) compFooter.textContent = requestsToday > 0 ? Math.round((completedToday/requestsToday)*100)+'% fill rate' : 'no requests yet';
+    log('dash-log','g',`KV today: ${requestsToday} requests · ${completedToday} completed · ${pendingToday} pending`);
+  } catch(e) {
+    if (adReqEl) { adReqEl.textContent = '—'; adReqEl.classList.remove('sk'); }
+    if (adReqFooter) adReqFooter.textContent = 'KV unavailable';
+    log('dash-log','w',`KV fetch failed: ${e.message}`);
+  }
 }
 
 async function loadDevice() {
@@ -1156,6 +1172,8 @@ function startAutoRefresh() {
     cd--; const el = $('cd'); if (el) el.textContent = cd;
     if (cd <= 0) { cd = 30; loadDashboard(); }
   }, 1000);
+  // Poll KV every 10s for real-time ad request count
+  setInterval(() => loadDashboardKV(), 10000);
 }
 
 document.addEventListener('DOMContentLoaded', checkSession);
