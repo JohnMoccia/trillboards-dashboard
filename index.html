@@ -1024,7 +1024,7 @@ async function loadReconcile() {
     if (!dayImps.length) {
       $('rec-log-body').innerHTML = `<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No entries for ${lbl}</div></div>`;
     } else {
-      const rows = [...dayImps].reverse().slice(0, 200).map(i => {
+      const rows = [...dayImps].reverse().slice(0, 2880).map(i => {
         let statusTag;
         if (i.type === 'error') {
           statusTag = `<span class="tag tr">✕ Error ${esc(String(i.error_status||''))}</span>`;
