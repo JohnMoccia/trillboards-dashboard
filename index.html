@@ -147,7 +147,6 @@ canvas{display:block;width:100%;height:160px}
 .raw-form textarea{width:100%;background:#fff;border:1px solid #d1d5db;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 12px;border-radius:7px;outline:none;resize:vertical;height:65px}
 .rec-match{color:#16a34a;font-weight:700}
 .rec-mismatch{color:#dc2626;font-weight:700}
-/* ── Login overlay ── */
 #login-overlay{position:fixed;inset:0;background:#0f172a;z-index:99999;display:flex;align-items:center;justify-content:center}
 #login-box{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:40px 36px;width:360px;text-align:center}
 #login-box .brand-icon{margin:0 auto 16px;width:48px;height:48px;font-size:18px}
@@ -159,7 +158,6 @@ canvas{display:block;width:100%;height:160px}
 #login-box button:hover{background:#1d4ed8}
 #login-err{color:#f87171;font-size:12px;margin-top:4px;min-height:18px}
 #login-box .login-hint{color:#475569;font-size:11px;margin-top:12px}
-/* ── Creds modal ── */
 #creds-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center}
 #creds-modal.open{display:flex}
 #creds-box{background:#fff;border-radius:12px;padding:28px;width:480px;max-width:95vw}
@@ -173,7 +171,6 @@ canvas{display:block;width:100%;height:160px}
 </head>
 <body>
 
-<!-- ── LOGIN OVERLAY ── -->
 <div id="login-overlay">
   <div id="login-box">
     <div class="brand-icon" style="background:#2563eb;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-family:Inter,sans-serif">T</div>
@@ -182,17 +179,16 @@ canvas{display:block;width:100%;height:160px}
     <input type="password" id="login-pw" placeholder="Enter access password" onkeydown="if(event.key==='Enter')doLogin()">
     <button onclick="doLogin()">Sign In</button>
     <div id="login-err"></div>
-    <div class="login-hint">First time? Password is set in your Worker env as <code style="background:#334155;padding:1px 5px;border-radius:3px;color:#94a3b8">DASHBOARD_PASSWORD</code></div>
+    <div class="login-hint">Password set in Worker env as <code style="background:#334155;padding:1px 5px;border-radius:3px;color:#94a3b8">DASHBOARD_PASSWORD</code></div>
   </div>
 </div>
 
-<!-- ── CREDENTIALS SETUP MODAL ── -->
 <div id="creds-modal">
   <div id="creds-box">
     <h3>🔑 Configure Credentials</h3>
-    <p>These are stored only in your browser's localStorage — never in source code. Required on first visit or after clearing browser data.</p>
+    <p>Stored only in your browser's localStorage — never in source code.</p>
     <div class="creds-row"><label>Partner API Key</label><input type="password" id="cr-api-key" placeholder="trb_partner_..."></div>
-    <div class="creds-row"><label>Worker Secret (KV + Earner proxy)</label><input type="password" id="cr-worker-secret" placeholder="your new KV secret"></div>
+    <div class="creds-row"><label>Worker Secret</label><input type="password" id="cr-worker-secret" placeholder="curb2026"></div>
     <div class="creds-row"><label>Partner ID</label><input type="text" id="cr-partner-id" placeholder="69a0754f..."></div>
     <div class="creds-row"><label>Screen ID</label><input type="text" id="cr-screen-id" placeholder="69a076ad..."></div>
     <div class="creds-row"><label>Device ID</label><input type="text" id="cr-device-id" placeholder="P_691c..."></div>
@@ -217,10 +213,7 @@ canvas{display:block;width:100%;height:160px}
     <button class="topbar-btn" onclick="loadAll()">Refresh</button>
     <button class="topbar-btn" onclick="openCreds()" title="Update credentials">🔑</button>
     <button class="topbar-btn" onclick="doLogout()" title="Sign out">Sign Out</button>
-    <div class="topbar-org">
-      <div class="topbar-avatar">C</div>
-      <span>Curb Mobility</span>
-    </div>
+    <div class="topbar-org"><div class="topbar-avatar">C</div><span>Curb Mobility</span></div>
   </div>
 </div>
 
@@ -253,7 +246,7 @@ canvas{display:block;width:100%;height:160px}
 
 <main class="main">
 
-<!-- DASHBOARD PAGE -->
+<!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
   <div class="ph">
     <div class="ph-left"><div class="ph-title">Dashboard</div><div class="ph-sub">partner/dashboard · connect/health · device ads</div></div>
@@ -281,7 +274,7 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Request Log</span></div><div class="card-body" style="padding:12px"><div class="log-box" id="dash-log"><div class="ll"><span class="lts">--:--:--</span><span class="lg">Waiting for dashboard load…</span></div></div></div></div>
 </div>
 
-<!-- DEVICE PAGE -->
+<!-- DEVICE -->
 <div class="page" id="page-device">
   <div class="ph"><div class="ph-left"><div class="ph-title">Device Monitor</div><div class="ph-sub">device/{fingerprint}/ads · heartbeat · waterfall sources</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadDevice()">↻ Reload</button></div></div>
   <div id="device-err"></div>
@@ -299,7 +292,7 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw Device Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="device-json">// press Reload</div></div></div>
 </div>
 
-<!-- FLEET PAGE -->
+<!-- FLEET -->
 <div class="page" id="page-fleet">
   <div class="ph"><div class="ph-left"><div class="ph-title">Fleet</div><div class="ph-sub">fleet/overview · fleet/analytics</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadFleet()">↻ Reload</button></div></div>
   <div id="fleet-err"></div>
@@ -310,7 +303,7 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="fleet-json">// press Reload</div></div></div>
 </div>
 
-<!-- SCREEN PAGE -->
+<!-- SCREEN -->
 <div class="page" id="page-screen">
   <div class="ph"><div class="ph-left"><div class="ph-title">Screen Analytics</div><div class="ph-sub">screens/{screenId}/analytics</div></div></div>
   <div id="screen-err"></div>
@@ -329,7 +322,7 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="screen-json">// enter Screen ID and press Load</div></div></div>
 </div>
 
-<!-- AUDIENCE PAGE -->
+<!-- AUDIENCE -->
 <div class="page" id="page-audience">
   <div class="ph"><div class="ph-left"><div class="ph-title">Audience</div><div class="ph-sub">audience/live · audience/stats · venues/intelligence</div></div></div>
   <div id="aud-err"></div>
@@ -344,7 +337,7 @@ canvas{display:block;width:100%;height:160px}
   </div>
 </div>
 
-<!-- EARNINGS PAGE -->
+<!-- EARNINGS -->
 <div class="page" id="page-earnings">
   <div class="ph"><div class="ph-left"><div class="ph-title">Earnings</div><div class="ph-sub">Track your screen earnings and transaction history</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadEarnings()">↻ Reload</button></div></div>
   <div id="earn-err"></div>
@@ -358,19 +351,18 @@ canvas{display:block;width:100%;height:160px}
     <div class="card"><div class="card-head"><span class="card-title">Programmatic Earnings</span></div><div class="card-body" id="earn-breakdown"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
     <div class="card"><div class="card-head"><span class="card-title">Breakdown by Type</span></div><div class="card-body" id="earn-bytype"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div></div>
   </div>
-  <div class="card"><div class="card-head"><span class="card-title">Transaction History</span><span style="font-size:12px;color:#94a3b8">All your earnings and payout transactions</span></div><div id="earn-tx"><div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">Loading…</div></div></div></div>
+  <div class="card"><div class="card-head"><span class="card-title">Transaction History</span></div><div id="earn-tx"><div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">Loading…</div></div></div></div>
 </div>
 
-<!-- RECONCILE PAGE -->
+<!-- RECONCILE -->
 <div class="page" id="page-reconcile">
   <div class="ph">
-    <div class="ph-left"><div class="ph-title">Impression Reconciliation</div><div class="ph-sub">Our local KV log vs Trillboards API — spot discrepancies instantly</div></div>
+    <div class="ph-left"><div class="ph-title">Impression Reconciliation</div><div class="ph-sub">Our KV daily count vs Trillboards API</div></div>
     <div class="ph-right">
       <div class="ptabs">
         <div class="ptab active" id="rec-tab-today" onclick="setRecDay('today',this)">Today</div>
         <div class="ptab" id="rec-tab-yesterday" onclick="setRecDay('yesterday',this)">Yesterday</div>
       </div>
-      <button class="btn btn-red btn-sm" onclick="clearKVImpressions()">🗑 Clear Log</button>
       <button class="btn btn-blue btn-sm" onclick="loadReconcile()">↻ Reload</button>
     </div>
   </div>
@@ -378,14 +370,14 @@ canvas{display:block;width:100%;height:160px}
   <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:18px">
     <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label" id="rec-label-completed">Completed (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today">—</div><div class="stat-footer">completed impressions</div></div>
     <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label" id="rec-label-requests">Requests (Today)</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="rec-requests-today">—</div><div class="stat-footer">ad requests fired</div></div>
-    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label" id="rec-label-trill">Trillboards (Today)</div><div class="stat-icon">📡</div></div><div class="stat-value" id="rec-trill-today">—</div><div class="stat-footer">from API</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label" id="rec-label-trill">Trillboards (Today)</div><div class="stat-icon">📡</div></div><div class="stat-value" id="rec-trill-today">—</div><div class="stat-footer">from API (9pm delay)</div></div>
     <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">Discrepancy</div><div class="stat-icon">⚠</div></div><div class="stat-value" id="rec-delta">—</div><div class="stat-footer" id="rec-delta-pct">—</div></div>
-    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Our Total (All Time)</div><div class="stat-icon">🗂</div></div><div class="stat-value" id="rec-our-total">—</div><div class="stat-footer">all in KV</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Last Updated</div><div class="stat-icon">🕐</div></div><div class="stat-value" id="rec-our-total" style="font-size:13px;padding-top:6px">—</div><div class="stat-footer">KV last flush</div></div>
   </div>
   <div id="rec-alert" style="margin-bottom:16px"></div>
-  <div class="two" style="margin-bottom:16px">
+  <div class="two">
     <div class="card">
-      <div class="card-head"><span class="card-title">Our Local Log</span><span class="tag tb" id="rec-our-tag">KV</span></div>
+      <div class="card-head"><span class="card-title">Our KV Log (Daily Total)</span><span class="tag tb" id="rec-our-tag">KV</span></div>
       <div class="card-body" id="rec-our-body"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Loading…</div></div></div>
     </div>
     <div class="card">
@@ -393,13 +385,9 @@ canvas{display:block;width:100%;height:160px}
       <div class="card-body" id="rec-trill-body"><div class="empty"><div class="empty-icon">📡</div><div class="empty-text">Loading…</div></div></div>
     </div>
   </div>
-  <div class="card">
-    <div class="card-head"><span class="card-title">Local Impression Log</span><span style="font-size:12px;color:#94a3b8">Last 10,000 entries — newest first</span></div>
-    <div id="rec-log-body"><div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">Loading…</div></div></div>
-  </div>
 </div>
 
-<!-- USAGE PAGE -->
+<!-- USAGE -->
 <div class="page" id="page-usage">
   <div class="ph"><div class="ph-left"><div class="ph-title">API Usage</div><div class="ph-sub">usage · usage/rate-limit · usage/dashboard</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadUsage()">↻ Reload</button></div></div>
   <div id="usage-err"></div>
@@ -410,7 +398,7 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Raw</span></div><div class="card-body" style="padding:12px"><div class="jv" id="usage-json">// press Reload</div></div></div>
 </div>
 
-<!-- RAW API PAGE -->
+<!-- RAW API -->
 <div class="page" id="page-raw">
   <div class="ph"><div class="ph-left"><div class="ph-title">Raw API Tester</div><div class="ph-sub">Call any endpoint directly</div></div></div>
   <div class="card" style="margin-bottom:16px"><div class="card-head"><span class="card-title">Quick Endpoints</span></div><div class="card-body" style="display:flex;gap:8px;flex-wrap:wrap" id="raw-quick-btns">
@@ -433,13 +421,13 @@ canvas{display:block;width:100%;height:160px}
   <div class="card"><div class="card-head"><span class="card-title">Response</span><span id="r-badge" class="tag ts">—</span></div><div class="card-body" style="padding:12px"><div class="jv" id="r-json">// send a request above</div></div></div>
 </div>
 
-<!-- TELEMETRY PAGE -->
+<!-- TELEMETRY -->
 <div class="page" id="page-telemetry">
   <div class="ph"><div class="ph-left"><div class="ph-title">Screen Telemetry</div><div class="ph-sub" id="tele-sub">Unified telemetry</div></div><div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadTelemetry()">↻ Reload</button></div></div>
   <div id="tele-err"></div>
   <div id="tele-insight" style="margin-bottom:16px"></div>
   <div class="two" style="margin-bottom:16px">
-    <div class="card"><div class="card-head"><span class="card-title" style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">🖥</span> Device Health</span></div><div class="card-body">
+    <div class="card"><div class="card-head"><span class="card-title">Device Health</span></div><div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Errors (7d)</div><div style="font-size:20px;font-weight:700;color:#dc2626" id="t-errors">—</div></div>
         <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Disconnects (7d)</div><div style="font-size:20px;font-weight:700;color:#d97706" id="t-disconnects">—</div></div>
@@ -447,7 +435,7 @@ canvas{display:block;width:100%;height:160px}
       <div style="font-size:12px;color:#6b7280">Top error: <span style="color:#374151;font-weight:500" id="t-top-error">—</span></div>
       <div style="font-size:12px;color:#6b7280;margin-top:4px">Last error: <span style="color:#374151" id="t-last-error">—</span></div>
     </div></div>
-    <div class="card"><div class="card-head"><span class="card-title" style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">↗</span> Ad Performance</span></div><div class="card-body">
+    <div class="card"><div class="card-head"><span class="card-title">Ad Performance</span></div><div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Fill Rate</div><div style="font-size:20px;font-weight:700;color:#2563eb" id="t-fill-rate">—</div></div>
         <div><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Avg CPM</div><div style="font-size:20px;font-weight:700;color:#16a34a" id="t-cpm">—</div></div>
@@ -460,14 +448,14 @@ canvas{display:block;width:100%;height:160px}
       </div>
     </div></div>
   </div>
-  <div class="card"><div class="card-head"><span class="card-title" style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">📈</span> Quality Score</span><span style="font-size:12px;color:#94a3b8" id="t-computed-at"></span></div><div class="card-body" id="t-quality"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div></div>
+  <div class="card"><div class="card-head"><span class="card-title">Quality Score</span><span style="font-size:12px;color:#94a3b8" id="t-computed-at"></span></div><div class="card-body" id="t-quality"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div></div>
   <div style="font-size:11px;color:#94a3b8;text-align:right;margin-top:8px" id="t-refreshed"></div>
 </div>
 
-<!-- CONFIG PAGE -->
+<!-- CONFIG -->
 <div class="page" id="page-config">
   <div class="ph">
-    <div class="ph-left"><div class="ph-title">Device Config</div><div class="ph-sub">Push settings to ad unit remotely — no deployment needed</div></div>
+    <div class="ph-left"><div class="ph-title">Device Config</div><div class="ph-sub">Push settings to ad unit remotely</div></div>
     <div class="ph-right">
       <button class="btn btn-white btn-sm" onclick="loadConfig()">↻ Reload</button>
       <button class="btn btn-blue btn-sm" onclick="saveConfig()">💾 Push to Device</button>
@@ -516,17 +504,13 @@ canvas{display:block;width:100%;height:160px}
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════
-// CREDENTIALS — loaded from localStorage, never hardcoded
-// Set once via the login flow + credentials modal
-// ══════════════════════════════════════════════════════
 function getCreds() {
   return {
-    API_KEY:          localStorage.getItem('trb_api_key')          || '',
-    WORKER_SECRET:    localStorage.getItem('trb_worker_secret')    || '',
-    PARTNER_ID:       localStorage.getItem('trb_partner_id')       || '',
-    SCREEN_ID:        localStorage.getItem('trb_screen_id')        || '',
-    DEVICE_ID:        localStorage.getItem('trb_device_id')        || '',
+    API_KEY:       localStorage.getItem('trb_api_key')       || '',
+    WORKER_SECRET: localStorage.getItem('trb_worker_secret') || '',
+    PARTNER_ID:    localStorage.getItem('trb_partner_id')    || '',
+    SCREEN_ID:     localStorage.getItem('trb_screen_id')     || '',
+    DEVICE_ID:     localStorage.getItem('trb_device_id')     || '',
   };
 }
 function credsComplete() {
@@ -537,15 +521,10 @@ function credsComplete() {
 const DIRECT      = 'https://api.trillboards.com';
 const PROXY       = 'https://corsproxy.io/?url=https://api.trillboards.com';
 const WORKER_BASE = 'https://trillboards-proxy.johnm-af2.workers.dev';
-// Earner proxy base — secret appended at call time from localStorage
 const EARNER_BASE = WORKER_BASE + '/earner';
 
 let BASE = DIRECT, usingProxy = false, period = '7d', cd = 30;
 
-// ══════════════════════════════════════════════════════
-// AUTH — password verified against Worker /check-password
-// Session stored in sessionStorage (clears on tab close)
-// ══════════════════════════════════════════════════════
 async function doLogin() {
   const pw = document.getElementById('login-pw').value.trim();
   const err = document.getElementById('login-err');
@@ -553,30 +532,18 @@ async function doLogin() {
   if (!pw) { err.textContent = 'Enter a password.'; return; }
   try {
     const res = await fetch(WORKER_BASE + '/check-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: pw })
     });
     const data = await res.json();
     if (!data.ok) { err.textContent = 'Incorrect password.'; return; }
-    // Store session token returned by Worker
     sessionStorage.setItem('trb_session', data.token);
     document.getElementById('login-overlay').style.display = 'none';
-    // If first time (no creds stored), show creds modal
-    if (!credsComplete()) {
-      openCreds();
-    } else {
-      initApp();
-    }
-  } catch(e) {
-    err.textContent = 'Could not reach server. Try again.';
-  }
+    if (!credsComplete()) { openCreds(); } else { initApp(); }
+  } catch(e) { err.textContent = 'Could not reach server. Try again.'; }
 }
 
-function doLogout() {
-  sessionStorage.removeItem('trb_session');
-  location.reload();
-}
+function doLogout() { sessionStorage.removeItem('trb_session'); location.reload(); }
 
 function checkSession() {
   const token = sessionStorage.getItem('trb_session');
@@ -585,12 +552,8 @@ function checkSession() {
     if (!credsComplete()) { openCreds(); return; }
     initApp();
   }
-  // else overlay stays visible
 }
 
-// ══════════════════════════════════════════════════════
-// CREDENTIALS MODAL
-// ══════════════════════════════════════════════════════
 function openCreds() {
   const c = getCreds();
   document.getElementById('cr-api-key').value = c.API_KEY;
@@ -600,9 +563,7 @@ function openCreds() {
   document.getElementById('cr-device-id').value = c.DEVICE_ID;
   document.getElementById('creds-modal').classList.add('open');
 }
-function closeCreds() {
-  document.getElementById('creds-modal').classList.remove('open');
-}
+function closeCreds() { document.getElementById('creds-modal').classList.remove('open'); }
 function saveCreds() {
   const key    = document.getElementById('cr-api-key').value.trim();
   const secret = document.getElementById('cr-worker-secret').value.trim();
@@ -617,37 +578,19 @@ function saveCreds() {
   localStorage.setItem('trb_partner_id', pid);
   localStorage.setItem('trb_screen_id', sid);
   localStorage.setItem('trb_device_id', did);
-  closeCreds();
-  initApp();
+  closeCreds(); initApp();
 }
 
-// ══════════════════════════════════════════════════════
-// APP INIT — called after auth + creds confirmed
-// ══════════════════════════════════════════════════════
 function initApp() {
-  // Wire up dynamic values that depend on stored creds
   const c = getCreds();
-  // Screen ID input defaults
-  const scInput = document.getElementById('sc-id');
-  if (scInput && !scInput.value) scInput.value = c.SCREEN_ID;
-  const audInput = document.getElementById('aud-id');
-  if (audInput && !audInput.value) audInput.value = c.SCREEN_ID;
-  // Telemetry sub
-  const teleSub = document.getElementById('tele-sub');
-  if (teleSub) teleSub.textContent = 'Unified telemetry for screen ' + c.SCREEN_ID;
-  // Raw quick buttons
-  const rbDev = document.getElementById('raw-btn-device');
-  if (rbDev) rbDev.onclick = () => quickCall('/v1/partner/device/' + c.DEVICE_ID + '/ads');
-  const rbScr = document.getElementById('raw-btn-screen');
-  if (rbScr) rbScr.onclick = () => quickCall('/v1/partner/screens/' + c.SCREEN_ID + '/analytics?period=7d');
-  // Start auto-refresh and load dashboard
-  startAutoRefresh();
-  loadDashboard();
+  const scInput = document.getElementById('sc-id'); if (scInput && !scInput.value) scInput.value = c.SCREEN_ID;
+  const audInput = document.getElementById('aud-id'); if (audInput && !audInput.value) audInput.value = c.SCREEN_ID;
+  const teleSub = document.getElementById('tele-sub'); if (teleSub) teleSub.textContent = 'Unified telemetry for screen ' + c.SCREEN_ID;
+  const rbDev = document.getElementById('raw-btn-device'); if (rbDev) rbDev.onclick = () => quickCall('/v1/partner/device/' + c.DEVICE_ID + '/ads');
+  const rbScr = document.getElementById('raw-btn-screen'); if (rbScr) rbScr.onclick = () => quickCall('/v1/partner/screens/' + c.SCREEN_ID + '/analytics?period=7d');
+  startAutoRefresh(); loadDashboard();
 }
 
-// ══════════════════════════════════════════════════════
-// API HELPERS — always pull creds fresh from localStorage
-// ══════════════════════════════════════════════════════
 async function api(path, method='GET', body=null) {
   const { API_KEY } = getCreds();
   const headers = { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' };
@@ -673,17 +616,14 @@ async function api(path, method='GET', body=null) {
 
 async function workerGet(path) {
   const { WORKER_SECRET } = getCreds();
-  const res = await fetch(WORKER_BASE + path + '?_=' + Date.now(), {
-    headers: { 'X-Proxy-Secret': WORKER_SECRET }
-  });
+  const res = await fetch(WORKER_BASE + path + '?_=' + Date.now(), { headers: { 'X-Proxy-Secret': WORKER_SECRET } });
   return res.json();
 }
 
 async function workerPost(path, body) {
   const { WORKER_SECRET } = getCreds();
   const res = await fetch(WORKER_BASE + path, {
-    method: 'POST',
-    headers: { 'X-Proxy-Secret': WORKER_SECRET, 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'X-Proxy-Secret': WORKER_SECRET, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
   return res.json();
@@ -693,8 +633,7 @@ async function earnerApi(path) {
   const { WORKER_SECRET } = getCreds();
   const bust = (path.includes('?') ? '&' : '?') + '_=' + Date.now();
   const res = await fetch(EARNER_BASE + path + bust, {
-    headers: { 'X-Proxy-Secret': WORKER_SECRET, 'Content-Type': 'application/json' },
-    cache: 'no-store'
+    headers: { 'X-Proxy-Secret': WORKER_SECRET, 'Content-Type': 'application/json' }, cache: 'no-store'
   });
   const data = await res.json();
   return { status: res.status, ok: res.ok, data };
@@ -788,8 +727,7 @@ async function loadDashboard() {
     $('s-active-f').textContent=`${fn(stats.pending_screens)} pending`;
     $('s-imp-month').textContent=fn(stats.total_impressions_month)+' this month';
     $('partner-kv').innerHTML=kv('Name',esc(partner.name||'—'))+kv('Slug',esc(partner.slug||'—'))+kv('Status',tgStatus(partner.status))+kv('Stripe',tgStatus(stripe.account_status))+kv('Created',fd(partner.created_at));
-    const pt=$('p-status-tag');
-    if(pt){ pt.className='tag '+(partner.status==='active'?'tg':'ts'); pt.textContent=(partner.status||'unknown').toUpperCase(); }
+    const pt=$('p-status-tag'); if(pt){ pt.className='tag '+(partner.status==='active'?'tg':'ts'); pt.textContent=(partner.status||'unknown').toUpperCase(); }
     $('earnings-kv').innerHTML=kv('Total Earned',fc(earn.total_lifetime_cents||earn.total_earned_cents))+kv('Available Payout',fc(earn.available_for_payout_cents||earn.available_payout_cents))+kv('Pending Payout',fc(earn.pending_confirmation_cents||earn.pending_payout_cents))+kv('Next Payout',fd((earn.next_payout_estimate||{}).date||earn.next_payout_date))+kv('This Month',fc(earn.this_month_cents))+kv('Payout Threshold',fc(earn.payout_threshold_cents));
     const ts=d.top_screens||[];
     if(!ts.length) { $('top-screens').innerHTML='<div class="empty"><div class="empty-icon">📺</div><div class="empty-text">No screen data yet</div></div>'; }
@@ -799,31 +737,27 @@ async function loadDashboard() {
     else { $('activity').innerHTML='<div class="imp-feed">'+ra.slice(0,8).map(a=>`<div class="imp-row"><div class="imp-dot" style="background:${a.type==='impression'?'#2563eb':'#16a34a'}"></div><div class="imp-text"><strong>${esc(a.type||'event')}</strong>${a.ad_id?' · '+esc(a.ad_id.slice(-10)):''}</div><div class="imp-time">${fd(a.timestamp)}</div></div>`).join('')+'</div>'; }
     log('dash-log','g',`partner="${partner.name}" · screens=${stats.total_screens} · imp_today=${stats.total_impressions_today}`);
   } catch(e) { setPill(false,'ERROR'); log('dash-log','e','✕ '+e.message); errBox('dash-err', e.message); }
-  // Lazy load KV ad request count separately — does not block dashboard or logs
   loadDashboardKV();
 }
 
+// ── Updated: reads from /get-daily instead of /get-impressions ──
 async function loadDashboardKV() {
   const { WORKER_SECRET } = getCreds();
   if (!WORKER_SECRET) return;
-  const adReqEl = $('s-ad-requests');
-  const adReqFooter = $('s-ad-requests-f');
+  const adReqEl = $('s-ad-requests'), adReqFooter = $('s-ad-requests-f');
   try {
-    log('dash-log','i','→ GET /get-impressions (KV)');
-    const kvData = await workerGet('/get-impressions');
-    const todayDate = utcDate(0);
-    const kvImps = kvData.impressions || [];
-    const todayImps = kvImps.filter(i => i.ts && i.ts.slice(0,10) === todayDate);
-    // All non-error entries = requests fired; subset that completed = impressions
-    const requestsToday = todayImps.filter(i => i.type !== 'error').length;
-    const completedToday = todayImps.filter(i => i.completed === true || i.type === 'complete').length;
+    log('dash-log','i','→ GET /get-daily (KV)');
+    const dailyData = await workerGet('/get-daily');
+    const today = dailyData.today || { count: 0, completed: 0 };
+    const requestsToday = today.count || 0;
+    const completedToday = today.completed || 0;
     const pendingToday = requestsToday - completedToday;
     if (adReqEl) { adReqEl.textContent = fn(requestsToday); adReqEl.classList.remove('sk'); }
-    if (adReqFooter) adReqFooter.textContent = `${fn(pendingToday)} pending · ${fn(todayImps.filter(i=>i.type==='error').length)} errors`;
+    if (adReqFooter) adReqFooter.textContent = `${fn(pendingToday)} pending`;
     const compEl = $('s-ad-completed'), compFooter = $('s-ad-completed-f');
     if (compEl) { compEl.textContent = fn(completedToday); compEl.classList.remove('sk'); compEl.style.color = completedToday > 0 ? '#16a34a' : ''; }
     if (compFooter) compFooter.textContent = requestsToday > 0 ? Math.round((completedToday/requestsToday)*100)+'% fill rate' : 'no requests yet';
-    log('dash-log','g',`KV today: ${requestsToday} requests · ${completedToday} completed · ${pendingToday} pending`);
+    log('dash-log','g',`KV today: ${requestsToday} requests · ${completedToday} completed · updated: ${today.updated_at||'—'}`);
   } catch(e) {
     if (adReqEl) { adReqEl.textContent = '—'; adReqEl.classList.remove('sk'); }
     if (adReqFooter) adReqFooter.textContent = 'KV unavailable';
@@ -939,7 +873,7 @@ async function loadEarnings() {
   } catch(e){ errBox('earn-err', e.message); }
 }
 
-// ════ RECONCILE ════
+// ── RECONCILE — updated to use /get-daily ──
 let recDay = 'today';
 
 function setRecDay(day, el) {
@@ -962,95 +896,80 @@ async function loadReconcile() {
   $('rec-err').innerHTML = '';
   $('rec-alert').innerHTML = '';
   try {
-    const [kvData, dashData] = await Promise.all([
-      workerGet('/get-impressions'),
+    // Fetch daily KV total + Trillboards dashboard in parallel
+    const [dailyData, dashData] = await Promise.all([
+      workerGet('/get-daily'),
       api('/v1/partner/dashboard')
     ]);
-    const ourTotal = kvData.total || 0;
-    const imps = kvData.impressions || [];
-    const filterDate = recDay === 'yesterday' ? utcDate(-1) : utcDate(0);
-    const dayImps = imps.filter(i => i.ts.slice(0, 10) === filterDate);
-    const completedDay = dayImps.filter(i => i.completed === true || i.type === 'complete').length;
-    const requestsDay  = dayImps.filter(i => i.type !== 'error').length;
+
+    const today = dailyData.today || { count: 0, completed: 0 };
+    const completedDay = today.completed || 0;
+    const requestsDay  = today.count || 0;
+    const lastUpdated  = today.updated_at || null;
+
     const d = dashData.data?.data || dashData.data || {};
+    let trillToday = 0, trillWeek = 0;
 
-    let trillYesterdayImps = 0, trillYesterdayEarnings = 0, trillYesterdayCPM = null;
     if (recDay === 'yesterday') {
-      const txData = await earnerApi('/payment-list?page=1&limit=50');
-      const txList = txData.data?.data || [];
-      const yesterdayDate = utcDate(-1);
-      const yesterdayTx = txList.filter(t => (t.createdAt || '').slice(0, 10) === yesterdayDate);
-      trillYesterdayImps = yesterdayTx.reduce((sum, t) => sum + (t.impressions_count || 0), 0);
-      trillYesterdayEarnings = yesterdayTx.reduce((sum, t) => sum + (t.amount || 0), 0);
-      trillYesterdayCPM = yesterdayTx.length && yesterdayTx[0].cpm_rate ? yesterdayTx[0].cpm_rate : null;
+      // Pull from earner transactions for yesterday
+      try {
+        const txData = await earnerApi('/payment-list?page=1&limit=50');
+        const txList = txData.data?.data || [];
+        const yd = utcDate(-1);
+        const ydTx = txList.filter(t => (t.createdAt||'').slice(0,10) === yd);
+        trillToday = ydTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
+      } catch(e) { trillToday = 0; }
+    } else {
+      trillToday = d.stats?.total_impressions_today || 0;
     }
+    trillWeek = d.stats?.total_impressions_week || 0;
 
-    const trillToday = recDay === 'yesterday' ? trillYesterdayImps : (d.stats?.total_impressions_today || 0);
-    const trillWeek = d.stats?.total_impressions_week || 0;
-    const trillEarnings = recDay === 'yesterday' ? trillYesterdayEarnings : null;
     const delta = completedDay - trillToday;
     const deltaPct = trillToday > 0 ? ((delta / trillToday) * 100).toFixed(1) : null;
+    const lbl = recDay === 'yesterday' ? 'yesterday' : 'today';
 
     setVal('rec-our-today', fn(completedDay));
     setVal('rec-requests-today', fn(requestsDay));
     setVal('rec-trill-today', fn(trillToday));
-    setVal('rec-our-total', fn(ourTotal));
+
+    // Last updated as the "total" stat
+    const totalEl = $('rec-our-total');
+    if (totalEl) {
+      totalEl.textContent = lastUpdated ? new Date(lastUpdated).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) : '—';
+      totalEl.classList.remove('sk');
+    }
 
     const deltaEl = $('rec-delta');
     if (deltaEl) { deltaEl.textContent = (delta >= 0 ? '+' : '') + fn(delta); deltaEl.style.color = delta === 0 ? '#16a34a' : '#ef4444'; }
     const deltaPctEl = $('rec-delta-pct');
     if (deltaPctEl) deltaPctEl.textContent = deltaPct !== null ? Math.abs(deltaPct) + '% variance' : 'no trill data yet';
 
-    const lbl = recDay === 'yesterday' ? 'yesterday' : 'today';
     const alertEl = $('rec-alert');
-    if (delta === 0 && completedDay === 0 && trillToday === 0) {
+    if (completedDay === 0 && trillToday === 0) {
       alertEl.innerHTML = `<div class="alert alert-blue"><strong>ℹ No impressions ${lbl} yet</strong>Waiting for first impression from the tablet.</div>`;
     } else if (delta === 0) {
-      alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Counts match</strong>Both our log and Trillboards API show ${fn(completedDay)} impressions ${lbl}.</div>`;
+      alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Counts match</strong>Both our log and Trillboards show ${fn(completedDay)} impressions ${lbl}.</div>`;
     } else {
-      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy detected</strong>Our log: <strong>${fn(completedDay)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: ${fn(Math.abs(delta))} (${deltaPct !== null ? Math.abs(deltaPct)+'%' : '—'})<br><span style="font-size:12px;color:#991b1b">Note: Trillboards API updates ~9PM EST — intraday discrepancies are expected.</span></div>`;
+      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy</strong>Our log: <strong>${fn(completedDay)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: ${fn(Math.abs(delta))}${deltaPct !== null ? ' ('+Math.abs(deltaPct)+'%)' : ''}<br><span style="font-size:12px;color:#991b1b">Note: Trillboards API updates ~9PM EST — intraday discrepancies are expected.</span></div>`;
     }
 
-    $('rec-our-body').innerHTML = `<div class="kv">${kv(`${lbl.charAt(0).toUpperCase()+lbl.slice(1)} completed`, fn(completedDay))}${kv(`${lbl.charAt(0).toUpperCase()+lbl.slice(1)} requests`, fn(requestsDay))}${kv('All Time (total entries)', fn(ourTotal))}${kv('Last Entry', imps.length ? new Date(imps[imps.length-1].ts).toLocaleString() : '—')}${kv('Log Entries', fn(imps.length))}</div>`;
+    $('rec-our-body').innerHTML = `<div class="kv">
+      ${kv('Completed '+lbl.charAt(0).toUpperCase()+lbl.slice(1), fn(completedDay))}
+      ${kv('Total Requests', fn(requestsDay))}
+      ${kv('Fill Rate', requestsDay > 0 ? Math.round((completedDay/requestsDay)*100)+'%' : '—')}
+      ${kv('Last Flush', lastUpdated ? new Date(lastUpdated).toLocaleString() : '—')}
+      ${kv('Data Source', 'KV daily_'+utcDate(recDay==='yesterday'?-1:0))}
+    </div>`;
+
     $('rec-trill-body').innerHTML = `<div class="kv">
       ${kv(lbl.charAt(0).toUpperCase()+lbl.slice(1)+' Impressions', fn(trillToday))}
-      ${recDay === 'yesterday' ? kv('Earnings', trillEarnings ? '$'+Number(trillEarnings).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—') : ''}
-      ${recDay === 'yesterday' ? kv('CPM', trillYesterdayCPM ? '$'+Number(trillYesterdayCPM).toFixed(2) : '—') : ''}
       ${kv('This Week', fn(trillWeek))}
       ${kv('Active Screens', fn(d.stats?.active_screens))}
       ${kv('Total Screens', fn(d.stats?.total_screens))}
+      ${kv('API Update Time', '~9PM EST daily')}
     </div>`;
 
-    if (!dayImps.length) {
-      $('rec-log-body').innerHTML = `<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No entries for ${lbl}</div></div>`;
-    } else {
-      const rows = [...dayImps].reverse().slice(0, 2880).map(i => {
-        let statusTag;
-        if (i.type === 'error') {
-          statusTag = `<span class="tag tr">✕ Error ${esc(String(i.error_status||''))}</span>`;
-        } else if (i.completed || i.type === 'complete') {
-          statusTag = '<span class="tag tg">✓ Complete</span>';
-        } else {
-          statusTag = '<span class="tag tb">⬆ Request</span>';
-        }
-        const rowStyle = i.type === 'error' ? 'background:#fff5f5;' : '';
-        return `<tr style="${rowStyle}">
-          <td style="white-space:nowrap;font-family:monospace;font-size:11px">${new Date(i.ts).toLocaleString()}</td>
-          <td style="font-family:monospace;font-size:11px">${esc((i.ad_id||'—').slice(-20))}</td>
-          <td>${statusTag}</td>
-          <td style="font-family:monospace;font-size:11px">${i.duration_ms ? Math.round(i.duration_ms/1000)+'s' : '—'}</td>
-          <td style="font-family:monospace;font-size:10px;color:#94a3b8">${esc((i.impression_id||'—').slice(0,28))}</td>
-        </tr>`;
-      }).join('');
-      $('rec-log-body').innerHTML = `<table class="tbl"><thead><tr><th>Time</th><th>Ad ID</th><th>Status</th><th>Duration</th><th>Impression ID</th></tr></thead><tbody>${rows}</tbody></table>`;
-    }
   } catch(e) { errBox('rec-err', e.message); }
-}
-
-async function clearKVImpressions() {
-  if (!confirm('Clear all local impression logs? This cannot be undone.')) return;
-  try { await workerPost('/clear-impressions', {}); alert('Log cleared.'); loadReconcile(); }
-  catch(e) { alert('Error: ' + e.message); }
 }
 
 async function loadUsage() {
@@ -1114,7 +1033,6 @@ async function loadTelemetry() {
   } catch(e) { errBox('tele-err', e.message); }
 }
 
-// ════ DEVICE CONFIG ════
 async function loadConfig() {
   $('cfg-err').innerHTML = '';
   try {
@@ -1132,16 +1050,13 @@ async function loadConfig() {
     setSelect('cfg-kv', cfg.kv_enabled !== false);
     setSelect('cfg-errlogs', cfg.error_logging !== false);
     setSelect('cfg-test', !!cfg.test_mode);
-    const pushed = $('cfg-last-pushed');
-    if (pushed) pushed.textContent = cfg.updated_at ? new Date(cfg.updated_at).toLocaleString() : 'Never pushed';
-    const pollDisp = $('cfg-poll-display');
-    if (pollDisp) pollDisp.textContent = ((cfg.config_poll_interval || 300) / 60).toFixed(0) + ' min';
+    const pushed = $('cfg-last-pushed'); if (pushed) pushed.textContent = cfg.updated_at ? new Date(cfg.updated_at).toLocaleString() : 'Never pushed';
+    const pollDisp = $('cfg-poll-display'); if (pollDisp) pollDisp.textContent = ((cfg.config_poll_interval || 300) / 60).toFixed(0) + ' min';
   } catch(e) { errBox('cfg-err', e.message); }
 }
 
 async function saveConfig() {
-  $('cfg-err').innerHTML = '';
-  $('cfg-alert').innerHTML = '';
+  $('cfg-err').innerHTML = ''; $('cfg-alert').innerHTML = '';
   try {
     const cfg = {
       floor_cpm: parseFloat($('cfg-cpm').value) || 3.00,
@@ -1158,8 +1073,7 @@ async function saveConfig() {
     if (!data.success) throw new Error(JSON.stringify(data));
     $('cfg-raw').innerHTML = cj(data.config);
     $('cfg-alert').innerHTML = `<div class="alert alert-green"><strong>✓ Config pushed</strong>Ad unit will pick up changes on next poll (within ${Math.round((cfg.config_poll_interval||300)/60)} min).</div>`;
-    const pushed = $('cfg-last-pushed');
-    if (pushed) pushed.textContent = new Date().toLocaleString();
+    const pushed = $('cfg-last-pushed'); if (pushed) pushed.textContent = new Date().toLocaleString();
   } catch(e) { errBox('cfg-err', e.message); }
 }
 
@@ -1172,8 +1086,7 @@ function startAutoRefresh() {
     cd--; const el = $('cd'); if (el) el.textContent = cd;
     if (cd <= 0) { cd = 30; loadDashboard(); }
   }, 1000);
-  // Poll KV every 10s for real-time ad request count
-  setInterval(() => loadDashboardKV(), 10000);
+  setInterval(() => loadDashboardKV(), 30000);
 }
 
 document.addEventListener('DOMContentLoaded', checkSession);
