@@ -241,6 +241,7 @@ canvas{display:block;width:100%;height:160px}
     <div class="nav-item" onclick="nav('usage',this)"><span class="nav-icon">⚡</span>API Usage</div>
     <div class="nav-item" onclick="nav('raw',this)"><span class="nav-icon">{ }</span>Raw API</div>
     <div class="nav-item" onclick="nav('config',this)"><span class="nav-icon">⚙️</span>Device Config</div>
+    <div class="nav-item" onclick="nav('exports',this)"><span class="nav-icon">📥</span>Data Export</div>
   </div>
 </nav>
 
@@ -500,6 +501,51 @@ canvas{display:block;width:100%;height:160px}
   </div>
 </div>
 
+<!-- DATA EXPORT PAGE -->
+<div class="page" id="page-exports">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title">Data Export</div><div class="ph-sub">Impression ledger · Waterfall events · Earnings breakdown</div></div>
+    <div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadExports()">↻ Reload</button></div>
+  </div>
+  <div id="exp-err"></div>
+
+  <!-- Earnings Summary -->
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:18px">
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Lifetime Earnings</div><div class="stat-icon">$</div></div><div class="stat-value" id="exp-lifetime">—</div><div class="stat-footer" id="exp-lifetime-f">—</div></div>
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Pending Payout</div><div class="stat-icon">⏳</div></div><div class="stat-value" id="exp-pending">—</div><div class="stat-footer" id="exp-payout-date">—</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Revenue Share</div><div class="stat-icon">%</div></div><div class="stat-value" id="exp-revshare">—</div><div class="stat-footer">partner rate</div></div>
+    <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Payout Threshold</div><div class="stat-icon">🎯</div></div><div class="stat-value" id="exp-threshold">—</div><div class="stat-footer">minimum to withdraw</div></div>
+  </div>
+
+  <!-- Waterfall Events by Day -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head">
+      <span class="card-title">Waterfall Events (7 days)</span>
+      <span class="tag tb" id="exp-wf-tag">—</span>
+    </div>
+    <div class="card-body" id="exp-wf-body">
+      <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- Impression Ledger -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head">
+      <span class="card-title">Impression Ledger (610 records)</span>
+      <span class="tag ts">via earner API</span>
+    </div>
+    <div class="card-body" id="exp-imp-body">
+      <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- Raw JSON -->
+  <div class="card">
+    <div class="card-head"><span class="card-title">Raw Export Data</span></div>
+    <div class="card-body" style="padding:12px"><div class="jv" id="exp-raw">// press Reload</div></div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -709,6 +755,7 @@ function nav(name, el) {
   if(name==='telemetry'&&$('t-quality').textContent.includes('Loading')) loadTelemetry();
   if(name==='reconcile') loadReconcile();
   if(name==='config') loadConfig();
+  if(name==='exports') loadExports();
 }
 
 async function loadDashboard() {
@@ -865,10 +912,10 @@ async function loadEarnings() {
     const screensSub = $('earn-screens-sub'); if(screensSub) screensSub.textContent = 'of ' + fn(d.total_screens||0) + ' total screens';
     const playsEl = $('earn-plays'); if(playsEl){ playsEl.textContent = fn(d.advertisementPlay||d.programmatic_impressions||0); playsEl.className='stat-value'; }
     $('earn-breakdown').innerHTML=`<div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:8px"><div style="font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:500">Programmatic Earnings</div><div style="font-size:26px;font-weight:700;color:#2563eb;margin-bottom:4px">${fmt(d.programmatic_earnings||d.amount)}</div><div style="font-size:12px;color:#94a3b8">Pending (net-60) <span style="float:right;color:#6b7280">${fmt(d.programmatic_breakdown?.estimated||d.amount)}</span></div></div>`;
-    $('earn-bytype').innerHTML=kv('Direct',fmt(d.direct_earnings||0))+kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+kv('Rev Share',(d.revenue_share_percent??'70')+'%')+kv('Available',fmt(d.available_for_withdrawal));
+    $('earn-bytype').innerHTML=kv('Direct',fmt(d.direct_earnings||0))+kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+kv('Rev Share','70%')+kv('Available',fmt(d.available_for_withdrawal));
     const txList = tx.data?.data || [];
     $('earn-tx').innerHTML = txList.length
-      ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Screen</th><th>Amount</th><th>Net</th></tr></thead><tbody>${txList.map(t=>{const net=fmt(t.amount_received??t.amount);const gross=fmt(t.gross_amount??t.amount_received??t.amount);const impressions=t.impressions?fn(t.impressions)+' impressions':esc(t.advertisement?.name||t.source_provider||'—');const cpm=t.cpm?' @ $'+Number(t.cpm).toFixed(2)+' CPM':'';const status=t.programmatic_status||t.event_type||'pending';return`<tr><td style="white-space:nowrap">${fd(t.createdAt)}</td><td><span class="tag ${status==='estimated'||status==='pending'?'ty':status==='confirmed'?'tg':'ts'}">Programmatic</span></td><td style="font-size:12px">${impressions}${cpm}</td><td style="font-size:12px">${esc(t.screen?.name||'Curb Taxi - NYC')}</td><td style="font-weight:600">${gross}</td><td style="font-weight:600;color:#16a34a">${net}</td></tr>`;}).join('')}</tbody></table>`
+      ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Screen</th><th>Amount</th><th>Net</th></tr></thead><tbody>${txList.map(t=>{const gross=fmt(t.gross_amount??t.amount_received??t.amount);const grossVal=(t.gross_amount??t.amount_received??t.amount??0);const net=fmt(grossVal*0.70/100*100);const impressions=t.impressions?fn(t.impressions)+' impressions':esc(t.advertisement?.name||t.source_provider||'—');const cpm=t.cpm?' @ $'+Number(t.cpm).toFixed(2)+' CPM':'';const status=t.programmatic_status||t.event_type||'pending';return`<tr><td style="white-space:nowrap">${fd(t.createdAt)}</td><td><span class="tag ${status==='estimated'||status==='pending'?'ty':status==='confirmed'?'tg':'ts'}">Programmatic</span></td><td style="font-size:12px">${impressions}${cpm}</td><td style="font-size:12px">${esc(t.screen?.name||'Curb Taxi - NYC')}</td><td style="font-weight:600">${gross}</td><td style="font-weight:600;color:#16a34a">${net}</td></tr>`;}).join('')}</tbody></table>`
       : '<div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">No transactions yet</div></div>';
   } catch(e){ errBox('earn-err', e.message); }
 }
@@ -1069,6 +1116,83 @@ async function saveConfig() {
     $('cfg-alert').innerHTML = `<div class="alert alert-green"><strong>✓ Config pushed</strong>Ad unit will pick up changes on next poll (within ${Math.round((cfg.config_poll_interval||300)/60)} min).</div>`;
     const pushed = $('cfg-last-pushed'); if (pushed) pushed.textContent = new Date().toLocaleString();
   } catch(e) { errBox('cfg-err', e.message); }
+}
+
+async function loadExports() {
+  $('exp-err').innerHTML = '';
+  try {
+    const [earnData, wfData, txData] = await Promise.all([
+      api('/v1/partner/earnings'),
+      api('/v1/partner/data-export/waterfall_events?days=7'),
+      earnerApi('/payment-list?page=1&limit=100')
+    ]);
+
+    // Earnings summary
+    const e = earnData.data || {};
+    const fmt = v => v == null ? '—' : '$' + (v/100).toFixed(2);
+    setVal('exp-lifetime', fmt(e.total_lifetime_cents));
+    setVal('exp-pending', fmt(e.available_for_payout_cents));
+    setVal('exp-revshare', (e.revenue_share_percent || 70) + '%');
+    setVal('exp-threshold', fmt(e.payout_threshold_cents));
+    const pd = e.next_payout_estimate || {};
+    const pdEl = $('exp-payout-date'); if(pdEl) pdEl.textContent = pd.date ? 'Est. ' + fd(pd.date) : '—';
+    const lfEl = $('exp-lifetime-f'); if(lfEl) lfEl.textContent = 'Available: ' + fmt(e.available_for_payout_cents);
+
+    // Waterfall events
+    const wfRows = (wfData.data || {}).rows || [];
+    const wfTag = $('exp-wf-tag'); if(wfTag) { wfTag.textContent = wfRows.length + ' days'; }
+    if (wfRows.length) {
+      const totalTimeouts = wfRows.reduce((s,r) => s + (r.total_timeouts||0), 0);
+      const totalFills = wfRows.reduce((s,r) => s + (r.total_fills||0), 0);
+      $('exp-wf-body').innerHTML = `
+        <div style="margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap">
+          <div style="font-size:12px;color:#6b7280">Total timeouts (7d): <span style="font-weight:700;color:#1e293b">${fn(totalTimeouts)}</span></div>
+          <div style="font-size:12px;color:#6b7280">Total fills (7d): <span style="font-weight:700;color:#16a34a">${fn(totalFills)}</span></div>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Date</th><th>Partner</th><th>Attempts</th><th>Fills</th><th>No Fill</th><th>Timeouts</th><th>Avg CPM</th><th>Latency</th></tr></thead>
+          <tbody>${wfRows.map(r => `<tr>
+            <td style="font-family:monospace;font-size:11px">${r.day.slice(0,10)}</td>
+            <td><span class="tag tb">${esc(r.partner_name||'—')}</span></td>
+            <td>${fn(r.total_attempts)}</td>
+            <td style="color:#16a34a;font-weight:600">${fn(r.total_fills)}</td>
+            <td style="color:#ef4444">${fn(r.total_no_fills)}</td>
+            <td style="color:#d97706">${fn(r.total_timeouts)}</td>
+            <td>${r.avg_cpm ? '$'+Number(r.avg_cpm).toFixed(2) : '—'}</td>
+            <td>${r.avg_latency_ms ? Math.round(r.avg_latency_ms)+'ms' : '—'}</td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+    } else {
+      $('exp-wf-body').innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">No waterfall event data</div></div>';
+    }
+
+    // Impression ledger via earner transactions
+    const txList = (txData.data || {}).data || [];
+    if (txList.length) {
+      $('exp-imp-body').innerHTML = `
+        <table class="tbl">
+          <thead><tr><th>Date</th><th>Impressions</th><th>CPM</th><th>Gross</th><th>Net (70%)</th><th>Status</th></tr></thead>
+          <tbody>${txList.map(t => {
+            const gross = t.gross_amount || t.amount || 0;
+            const net = (gross * 0.70).toFixed(2);
+            const imps = t.impressions || t.impressions_count || 0;
+            const cpm = t.cpm || (imps > 0 ? (gross/imps*1000).toFixed(2) : null);
+            return `<tr>
+              <td style="white-space:nowrap;font-size:12px">${fd(t.createdAt)}</td>
+              <td style="font-weight:600">${fn(imps)}</td>
+              <td>${cpm ? '$'+Number(cpm).toFixed(2) : '—'}</td>
+              <td>$${Number(gross).toFixed(2)}</td>
+              <td style="color:#16a34a;font-weight:600">$${net}</td>
+              <td><span class="tag ${t.programmatic_status==='confirmed'?'tg':'ty'}">${esc(t.programmatic_status||'pending')}</span></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
+    } else {
+      $('exp-imp-body').innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No transaction data yet</div></div>';
+    }
+
+    $('exp-raw').innerHTML = cj({earnings: earnData.data, waterfall_events: wfData.data, transactions: txData.data});
+  } catch(e) { errBox('exp-err', e.message); }
 }
 
 function loadAll() { loadDashboard(); }
