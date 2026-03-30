@@ -897,8 +897,9 @@ async function loadReconcile() {
   $('rec-alert').innerHTML = '';
   try {
     // Fetch daily KV total + Trillboards dashboard in parallel
-    const [dailyData, dashData] = await Promise.all([
+    const [dailyData, txData, dashData] = await Promise.all([
       workerGet('/get-daily'),
+      earnerApi('/payment-list?page=1&limit=50'),
       api('/v1/partner/dashboard')
     ]);
 
@@ -908,20 +909,13 @@ async function loadReconcile() {
     const lastUpdated  = today.updated_at || null;
 
     const d = dashData.data?.data || dashData.data || {};
+    const txList = txData.data?.data || [];
     let trillToday = 0, trillWeek = 0;
 
-    if (recDay === 'yesterday') {
-      // Pull from earner transactions for yesterday
-      try {
-        const txData = await earnerApi('/payment-list?page=1&limit=50');
-        const txList = txData.data?.data || [];
-        const yd = utcDate(-1);
-        const ydTx = txList.filter(t => (t.createdAt||'').slice(0,10) === yd);
-        trillToday = ydTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
-      } catch(e) { trillToday = 0; }
-    } else {
-      trillToday = d.stats?.total_impressions_today || 0;
-    }
+    // Pull from earner transactions for both today and yesterday — more accurate than partner API
+    const filterDate = recDay === 'yesterday' ? utcDate(-1) : utcDate(0);
+    const dayTx = txList.filter(t => (t.createdAt||'').slice(0,10) === filterDate);
+    trillToday = dayTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
     trillWeek = d.stats?.total_impressions_week || 0;
 
     const delta = completedDay - trillToday;
