@@ -291,6 +291,44 @@ canvas{display:block;width:100%;height:160px}
     <div class="card"><div class="card-head"><span class="card-title">Header Bidding Settings</span></div><div class="card-body"><div class="kv" id="device-hb-kv"><div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Loading…</div></div></div></div></div>
   </div>
   <div class="card"><div class="card-head"><span class="card-title">Raw Device Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="device-json">// press Reload</div></div></div>
+
+  <!-- WATERFALL HEALTH HISTORY -->
+  <div class="card" id="wf-history-card">
+    <div class="card-head">
+      <span class="card-title">📊 Waterfall Health History</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="tag tb" id="wf-history-tag">today</span>
+        <button class="btn btn-white btn-sm" onclick="loadWaterfallHistory()">↻ Reload</button>
+      </div>
+    </div>
+    <div class="card-body" style="padding:14px">
+      <!-- Summary stat row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px" id="wf-summary-row">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px">
+          <div style="font-size:10px;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Snapshots Today</div>
+          <div style="font-size:20px;font-weight:700;color:#111827" id="wf-snap-count">—</div>
+        </div>
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px">
+          <div style="font-size:10px;color:#15803d;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Healthy Sources</div>
+          <div style="font-size:20px;font-weight:700;color:#15803d" id="wf-healthy-count">—</div>
+        </div>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 14px">
+          <div style="font-size:10px;color:#92400e;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Degraded</div>
+          <div style="font-size:20px;font-weight:700;color:#d97706" id="wf-degraded-count">—</div>
+        </div>
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 14px">
+          <div style="font-size:10px;color:#991b1b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Dead (≥99%)</div>
+          <div style="font-size:20px;font-weight:700;color:#ef4444" id="wf-dead-count">—</div>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px">
+          <div style="font-size:10px;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Last Snapshot</div>
+          <div style="font-size:12px;font-weight:600;color:#111827;padding-top:4px" id="wf-last-ts">—</div>
+        </div>
+      </div>
+      <!-- Per-source error rate table across hours -->
+      <div id="wf-history-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading waterfall history…</div></div></div>
+    </div>
+  </div>
 </div>
 
 <!-- FLEET -->
@@ -748,7 +786,7 @@ function nav(name, el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   $('page-'+name).classList.add('active');
   if(el) el.classList.add('active');
-  if(name==='device'&&$('device-json').textContent.includes('press')) loadDevice();
+  if(name==='device'&&$('device-json').textContent.includes('press')) { loadDevice(); loadWaterfallHistory(); }
   if(name==='fleet'&&$('fleet-json').textContent.includes('press')) loadFleet();
   if(name==='earnings'&&$('earn-err')&&!$('earn-err').dataset.loaded) loadEarnings();
   if(name==='usage'&&$('usage-json').textContent.includes('press')) loadUsage();
@@ -834,6 +872,105 @@ async function loadDevice() {
     $('device-kv').innerHTML=renderObj({device_id:DEVICE_ID,screen_id:SCREEN_ID,status:dstat,venue_type:vt,address:venue.address||dev.address||'—',city:venue.city||dev.city||'—',country:venue.country||dev.country||'—'});
     $('device-hb-kv').innerHTML=renderObj({timeout_ms:hbs.timeout_ms,refresh_interval:hbs.refresh_interval,floor_cpm:hbs.floor_cpm,currency:hbs.currency,sources_count:sources.length});
   } catch(e) { errBox('device-err', e.message); }
+}
+
+async function loadWaterfallHistory() {
+  const WORKER = 'https://trillboards-proxy.johnm-af2.workers.dev';
+  const today = new Date().toISOString().slice(0, 10);
+  $('wf-history-tag').textContent = today;
+  $('wf-history-body').innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div>';
+
+  try {
+    const r = await fetch(`${WORKER}/get-waterfall-history?date=${today}`);
+    const data = await r.json();
+    const snapshots = data.snapshots || [];
+    const latest = data.latest;
+
+    // Summary stats from latest snapshot
+    if (latest) {
+      $('wf-snap-count').textContent = snapshots.length;
+      $('wf-healthy-count').textContent = latest.healthy_count ?? '—';
+      $('wf-degraded-count').textContent = latest.degraded_count ?? '—';
+      $('wf-dead-count').textContent = latest.dead_count ?? '—';
+      const ts = new Date(latest.ts);
+      $('wf-last-ts').textContent = ts.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    } else {
+      $('wf-snap-count').textContent = '0';
+      ['wf-healthy-count','wf-degraded-count','wf-dead-count'].forEach(id => $(id).textContent = '—');
+      $('wf-last-ts').textContent = 'No data yet';
+    }
+
+    if (!snapshots.length) {
+      $('wf-history-body').innerHTML = '<div class="alert" style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;color:#92400e;font-size:13px">No waterfall snapshots recorded yet today. Snapshots are logged hourly by the tablet. Check back after the first hour of operation.</div>';
+      return;
+    }
+
+    // Get all unique source names across all snapshots
+    const sourceNames = [];
+    snapshots.forEach(snap => {
+      (snap.sources || []).forEach(s => {
+        if (!sourceNames.includes(s.name)) sourceNames.push(s.name);
+      });
+    });
+    sourceNames.sort();
+
+    // Build table: rows = sources, cols = hours
+    const hours = snapshots.map(s => s.hour);
+
+    let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+    // Header row — hours
+    html += '<thead><tr><th style="text-align:left;padding:6px 10px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap">Source</th>';
+    hours.forEach(h => {
+      html += `<th style="padding:6px 8px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0;text-align:center">${String(h).padStart(2,'0')}:00</th>`;
+    });
+    html += '<th style="padding:6px 8px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0;text-align:center">Avg</th></tr></thead><tbody>';
+
+    // One row per source
+    sourceNames.forEach((name, ri) => {
+      const rowBg = ri % 2 === 0 ? '#ffffff' : '#f8fafc';
+      html += `<tr style="background:${rowBg}"><td style="padding:7px 10px;font-weight:600;color:#1e293b;border-bottom:1px solid #f1f5f9;white-space:nowrap">${esc(name)}</td>`;
+
+      const rates = [];
+      hours.forEach(h => {
+        const snap = snapshots.find(s => s.hour === h);
+        const src = snap ? (snap.sources || []).find(s => s.name === name) : null;
+        if (!src) {
+          html += `<td style="padding:7px 8px;text-align:center;color:#cbd5e1;border-bottom:1px solid #f1f5f9">—</td>`;
+        } else {
+          const rate = src.error_rate_pct ?? 0;
+          rates.push(rate);
+          const bg = rate >= 99 ? '#fef2f2' : rate >= 90 ? '#fff7ed' : rate >= 60 ? '#fffbeb' : '#f0fdf4';
+          const color = rate >= 99 ? '#ef4444' : rate >= 90 ? '#f97316' : rate >= 60 ? '#d97706' : '#16a34a';
+          const icon = rate >= 99 ? '💀' : rate >= 90 ? '🔴' : rate >= 60 ? '🟡' : '🟢';
+          html += `<td style="padding:7px 8px;text-align:center;background:${bg};border-bottom:1px solid #f1f5f9"><span style="color:${color};font-weight:600" title="${rate}%">${icon} ${rate.toFixed(0)}%</span></td>`;
+        }
+      });
+
+      // Average column
+      if (rates.length) {
+        const avg = rates.reduce((a, b) => a + b, 0) / rates.length;
+        const ac = avg >= 99 ? '#ef4444' : avg >= 90 ? '#f97316' : avg >= 60 ? '#d97706' : '#16a34a';
+        html += `<td style="padding:7px 8px;text-align:center;font-weight:700;color:${ac};border-bottom:1px solid #f1f5f9;border-left:2px solid #e2e8f0">${avg.toFixed(0)}%</td>`;
+      } else {
+        html += `<td style="padding:7px 8px;text-align:center;color:#cbd5e1;border-bottom:1px solid #f1f5f9;border-left:2px solid #e2e8f0">—</td>`;
+      }
+
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+
+    // Legend
+    html += '<div style="display:flex;gap:16px;margin-top:12px;font-size:11px;color:#64748b;flex-wrap:wrap">';
+    html += '<span>🟢 &lt;60% error</span><span>🟡 60–90%</span><span>🔴 90–99%</span><span>💀 ≥99% (dead)</span>';
+    html += `<span style="margin-left:auto;color:#94a3b8">Experiment: ${esc(snapshots[0]?.experiment || 'none')}</span>`;
+    html += '</div>';
+
+    $('wf-history-body').innerHTML = html;
+
+  } catch(e) {
+    $('wf-history-body').innerHTML = `<div class="alert alert-red"><strong>Error:</strong> ${esc(e.message)}</div>`;
+  }
 }
 
 async function loadFleet() {
