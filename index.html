@@ -286,13 +286,8 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Venue Type</div><div class="stat-icon">🏢</div></div><div class="stat-value" id="d-venue" style="font-size:13px;padding-top:8px">—</div><div class="stat-footer" id="d-venue-f">—</div></div>
   </div>
   <div class="card"><div class="card-head"><span class="card-title">Waterfall Sources</span><span class="tag tb" id="d-waterfall-tag">—</span></div><div class="card-body" id="device-waterfall"><div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">Loading…</div></div></div></div>
-  <div class="two">
-    <div class="card"><div class="card-head"><span class="card-title">Device Config</span></div><div class="card-body"><div class="kv" id="device-kv"><div class="empty"><div class="empty-icon">📱</div><div class="empty-text">Loading…</div></div></div></div></div>
-    <div class="card"><div class="card-head"><span class="card-title">Header Bidding Settings</span></div><div class="card-body"><div class="kv" id="device-hb-kv"><div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Loading…</div></div></div></div></div>
-  </div>
-  <div class="card"><div class="card-head"><span class="card-title">Raw Device Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="device-json">// press Reload</div></div></div>
 
-  <!-- WATERFALL HEALTH HISTORY -->
+  <!-- WATERFALL HEALTH HISTORY — directly below Waterfall Sources -->
   <div class="card" id="wf-history-card">
     <div class="card-head">
       <span class="card-title">📊 Waterfall Health History</span>
@@ -302,7 +297,6 @@ canvas{display:block;width:100%;height:160px}
       </div>
     </div>
     <div class="card-body" style="padding:14px">
-      <!-- Summary stat row -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px" id="wf-summary-row">
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px">
           <div style="font-size:10px;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Snapshots Today</div>
@@ -325,10 +319,15 @@ canvas{display:block;width:100%;height:160px}
           <div style="font-size:12px;font-weight:600;color:#111827;padding-top:4px" id="wf-last-ts">—</div>
         </div>
       </div>
-      <!-- Per-source error rate table across hours -->
       <div id="wf-history-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading waterfall history…</div></div></div>
     </div>
   </div>
+
+  <div class="two">
+    <div class="card"><div class="card-head"><span class="card-title">Device Config</span></div><div class="card-body"><div class="kv" id="device-kv"><div class="empty"><div class="empty-icon">📱</div><div class="empty-text">Loading…</div></div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Header Bidding Settings</span></div><div class="card-body"><div class="kv" id="device-hb-kv"><div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Loading…</div></div></div></div></div>
+  </div>
+  <div class="card"><div class="card-head"><span class="card-title">Raw Device Response</span></div><div class="card-body" style="padding:12px"><div class="jv" id="device-json">// press Reload</div></div></div>
 </div>
 
 <!-- FLEET -->
