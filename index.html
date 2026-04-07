@@ -427,6 +427,15 @@ canvas{display:block;width:100%;height:160px}
       <div class="card-body" id="rec-trill-body"><div class="empty"><div class="empty-icon">📡</div><div class="empty-text">Loading…</div></div></div>
     </div>
   </div>
+  <div class="card" style="margin-top:18px">
+    <div class="card-head">
+      <span class="card-title">Transaction History</span>
+      <span class="tag tg" id="rec-tx-tag">Trillboards</span>
+    </div>
+    <div class="card-body" id="rec-tx-body">
+      <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Loading…</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- USAGE -->
@@ -1180,6 +1189,60 @@ async function loadReconcile() {
       ${kv('Total Screens', fn(d.stats?.total_screens))}
       ${kv('API Update Time', '~9PM EST daily')}
     </div>`;
+
+    // Transaction history table — full list from payment-list
+    const allTx = txData.data?.data || [];
+    if (allTx.length > 0) {
+      const fmt = v => (v==null||v===undefined) ? '—' : '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      const rows = allTx.map(t => {
+        const date    = (t.createdAt||'').slice(0,10);
+        const imps    = t.impressions_count || t.impressions || 0;
+        const cpm     = t.cpm ? '$'+Number(t.cpm).toFixed(2) : '—';
+        const gross   = fmt(t.gross_amount ?? t.amount_received ?? t.amount);
+        const net     = fmt((t.gross_amount ?? t.amount_received ?? t.amount ?? 0) * 0.70);
+        const status  = t.programmatic_status || t.event_type || 'pending';
+        const stype   = t.source_provider || t.type || 'Programmatic';
+        const statusCls = status==='confirmed'?'tg':status==='pending'||status==='estimated'?'ty':'ts';
+        return `<tr>
+          <td style="white-space:nowrap;font-size:12px">${date}</td>
+          <td><span class="tag ${statusCls}" style="font-size:10px">${status}</span></td>
+          <td style="font-size:12px">${stype}</td>
+          <td style="font-size:12px;text-align:right">${fn(imps)}</td>
+          <td style="font-size:12px;text-align:right">${cpm}</td>
+          <td style="font-weight:600;text-align:right">${gross}</td>
+          <td style="font-weight:600;color:#16a34a;text-align:right">${net}</td>
+        </tr>`;
+      }).join('');
+
+      // Totals row
+      const totalImps  = allTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
+      const totalGross = allTx.reduce((s,t) => s + (t.gross_amount??t.amount_received??t.amount??0), 0);
+      const totalNet   = totalGross * 0.70;
+
+      $('rec-tx-body').innerHTML = `
+        <div style="overflow-x:auto">
+          <table class="tbl" style="font-size:13px">
+            <thead><tr>
+              <th>Date</th><th>Status</th><th>Type</th>
+              <th style="text-align:right">Impressions</th>
+              <th style="text-align:right">CPM</th>
+              <th style="text-align:right">Gross</th>
+              <th style="text-align:right">Net (70%)</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+            <tfoot><tr style="background:#f8fafc;font-weight:700">
+              <td colspan="3">TOTAL</td>
+              <td style="text-align:right">${fn(totalImps)}</td>
+              <td>—</td>
+              <td style="text-align:right">${fmt(totalGross)}</td>
+              <td style="text-align:right;color:#16a34a">${fmt(totalNet)}</td>
+            </tr></tfoot>
+          </table>
+        </div>`;
+      $('rec-tx-tag').textContent = fn(allTx.length) + ' transactions';
+    } else {
+      $('rec-tx-body').innerHTML = '<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No transactions yet</div></div>';
+    }
 
   } catch(e) { errBox('rec-err', e.message); }
 }
