@@ -1124,13 +1124,14 @@ async function loadReconcile() {
   $('rec-alert').innerHTML = '';
   try {
     // Fetch daily KV total + Trillboards dashboard in parallel
+    const dateParam = recDay === 'yesterday' ? utcDate(-1) : utcDate(0);
     const [dailyData, txData, dashData] = await Promise.all([
-      workerGet('/get-daily'),
+      workerGet('/get-daily?date=' + dateParam),
       earnerApi('/payment-list?page=1&limit=50'),
       api('/v1/partner/dashboard')
     ]);
 
-    const today = dailyData.today || { count: 0, completed: 0 };
+    const today = dailyData.today || dailyData || { count: 0, completed: 0 };
     const completedDay = today.completed || 0;
     const requestsDay  = today.count || 0;
     const lastUpdated  = today.updated_at || null;
@@ -1152,6 +1153,14 @@ async function loadReconcile() {
     setVal('rec-our-today', fn(completedDay));
     setVal('rec-requests-today', fn(requestsDay));
     setVal('rec-trill-today', fn(trillToday));
+    // Update stat card labels to reflect selected day
+    const lbl2 = recDay === 'yesterday' ? 'Yesterday' : 'Today';
+    const recLabelCompleted = $('rec-label-completed');
+    if (recLabelCompleted) recLabelCompleted.textContent = 'Completed (' + lbl2 + ')';
+    const recLabelRequests = $('rec-label-requests');
+    if (recLabelRequests) recLabelRequests.textContent = 'Requests (' + lbl2 + ')';
+    const recLabelTrill = $('rec-label-trill');
+    if (recLabelTrill) recLabelTrill.textContent = 'Trillboards (' + lbl2 + ')';
 
     // Last updated as the "total" stat
     const totalEl = $('rec-our-total');
