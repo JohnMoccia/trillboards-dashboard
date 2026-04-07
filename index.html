@@ -263,6 +263,9 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Revenue Share</div><div class="stat-icon">💸</div></div><div class="stat-value sk" id="s-rev" style="height:30px;width:60px"> </div><div class="stat-footer">partner cut</div></div>
     <div class="stat-card" style="--c:#0ea5e9"><div class="stat-top"><div class="stat-label">Ad Requests Today</div><div class="stat-icon">⬆</div></div><div class="stat-value sk" id="s-ad-requests" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-ad-requests-f">requests fired</div></div>
     <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Completed Today</div><div class="stat-icon">✓</div></div><div class="stat-value sk" id="s-ad-completed" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-ad-completed-f">impressions logged</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Programmatic</div><div class="stat-icon">📡</div></div><div class="stat-value sk" id="s-programmatic" style="height:30px;width:70px;color:#7c3aed"> </div><div class="stat-footer" id="s-programmatic-f">DFP fills</div></div>
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Content Cache</div><div class="stat-icon">💾</div></div><div class="stat-value sk" id="s-cache" style="height:30px;width:70px;color:#0891b2"> </div><div class="stat-footer" id="s-cache-f">direct deal fills</div></div>
+    <div class="stat-card" style="--c:#dc2626"><div class="stat-top"><div class="stat-label">No Fill</div><div class="stat-icon">✗</div></div><div class="stat-value sk" id="s-nofill" style="height:30px;width:70px;color:#dc2626"> </div><div class="stat-footer" id="s-nofill-f">missed opportunities</div></div>
   </div>
   <div class="two">
     <div class="card"><div class="card-head"><span class="card-title">Partner Info</span><span id="p-status-tag" class="tag ts">—</span></div><div class="card-body"><div class="kv" id="partner-kv"><div class="kv-row"><div class="kv-k">Name</div><div class="kv-v sk" style="height:13px;width:120px"> </div></div><div class="kv-row"><div class="kv-k">Slug</div><div class="kv-v sk" style="height:13px;width:80px"> </div></div><div class="kv-row"><div class="kv-k">Status</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Stripe</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Created</div><div class="kv-v">—</div></div></div></div></div>
@@ -833,11 +836,27 @@ async function loadDashboardKV() {
     log('dash-log','i','→ GET /get-daily (KV)');
     const dailyData = await workerGet('/get-daily');
     const today = dailyData.today || { count: 0, completed: 0 };
-    const requestsToday = today.count || 0;
-    const completedToday = today.completed || 0;
-    const pendingToday = requestsToday - completedToday;
+    const requestsToday  = today.count         || 0;
+    const completedToday = today.completed     || 0;
+    const progToday      = today.programmatic  || 0;
+    const cacheToday     = today.content_cache || 0;
+    const noFillToday    = today.no_fill       || 0;
+    const pendingToday   = requestsToday - completedToday;
     if (adReqEl) { adReqEl.textContent = fn(requestsToday); adReqEl.classList.remove('sk'); }
     if (adReqFooter) adReqFooter.textContent = `${fn(pendingToday)} pending`;
+    // Source breakdown cards
+    const progEl = $('s-programmatic');
+    if (progEl) { progEl.textContent = fn(progToday); progEl.classList.remove('sk'); }
+    const progF = $('s-programmatic-f');
+    if (progF) progF.textContent = requestsToday > 0 ? Math.round((progToday/requestsToday)*100)+'% of requests' : 'DFP fills';
+    const cacheEl = $('s-cache');
+    if (cacheEl) { cacheEl.textContent = fn(cacheToday); cacheEl.classList.remove('sk'); }
+    const cacheF = $('s-cache-f');
+    if (cacheF) cacheF.textContent = requestsToday > 0 ? Math.round((cacheToday/requestsToday)*100)+'% of requests' : 'direct deal fills';
+    const noFillEl = $('s-nofill');
+    if (noFillEl) { noFillEl.textContent = fn(noFillToday); noFillEl.classList.remove('sk'); }
+    const noFillF = $('s-nofill-f');
+    if (noFillF) noFillF.textContent = requestsToday > 0 ? Math.round((noFillToday/requestsToday)*100)+'% miss rate' : 'missed opportunities';
     const compEl = $('s-ad-completed'), compFooter = $('s-ad-completed-f');
     if (compEl) { compEl.textContent = fn(completedToday); compEl.classList.remove('sk'); compEl.style.color = completedToday > 0 ? '#16a34a' : ''; }
     if (compFooter) compFooter.textContent = requestsToday > 0 ? Math.round((completedToday/requestsToday)*100)+'% fill rate' : 'no requests yet';
