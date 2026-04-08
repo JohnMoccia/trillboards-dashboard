@@ -712,7 +712,8 @@ async function api(path, method='GET', body=null) {
 
 async function workerGet(path) {
   const { WORKER_SECRET } = getCreds();
-  const res = await fetch(WORKER_BASE + path + '?_=' + Date.now(), { headers: { 'X-Proxy-Secret': WORKER_SECRET } });
+  const sep = path.includes('?') ? '&' : '?';
+  const res = await fetch(WORKER_BASE + path + sep + '_=' + Date.now(), { headers: { 'X-Proxy-Secret': WORKER_SECRET } });
   return res.json();
 }
 
