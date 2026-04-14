@@ -254,6 +254,7 @@ canvas{display:block;width:100%;height:160px}
     <div class="ph-right"><button class="btn btn-white btn-sm" onclick="loadDashboard()">↻ Reload</button></div>
   </div>
   <div id="dash-warn"></div><div id="dash-err"></div>
+  <div id="dash-banner" style="display:none;margin:0 0 16px;padding:14px 18px;border-radius:8px;font-size:14px;font-weight:600;border:2px solid transparent"></div>
   <div class="stat-grid">
     <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Total Screens</div><div class="stat-icon">📺</div></div><div class="stat-value sk" id="s-total" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-total-f"> </div></div>
     <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Active</div><div class="stat-icon">🟢</div></div><div class="stat-value sk" id="s-active" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-active-f"> </div></div>
@@ -261,12 +262,14 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Impressions Today</div><div class="stat-icon">📈</div></div><div class="stat-value sk" id="s-imp-today" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-imp-month"> </div></div>
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Impressions / Week</div><div class="stat-icon">📊</div></div><div class="stat-value sk" id="s-imp-week" style="height:30px;width:70px"> </div><div class="stat-footer">7-day total</div></div>
     <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Revenue Share</div><div class="stat-icon">💸</div></div><div class="stat-value sk" id="s-rev" style="height:30px;width:60px"> </div><div class="stat-footer">partner cut</div></div>
-    <div class="stat-card" style="--c:#0ea5e9"><div class="stat-top"><div class="stat-label">Ad Requests Today</div><div class="stat-icon">⬆</div></div><div class="stat-value sk" id="s-ad-requests" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-ad-requests-f">requests fired</div></div>
-    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Completed Today</div><div class="stat-icon">✓</div></div><div class="stat-value sk" id="s-ad-completed" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-ad-completed-f">impressions logged</div></div>
-    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">IMA / RTB</div><div class="stat-icon">📡</div></div><div class="stat-value sk" id="s-ima" style="height:30px;width:70px;color:#7c3aed"> </div><div class="stat-footer" id="s-ima-f">open exchange</div></div>
-    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Direct / Cache</div><div class="stat-icon">💾</div></div><div class="stat-value sk" id="s-paid" style="height:30px;width:70px;color:#0891b2"> </div><div class="stat-footer" id="s-paid-f">paid direct deals</div></div>
-    <div class="stat-card" style="--c:#f59e0b"><div class="stat-top"><div class="stat-label">House Ads</div><div class="stat-icon">🏠</div></div><div class="stat-value sk" id="s-selfpromo" style="height:30px;width:70px;color:#f59e0b"> </div><div class="stat-footer" id="s-selfpromo-f">non-billable</div></div>
-    <div class="stat-card" style="--c:#dc2626"><div class="stat-top"><div class="stat-label">No Fill</div><div class="stat-icon">✗</div></div><div class="stat-value sk" id="s-nofill" style="height:30px;width:70px;color:#dc2626"> </div><div class="stat-footer" id="s-nofill-f">missed</div></div>
+    <div class="stat-card" style="--c:#0ea5e9"><div class="stat-top"><div class="stat-label">Ad Requests (today)</div><div class="stat-icon">⬆</div></div><div class="stat-value sk" id="s-ad-requests" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-ad-requests-f">requests fired</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Completed (today)</div><div class="stat-icon">✓</div></div><div class="stat-value sk" id="s-ad-completed" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-ad-completed-f">impressions logged</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">IMA / RTB (today)</div><div class="stat-icon">📡</div></div><div class="stat-value sk" id="s-ima" style="height:30px;width:70px;color:#7c3aed"> </div><div class="stat-footer" id="s-ima-f">open exchange</div></div>
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Direct / Cache (today)</div><div class="stat-icon">💾</div></div><div class="stat-value sk" id="s-paid" style="height:30px;width:70px;color:#0891b2"> </div><div class="stat-footer" id="s-paid-f">paid direct deals</div></div>
+    <div class="stat-card" style="--c:#f59e0b"><div class="stat-top"><div class="stat-label">House Ads (today)</div><div class="stat-icon">🏠</div></div><div class="stat-value sk" id="s-selfpromo" style="height:30px;width:70px;color:#f59e0b"> </div><div class="stat-footer" id="s-selfpromo-f">non-billable</div></div>
+    <div class="stat-card" style="--c:#dc2626"><div class="stat-top"><div class="stat-label">No Fill (today)</div><div class="stat-icon">✗</div></div><div class="stat-value sk" id="s-nofill" style="height:30px;width:70px;color:#dc2626"> </div><div class="stat-footer" id="s-nofill-f">missed</div></div>
+    <div class="stat-card" style="--c:#10b981"><div class="stat-top"><div class="stat-label">Last Impression</div><div class="stat-icon">⏱</div></div><div class="stat-value" id="s-last-imp" style="font-size:18px;padding-top:8px">—</div><div class="stat-footer" id="s-last-imp-f">freshness</div></div>
+    <div class="stat-card" style="--c:#8b5cf6"><div class="stat-top"><div class="stat-label">Fills / 60 min</div><div class="stat-icon">⚡</div></div><div class="stat-value" id="s-fills-60" style="color:#8b5cf6">—</div><div class="stat-footer" id="s-fills-60-f">rolling window</div></div>
   </div>
   <div class="two">
     <div class="card"><div class="card-head"><span class="card-title">Partner Info</span><span id="p-status-tag" class="tag ts">—</span></div><div class="card-body"><div class="kv" id="partner-kv"><div class="kv-row"><div class="kv-k">Name</div><div class="kv-v sk" style="height:13px;width:120px"> </div></div><div class="kv-row"><div class="kv-k">Slug</div><div class="kv-v sk" style="height:13px;width:80px"> </div></div><div class="kv-row"><div class="kv-k">Status</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Stripe</div><div class="kv-v">—</div></div><div class="kv-row"><div class="kv-k">Created</div><div class="kv-v">—</div></div></div></div></div>
@@ -743,6 +746,49 @@ const fd = s => s ? new Date(s).toLocaleDateString('en-US',{month:'short',day:'n
 const rmsk = el => el && el.classList.remove('sk');
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
+// Relative time formatter — "12s ago", "5m ago", "2h ago", "3d ago"
+// Returns { text, staleSec } so callers can color-code based on age.
+function ago(s) {
+  if (!s) return { text: 'never', staleSec: Infinity };
+  const then = new Date(s).getTime();
+  if (isNaN(then)) return { text: 'invalid', staleSec: Infinity };
+  const sec = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  if (sec < 60) return { text: sec + 's ago', staleSec: sec };
+  const min = Math.floor(sec / 60);
+  if (min < 60) return { text: min + 'm ago', staleSec: sec };
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return { text: hr + 'h ago', staleSec: sec };
+  return { text: Math.floor(hr / 24) + 'd ago', staleSec: sec };
+}
+
+// Rolling 60-min window of ad-request deltas. We don't have per-minute granularity
+// from the API, so we sample today.count + today.completed on each poll and keep
+// a ring buffer keyed by (timestamp, requestCount, completedCount). "Last 60 min"
+// = newest - (last sample older than 60 min). Cleans stale samples automatically.
+const rollingSamples = []; // [{ ts, requests, completed }]
+function pushRollingSample(requests, completed) {
+  const now = Date.now();
+  rollingSamples.push({ ts: now, requests: requests || 0, completed: completed || 0 });
+  // Drop samples older than 70 min (10 min headroom for smoothing)
+  const cutoff = now - 70 * 60 * 1000;
+  while (rollingSamples.length && rollingSamples[0].ts < cutoff) rollingSamples.shift();
+}
+function rollingDelta(minutes) {
+  if (rollingSamples.length < 2) return { requests: null, completed: null };
+  const now = Date.now();
+  const cutoff = now - minutes * 60 * 1000;
+  // Find oldest sample within the window (or the earliest one we still have)
+  let base = rollingSamples[0];
+  for (const s of rollingSamples) { if (s.ts >= cutoff) break; base = s; }
+  const latest = rollingSamples[rollingSamples.length - 1];
+  // Handle day rollover (counters reset at midnight → base > latest)
+  if (latest.requests < base.requests) return { requests: latest.requests, completed: latest.completed };
+  return {
+    requests:  latest.requests  - base.requests,
+    completed: latest.completed - base.completed,
+  };
+}
+
 function setVal(id, val) { const el=$(id); if(!el)return; el.textContent=val; rmsk(el); }
 
 function log(id, type, msg) {
@@ -885,11 +931,79 @@ async function loadDashboardKV() {
     }
     const compEl = $('s-ad-completed'), compFooter = $('s-ad-completed-f');
     if (compEl) { compEl.textContent = fn(completedToday); compEl.classList.remove('sk'); compEl.style.color = completedToday > 0 ? '#16a34a' : ''; }
-    if (compFooter) compFooter.textContent = requestsToday > 0 ? Math.round((completedToday/requestsToday)*100)+'% fill rate' : 'no requests yet';
-    log('dash-log','g',`KV today: ${requestsToday} requests · ${completedToday} completed · updated: ${today.updated_at||'—'}`);
+    if (compFooter) compFooter.textContent = requestsToday > 0 ? Math.round((completedToday/requestsToday)*100)+'% fill rate (today)' : 'no requests yet';
+
+    // ── Last Impression freshness badge ──
+    window.__lastKvUpdatedAt = today.updated_at || null;
+    const lastImpEl = $('s-last-imp'), lastImpF = $('s-last-imp-f');
+    if (today.updated_at) {
+      const a = ago(today.updated_at);
+      if (lastImpEl) {
+        lastImpEl.textContent = a.text;
+        // Color by staleness: green <2m, amber <10m, red >=10m, crit >=60m
+        const color = a.staleSec < 120   ? '#10b981'
+                    : a.staleSec < 600   ? '#d97706'
+                    : a.staleSec < 3600  ? '#dc2626' : '#991b1b';
+        lastImpEl.style.color = color;
+      }
+      if (lastImpF) lastImpF.textContent = new Date(today.updated_at).toLocaleTimeString();
+    } else {
+      if (lastImpEl) { lastImpEl.textContent = 'never'; lastImpEl.style.color = '#dc2626'; }
+      if (lastImpF) lastImpF.textContent = 'no heartbeat';
+    }
+
+    // ── Rolling 60-min fills window ──
+    pushRollingSample(requestsToday, completedToday);
+    const d60 = rollingDelta(60);
+    const fills60El = $('s-fills-60'), fills60F = $('s-fills-60-f');
+    if (fills60El) {
+      fills60El.textContent = d60.completed == null ? '—' : fn(d60.completed);
+      fills60El.style.color = (d60.completed || 0) > 0 ? '#8b5cf6' : '#6b7280';
+    }
+    if (fills60F) {
+      if (d60.requests == null) {
+        fills60F.textContent = 'need 2+ samples';
+      } else {
+        const rate = d60.requests > 0 ? Math.round((d60.completed / d60.requests) * 100) : 0;
+        fills60F.textContent = `${fn(d60.requests)} req · ${rate}% fill (60m)`;
+      }
+    }
+
+    // ── Stale banner (top of dashboard) — the signal we'd have wanted Saturday morning ──
+    const banner = $('dash-banner');
+    if (banner) {
+      const stale = today.updated_at ? ago(today.updated_at).staleSec : Infinity;
+      const zero60 = d60.requests != null && d60.requests === 0;
+      if (stale >= 600) {
+        banner.style.display = 'block';
+        banner.style.background = '#fef2f2';
+        banner.style.borderColor = '#dc2626';
+        banner.style.color = '#991b1b';
+        banner.innerHTML = `🚨 <span>No impressions for ${ago(today.updated_at).text}</span> — device may be offline, WebView may have crashed, or no SSP fill. <span style="font-weight:400;font-size:12px;margin-left:8px">last seen ${today.updated_at || 'never'}</span>`;
+      } else if (zero60 && requestsToday > 0) {
+        banner.style.display = 'block';
+        banner.style.background = '#fffbeb';
+        banner.style.borderColor = '#d97706';
+        banner.style.color = '#92400e';
+        banner.innerHTML = `⚠️ <span>No ad requests in the last 60 min</span> — running but not making bid requests. Today: ${fn(requestsToday)} requests · ${fn(completedToday)} fills.`;
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    log('dash-log','g',`KV today: ${requestsToday} req · ${completedToday} done · 60m: ${d60.requests ?? '—'}/${d60.completed ?? '—'} · last: ${today.updated_at||'—'}`);
   } catch(e) {
     if (adReqEl) { adReqEl.textContent = '—'; adReqEl.classList.remove('sk'); }
     if (adReqFooter) adReqFooter.textContent = 'KV unavailable';
+    // Promote the error to the persistent banner so an operator won't miss it
+    const banner = $('dash-banner');
+    if (banner) {
+      banner.style.display = 'block';
+      banner.style.background = '#fef2f2';
+      banner.style.borderColor = '#dc2626';
+      banner.style.color = '#991b1b';
+      banner.innerHTML = `🚨 Dashboard API error — <span style="font-weight:400">${esc(e.message)}</span>`;
+    }
     log('dash-log','w',`KV fetch failed: ${e.message}`);
   }
 }
@@ -1441,14 +1555,51 @@ async function loadExports() {
 
 function loadAll() { loadDashboard(); }
 
-let autoRefreshTimer = null;
+// ── Auto-refresh — single source of truth, no leaks, no overlapping fetches ──
+let autoRefreshTimer = null;   // 1s tick (countdown + trigger loadDashboard)
+let kvRefreshTimer   = null;   // 30s KV poll (drives the rolling window)
+let inflightLoadDashboard = false;
+let inflightLoadDashboardKV = false;
+let freshnessTickTimer = null; // 15s re-render of "N ago" display without re-fetching
+
+function stopAutoRefresh() {
+  if (autoRefreshTimer)   { clearInterval(autoRefreshTimer);   autoRefreshTimer = null; }
+  if (kvRefreshTimer)     { clearInterval(kvRefreshTimer);     kvRefreshTimer = null; }
+  if (freshnessTickTimer) { clearInterval(freshnessTickTimer); freshnessTickTimer = null; }
+}
+
+async function safeLoadDashboard() {
+  if (inflightLoadDashboard) return; // drop overlapping calls instead of stacking
+  inflightLoadDashboard = true;
+  try { await loadDashboard(); } finally { inflightLoadDashboard = false; }
+}
+async function safeLoadDashboardKV() {
+  if (inflightLoadDashboardKV) return;
+  inflightLoadDashboardKV = true;
+  try { await loadDashboardKV(); } finally { inflightLoadDashboardKV = false; }
+}
+
 function startAutoRefresh() {
-  if (autoRefreshTimer) return;
+  stopAutoRefresh(); // idempotent — callable from any page switch without leaking
   autoRefreshTimer = setInterval(() => {
     cd--; const el = $('cd'); if (el) el.textContent = cd;
-    if (cd <= 0) { cd = 30; loadDashboard(); }
+    if (cd <= 0) { cd = 30; safeLoadDashboard(); }
   }, 1000);
-  setInterval(() => loadDashboardKV(), 30000);
+  kvRefreshTimer = setInterval(() => safeLoadDashboardKV(), 30000);
+  // Re-render freshness label every 15s so "12s ago" rolls to "27s ago"
+  // without an API call — caches last_updated_at via window.__lastKvUpdatedAt
+  freshnessTickTimer = setInterval(() => {
+    const ts = window.__lastKvUpdatedAt;
+    if (!ts) return;
+    const a = ago(ts);
+    const el = $('s-last-imp');
+    if (el) {
+      el.textContent = a.text;
+      el.style.color = a.staleSec < 120  ? '#10b981'
+                     : a.staleSec < 600  ? '#d97706'
+                     : a.staleSec < 3600 ? '#dc2626' : '#991b1b';
+    }
+  }, 15000);
 }
 
 document.addEventListener('DOMContentLoaded', checkSession);
