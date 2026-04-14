@@ -919,7 +919,18 @@ async function loadDashboardKV() {
     const noFillEl = $('s-nofill');
     if (noFillEl) { noFillEl.textContent = fn(noFillToday); noFillEl.classList.remove('sk'); }
     const noFillF = $('s-nofill-f');
-    if (noFillF) noFillF.textContent = requestsToday > 0 ? Math.round((noFillToday/requestsToday)*100)+'% miss rate' : 'missed';
+    // Use cycle-level miss rate: noFill / (noFill + completed). Raw no_fill/requests
+    // is misleading because the device logs one no_fill per SSP attempt (6 per cycle)
+    // but only increments requests once per cycle, producing >100% "miss rates".
+    if (noFillF) {
+      const denom = noFillToday + completedToday;
+      if (denom > 0) {
+        const pct = Math.min(100, Math.round((noFillToday / denom) * 100));
+        noFillF.textContent = pct + '% of resolved cycles';
+      } else {
+        noFillF.textContent = 'missed';
+      }
+    }
     // SSP source breakdown — show top sources
     if (Object.keys(sourcesToday).length > 0) {
       const srcHtml = Object.entries(sourcesToday)
