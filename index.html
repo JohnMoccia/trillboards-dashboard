@@ -235,6 +235,7 @@ canvas{display:block;width:100%;height:160px}
     <span class="nav-group-lbl">Finance</span>
     <div class="nav-item" onclick="nav('earnings',this)"><span class="nav-icon">💰</span>Earnings</div>
     <div class="nav-item" onclick="nav('reconcile',this)"><span class="nav-icon">🔁</span>Reconcile</div>
+    <div class="nav-item" onclick="nav('databurn',this)"><span class="nav-icon">🔥</span>Data Burn</div>
   </div>
   <div class="nav-group">
     <span class="nav-group-lbl">Dev</span>
@@ -555,6 +556,52 @@ canvas{display:block;width:100%;height:160px}
 </div>
 
 <!-- DATA EXPORT PAGE -->
+<!-- DATA BURN -->
+<div class="page" id="page-databurn">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title">Data Burn</div><div class="ph-sub">Last 24hrs · Requests · Plays · Completions · CPM · Est. Revenue</div></div>
+    <div class="ph-right">
+      <button class="btn btn-blue btn-sm" onclick="loadDataBurn()">↻ Reload</button>
+    </div>
+  </div>
+  <div id="burn-err"></div>
+
+  <!-- Top stat cards -->
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:18px">
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Requests (24hr)</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="burn-requests">—</div><div class="stat-footer">total ad requests fired</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Plays (24hr)</div><div class="stat-icon">▶</div></div><div class="stat-value" id="burn-plays">—</div><div class="stat-footer">ads that started</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Completed (24hr)</div><div class="stat-icon">✓</div></div><div class="stat-value" id="burn-completed">—</div><div class="stat-footer" id="burn-completed-f">completion rate</div></div>
+    <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">No Fill (24hr)</div><div class="stat-icon">✗</div></div><div class="stat-value" id="burn-nofill">—</div><div class="stat-footer" id="burn-nofill-f">fill rate</div></div>
+    <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Errors (24hr)</div><div class="stat-icon">⚠</div></div><div class="stat-value" id="burn-errors">—</div><div class="stat-footer">logged error events</div></div>
+    <div class="stat-card" style="--c:#10b981"><div class="stat-top"><div class="stat-label">Est. CPM</div><div class="stat-icon">💲</div></div><div class="stat-value" id="burn-cpm">—</div><div class="stat-footer">from VAST price field</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Est. Revenue</div><div class="stat-icon">💰</div></div><div class="stat-value" id="burn-revenue">—</div><div class="stat-footer" id="burn-revenue-f">gross · 24hr</div></div>
+    <div class="stat-card" style="--c:#8b5cf6"><div class="stat-top"><div class="stat-label">Last Event</div><div class="stat-icon">⏱</div></div><div class="stat-value" id="burn-last" style="font-size:15px;padding-top:6px">—</div><div class="stat-footer">most recent KV write</div></div>
+  </div>
+
+  <!-- Two column: SSP breakdown + hourly activity -->
+  <div class="two" style="margin-bottom:18px">
+    <div class="card">
+      <div class="card-head"><span class="card-title">SSP Breakdown</span><span class="tag tb" id="burn-ssp-tag">—</span></div>
+      <div class="card-body" id="burn-ssp-body"><div class="empty"><div class="empty-icon">📡</div><div class="empty-text">Loading…</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Today vs Yesterday</span><span class="tag ts">KV daily</span></div>
+      <div class="card-body" id="burn-compare-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div>
+    </div>
+  </div>
+
+  <!-- Full event log -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Event Log (24hr)</span>
+      <span class="tag ts" id="burn-log-tag">—</span>
+    </div>
+    <div class="card-body" style="padding:12px">
+      <div id="burn-log-body"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Loading…</div></div></div>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-exports">
   <div class="ph">
     <div class="ph-left"><div class="ph-title">Data Export</div><div class="ph-sub">Impression ledger · Waterfall events · Earnings breakdown</div></div>
@@ -851,6 +898,7 @@ function nav(name, el) {
   if(name==='usage'&&$('usage-json').textContent.includes('press')) loadUsage();
   if(name==='telemetry'&&$('t-quality').textContent.includes('Loading')) loadTelemetry();
   if(name==='reconcile') loadReconcile();
+  if(name==='databurn') loadDataBurn();
   if(name==='config') loadConfig();
   if(name==='exports') loadExports();
 }
@@ -1380,6 +1428,171 @@ async function loadReconcile() {
     }
 
   } catch(e) { errBox('rec-err', e.message); }
+}
+
+async function loadDataBurn() {
+  $('burn-err').innerHTML = '';
+  try {
+    const todayStr     = utcDate(0);
+    const yesterdayStr = utcDate(-1);
+
+    // Fetch today + yesterday KV daily in parallel, plus live earner-ads for CPM
+    const [todayData, yestData, earnerData] = await Promise.all([
+      workerGet('/get-daily?date=' + todayStr),
+      workerGet('/get-daily?date=' + yesterdayStr),
+      workerGet('/earner-ads')
+    ]);
+
+    const td = todayData.today || todayData || {};
+    const yd = yestData.today  || yestData  || {};
+
+    // Pull CPM from earner-ads VAST impression pixel URL (price= param)
+    // We parse it from the first filling source's VAST URL if available
+    let estCpm = null;
+    let vastCpmSource = null;
+    const sources = earnerData?.data?.sources || [];
+    for (const src of sources) {
+      if (src.vast_url) {
+        // Fetch the VAST to get price= from impression pixel
+        try {
+          const vastResp = await fetch(src.vast_url, { signal: AbortSignal.timeout(6000) });
+          const vastTxt  = await vastResp.text();
+          const m = vastTxt.match(/price=([0-9.]+)/);
+          if (m) {
+            estCpm = parseFloat(m[1]);
+            vastCpmSource = src.name;
+            break;
+          }
+        } catch(e) { /* skip on timeout */ }
+      }
+    }
+
+    const requests   = td.count      || 0;
+    const completed  = td.completed  || 0;
+    const paid       = td.paid       || 0;
+    const nofill     = td.no_fill    || 0;
+    const ima        = td.ima        || 0;
+    const selfPromo  = td.self_promo || 0;
+    const lastUpd    = td.updated_at || null;
+
+    // plays = paid + ima + self_promo (any event that was a real ad play)
+    const plays = paid + ima + selfPromo;
+
+    // Estimate errors = requests - plays - nofill (remainder)
+    const errors = Math.max(0, requests - plays - nofill);
+
+    // Est revenue: paid impressions / 1000 * CPM
+    const estRevenue = estCpm != null ? (paid / 1000) * estCpm : null;
+
+    // Fill rate = paid / requests
+    const fillRate   = requests > 0 ? ((paid / requests) * 100).toFixed(1) : null;
+    const compRate   = plays    > 0 ? ((completed / plays) * 100).toFixed(1) : null;
+
+    // Stat cards
+    setVal('burn-requests',  fn(requests));
+    setVal('burn-plays',     fn(plays));
+    setVal('burn-completed', fn(completed));
+    $('burn-completed-f').textContent = compRate != null ? compRate + '% completion rate' : 'completion rate';
+    setVal('burn-nofill',    fn(nofill));
+    $('burn-nofill-f').textContent = fillRate != null ? fillRate + '% fill rate' : 'fill rate';
+    setVal('burn-errors',    fn(errors));
+    setVal('burn-cpm',       estCpm != null ? '$' + estCpm.toFixed(2) : '—');
+    setVal('burn-revenue',   estRevenue != null ? '$' + estRevenue.toFixed(4) : '—');
+    $('burn-revenue-f').textContent = estCpm != null ? 'via ' + vastCpmSource + ' VAST' : 'no VAST price found';
+    $('burn-last').textContent = lastUpd ? new Date(lastUpd).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
+
+    // SSP breakdown
+    const sspSources = td.sources || {};
+    const sspEntries = Object.entries(sspSources).sort((a,b) => b[1]-a[1]);
+    if (sspEntries.length > 0) {
+      const total = sspEntries.reduce((s,[,v]) => s+v, 0);
+      $('burn-ssp-tag').textContent = sspEntries.length + ' SSPs';
+      $('burn-ssp-body').innerHTML = '<div class="kv">' + sspEntries.map(([name, count]) => {
+        const pct = total > 0 ? ((count/total)*100).toFixed(1) : 0;
+        return `<div class="kv-row">
+          <div class="kv-k">${name}</div>
+          <div class="kv-v" style="display:flex;align-items:center;gap:8px">
+            <div style="width:80px;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden">
+              <div style="width:${pct}%;height:100%;background:#2563eb;border-radius:3px"></div>
+            </div>
+            <span>${fn(count)} <span style="color:#94a3b8;font-size:11px">(${pct}%)</span></span>
+          </div>
+        </div>`;
+      }).join('') + '</div>';
+    } else {
+      $('burn-ssp-body').innerHTML = '<div class="empty"><div class="empty-icon">📡</div><div class="empty-text">No SSP data yet today</div></div>';
+      $('burn-ssp-tag').textContent = '0 SSPs';
+    }
+
+    // Today vs Yesterday comparison
+    const fmt2 = (label, tval, yval, prefix='') => {
+      const delta = tval - yval;
+      const sign  = delta >= 0 ? '+' : '';
+      const col   = delta >= 0 ? '#16a34a' : '#ef4444';
+      return `<div class="kv-row">
+        <div class="kv-k">${label}</div>
+        <div class="kv-v" style="display:flex;gap:10px;align-items:center">
+          <span>${prefix}${fn(tval)}</span>
+          <span style="color:${col};font-size:11px;font-weight:600">${sign}${fn(delta)}</span>
+          <span style="color:#94a3b8;font-size:11px">(yday: ${prefix}${fn(yval)})</span>
+        </div>
+      </div>`;
+    };
+    $('burn-compare-body').innerHTML = '<div class="kv">' +
+      fmt2('Requests',   requests,                   yd.count     || 0) +
+      fmt2('Paid Plays', paid,                        yd.paid      || 0) +
+      fmt2('Completed',  completed,                   yd.completed || 0) +
+      fmt2('No Fill',    nofill,                      yd.no_fill   || 0) +
+      fmt2('IMA',        ima,                         yd.ima       || 0) +
+      `<div class="kv-row"><div class="kv-k">Fill Rate</div><div class="kv-v">${fillRate != null ? fillRate+'%' : '—'} <span style="color:#94a3b8;font-size:11px">(yday: ${(yd.count||0)>0?((((yd.paid||0)/(yd.count||1))*100).toFixed(1))+'%':'—'})</span></div></div>` +
+    '</div>';
+
+    // Event log table — summarized from daily KV fields
+    const burnRows = [
+      { type: 'impression_count', count: requests,  label: 'Total Requests',   icon: '⬆', color: '#0891b2' },
+      { type: 'paid',             count: paid,       label: 'Paid Fills',       icon: '💰', color: '#16a34a' },
+      { type: 'ima',              count: ima,        label: 'IMA',              icon: '📡', color: '#7c3aed' },
+      { type: 'self_promo',       count: selfPromo,  label: 'Self-Promo',       icon: '🏠', color: '#d97706' },
+      { type: 'completed',        count: completed,  label: 'Completed Views',  icon: '✓',  color: '#16a34a' },
+      { type: 'no_fill',          count: nofill,     label: 'No Fill',          icon: '✗',  color: '#ef4444' },
+      { type: 'error',            count: errors,     label: 'Errors (est.)',    icon: '⚠',  color: '#f59e0b' },
+    ];
+    $('burn-log-tag').textContent = 'date: ' + todayStr;
+    $('burn-log-body').innerHTML = `
+      <div style="overflow-x:auto">
+        <table class="tbl" style="font-size:13px">
+          <thead><tr>
+            <th>Event Type</th>
+            <th style="text-align:right">Count (Today)</th>
+            <th style="text-align:right">% of Requests</th>
+            <th style="text-align:right">Yesterday</th>
+            <th style="text-align:right">Δ</th>
+          </tr></thead>
+          <tbody>
+            ${burnRows.map(r => {
+              const pct = requests > 0 ? ((r.count/requests)*100).toFixed(1)+'%' : '—';
+              const ydVal = r.type==='paid'?(yd.paid||0):r.type==='no_fill'?(yd.no_fill||0):r.type==='completed'?(yd.completed||0):r.type==='ima'?(yd.ima||0):r.type==='self_promo'?(yd.self_promo||0):r.type==='impression_count'?(yd.count||0):0;
+              const delta = r.count - ydVal;
+              const dcol  = delta >= 0 ? '#16a34a' : '#ef4444';
+              return `<tr>
+                <td><span style="margin-right:6px">${r.icon}</span><span style="color:${r.color};font-weight:600">${r.label}</span></td>
+                <td style="text-align:right;font-weight:600">${fn(r.count)}</td>
+                <td style="text-align:right;color:#64748b">${pct}</td>
+                <td style="text-align:right;color:#94a3b8">${fn(ydVal)}</td>
+                <td style="text-align:right;color:${dcol};font-weight:600">${delta>=0?'+':''}${fn(delta)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f8fafc;font-weight:700">
+              <td>Est. Revenue (gross)</td>
+              <td colspan="4" style="text-align:right">${estRevenue!=null ? '$'+estRevenue.toFixed(4)+' @ $'+estCpm.toFixed(2)+' CPM ('+vastCpmSource+')' : 'VAST price not available — reload to retry'}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>`;
+
+  } catch(e) { errBox('burn-err', e.message); }
 }
 
 async function loadUsage() {
