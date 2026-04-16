@@ -1832,7 +1832,12 @@ async function safeLoadDashboard() {
 async function safeLoadDashboardKV() {
   if (inflightLoadDashboardKV) return;
   inflightLoadDashboardKV = true;
-  try { await loadDashboardKV(); } finally { inflightLoadDashboardKV = false; }
+  try {
+    if (!Object.keys(_varMap).length) {
+      await workerGet('/earner-ads').then(r => buildVarMap(r?.data?.sources || [])).catch(()=>{});
+    }
+    await loadDashboardKV();
+  } finally { inflightLoadDashboardKV = false; }
 }
 
 function startAutoRefresh() {
