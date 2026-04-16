@@ -581,7 +581,7 @@ canvas{display:block;width:100%;height:160px}
   <!-- Two column: SSP breakdown + hourly activity -->
   <div class="two" style="margin-bottom:18px">
     <div class="card">
-      <div class="card-head"><span class="card-title">SSP Breakdown</span><span class="tag tb" id="burn-ssp-tag">—</span></div>
+      <div class="card-head"><span class="card-title">SSP Breakdown</span><span class="tag tb" id="burn-ssp-tag">—</span><button class="btn btn-blue btn-sm" style="margin-left:auto" onclick="decodeAndRefresh()">🔍 Decode & Refresh</button></div>
       <div class="card-body" id="burn-ssp-body"><div class="empty"><div class="empty-icon">📡</div><div class="empty-text">Loading…</div></div></div>
     </div>
     <div class="card">
@@ -1864,6 +1864,19 @@ function startAutoRefresh() {
 }
 
 document.addEventListener('DOMContentLoaded', checkSession);
+
+async function decodeAndRefresh() {
+  const btn = document.querySelector('[onclick="decodeAndRefresh()"]');
+  if (btn) { btn.textContent = '⏳ Fetching…'; btn.disabled = true; }
+  try {
+    const r = await workerGet('/earner-ads');
+    buildVarMap(r?.data?.sources || []);
+    await loadDashboardKV();
+    if (btn) { btn.textContent = '✓ Decoded'; btn.disabled = false; }
+  } catch(e) {
+    if (btn) { btn.textContent = '✗ Failed'; btn.disabled = false; }
+  }
+}
 </script>
 </body>
 </html>
