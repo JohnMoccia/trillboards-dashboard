@@ -959,7 +959,7 @@ async function loadDashboard() {
     else { $('activity').innerHTML='<div class="imp-feed">'+ra.slice(0,8).map(a=>`<div class="imp-row"><div class="imp-dot" style="background:${a.type==='impression'?'#2563eb':'#16a34a'}"></div><div class="imp-text"><strong>${esc(a.type||'event')}</strong>${a.ad_id?' · '+esc(a.ad_id.slice(-10)):''}</div><div class="imp-time">${fd(a.timestamp)}</div></div>`).join('')+'</div>'; }
     log('dash-log','g',`partner="${partner.name}" · screens=${stats.total_screens} · imp_today=${stats.total_impressions_today}`);
   } catch(e) { setPill(false,'ERROR'); log('dash-log','e','✕ '+e.message); errBox('dash-err', e.message); }
-  loadDashboardKV();
+  workerGet('/earner-ads').then(r => buildVarMap(r?.data?.sources || [])).catch(()=>{}).finally(() => loadDashboardKV());
 }
 
 // ── Updated: reads from /get-daily instead of /get-impressions ──
