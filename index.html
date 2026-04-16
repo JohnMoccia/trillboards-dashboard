@@ -667,6 +667,36 @@ function credsComplete() {
 const DIRECT      = 'https://api.trillboards.com';
 const PROXY       = 'https://corsproxy.io/?url=https://api.trillboards.com';
 const WORKER_BASE = 'https://trillboards-proxy.johnm-af2.workers.dev';
+
+// ── SSP name de-obfuscation ──────────────────────────────────────────────────
+// Trillboards returns hashed var_ names; we resolve them from VAST URLs.
+const SSP_HOST_LABELS = {
+  'pubads.adipolo.co':        'Adipolo',
+  'pubads.g.doubleclick.net': 'Google GAM',
+  'a.adtelligent.com':        'Adtelligent',
+  'ad.vidverto.io':           'Vidverto',
+  'video.incrementxserv.com': 'IncrementX',
+  'targeting.vdo.ai':         'VDO.AI',
+};
+let _varMap = {}; // module-level cache populated by buildVarMap()
+function buildVarMap(sources) {
+  if (!sources || !sources.length) return;
+  for (const src of sources) {
+    if (!src.vast_url) continue;
+    try {
+      const u = new URL(src.vast_url);
+      const innerUrl = u.searchParams.get('url');
+      const host = innerUrl ? new URL(decodeURIComponent(innerUrl)).hostname : u.hostname;
+      const label = SSP_HOST_LABELS[host] ||
+        (host === 'api.trillboards.com'
+          ? 'OpenRTB/' + (u.pathname.split('/')[4] || src.name)
+          : host);
+      _varMap[src.name] = label;
+    } catch(e) {}
+  }
+}
+function sspName(name) { return _varMap[name] || name; }
+// ────────────────────────────────────────────────────────────────────────────
 const EARNER_BASE = WORKER_BASE + '/earner';
 
 let BASE = DIRECT, usingProxy = false, period = '7d', cd = 30;
@@ -983,7 +1013,7 @@ async function loadDashboardKV() {
     if (Object.keys(sourcesToday).length > 0) {
       const srcHtml = Object.entries(sourcesToday)
         .sort((a,b) => b[1]-a[1])
-        .map(([k,v]) => `<span style="font-size:11px;background:#f1f5f9;padding:2px 8px;border-radius:10px;margin:2px">${k}: ${v}</span>`)
+        .map(([k,v]) => `<span style="font-size:11px;background:#f1f5f9;padding:2px 8px;border-radius:10px;margin:2px">${sspName(k)}: ${v}</span>`)
         .join('');
       const srcEl = $('s-ad-completed-f');
       if (srcEl) srcEl.innerHTML = srcHtml;
@@ -1451,6 +1481,7 @@ async function loadDataBurn() {
     let estCpm = null;
     let vastCpmSource = null;
     const sources = earnerData?.data?.sources || [];
+    buildVarMap(sources); // populate module-level _varMap for sspName() helper
     for (const src of sources) {
       if (src.vast_url) {
         // Fetch the VAST to get price= from impression pixel
@@ -1508,9 +1539,10 @@ async function loadDataBurn() {
       const total = sspEntries.reduce((s,[,v]) => s+v, 0);
       $('burn-ssp-tag').textContent = sspEntries.length + ' SSPs';
       $('burn-ssp-body').innerHTML = '<div class="kv">' + sspEntries.map(([name, count]) => {
+        const displayName = sspName(name);
         const pct = total > 0 ? ((count/total)*100).toFixed(1) : 0;
         return `<div class="kv-row">
-          <div class="kv-k">${name}</div>
+          <div class="kv-k">${displayName}</div>
           <div class="kv-v" style="display:flex;align-items:center;gap:8px">
             <div style="width:80px;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden">
               <div style="width:${pct}%;height:100%;background:#2563eb;border-radius:3px"></div>
