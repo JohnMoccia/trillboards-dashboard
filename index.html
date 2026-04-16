@@ -931,11 +931,20 @@ async function loadDashboardKV() {
         noFillF.textContent = 'missed';
       }
     }
-    // SSP source breakdown — show top sources
+    // SSP source breakdown — show top sources, decoded to human names
     if (Object.keys(sourcesToday).length > 0) {
+      const decoder = await getSourceDecoder();
       const srcHtml = Object.entries(sourcesToday)
         .sort((a,b) => b[1]-a[1])
-        .map(([k,v]) => `<span style="font-size:11px;background:#f1f5f9;padding:2px 8px;border-radius:10px;margin:2px">${k}: ${v}</span>`)
+        .map(([k,v]) => {
+          const d = decoder[k] || {};
+          // Show "Adipolo (var_fa068b): 109" — keeps raw ID for debug/Slack
+          const label = d.ssp ? d.ssp : k;
+          const suffix = d.ssp ? ` <span style="opacity:0.55;font-size:10px">${k}</span>` : '';
+          const bg = d.ssp ? (d.ssp === 'Adipolo' ? '#dcfce7' : '#dbeafe') : '#f1f5f9';
+          const color = d.ssp ? (d.ssp === 'Adipolo' ? '#15803d' : '#1e40af') : '#334155';
+          return `<span style="font-size:11px;background:${bg};color:${color};padding:2px 8px;border-radius:10px;margin:2px;display:inline-block" title="priority ${d.priority||'?'} · ${d.wrapper||''}">${esc(label)}${suffix}: <strong>${v}</strong></span>`;
+        })
         .join('');
       const srcEl = $('s-ad-completed-f');
       if (srcEl) srcEl.innerHTML = srcHtml;
@@ -1019,6 +1028,68 @@ async function loadDashboardKV() {
   }
   // Always try to render the day-part histogram — independent of main KV call
   try { await loadDayPart(); } catch (_) {}
+}
+
+// ── Waterfall source decoder ──────────────────────────────────────────────
+// Translates opaque variant IDs (var_fa068b) into the real SSP name (Adipolo,
+// DoubleClick, VidVerto, etc.) by parsing the vast_url returned from
+// /earner-ads. Cached for 10 minutes so we don't hammer the proxy.
+//
+// Return shape: { var_fa068b: { ssp: 'Adipolo', wrapper: 'api.trillboards.com',
+//                               vast_url: '...', priority: 1 } }
+let __sourceDecoderCache = null;
+let __sourceDecoderCacheAt = 0;
+async function getSourceDecoder() {
+  const now = Date.now();
+  if (__sourceDecoderCache && (now - __sourceDecoderCacheAt) < 10 * 60 * 1000) {
+    return __sourceDecoderCache;
+  }
+  const map = {};
+  try {
+    const { SCREEN_ID } = getCreds();
+    const sid = SCREEN_ID || '69a076ad2ccbba67a5ba1c1e'; // pilot tablet fallback
+    const resp = await workerGet('/earner-ads?screen_id=' + encodeURIComponent(sid));
+    const sources = (resp && resp.data && resp.data.sources) || [];
+    sources.forEach(s => {
+      let wrapper = '', inner = '', ssp = '';
+      try {
+        const u = new URL(s.vast_url);
+        wrapper = u.hostname;
+        const innerUrl = u.searchParams.get('url');
+        if (innerUrl) {
+          const iu = new URL(decodeURIComponent(innerUrl));
+          inner = iu.hostname;
+          // Derive friendly SSP name from hostname. Most ad-tech hosts follow
+          // "sub.ssp.tld" — the recognisable bit is usually the 2nd-to-last
+          // label. Special cases for Google Ad Manager (doubleclick) and
+          // partners whose hostname doesn't match the brand.
+          if (inner.indexOf('adipolo') >= 0)       ssp = 'Adipolo';
+          else if (inner.indexOf('doubleclick') >= 0) ssp = 'Google Ad Manager';
+          else if (inner.indexOf('vidverto') >= 0) ssp = 'VidVerto';
+          else if (inner.indexOf('adtelligent') >= 0) ssp = 'Adtelligent';
+          else if (inner.indexOf('vdo.ai') >= 0)   ssp = 'VDO.ai';
+          else {
+            const parts = inner.split('.');
+            ssp = parts.length >= 2 ? parts[parts.length - 2] : inner;
+            ssp = ssp.charAt(0).toUpperCase() + ssp.slice(1);
+          }
+        }
+      } catch(_) {}
+      map[s.name] = {
+        ssp: ssp || null,
+        wrapper,
+        inner_host: inner,
+        vast_url: s.vast_url,
+        priority: s.priority,
+        enabled: s.enabled !== false
+      };
+    });
+  } catch (e) {
+    log('dash-log','w','Source decoder fetch failed: '+e.message);
+  }
+  __sourceDecoderCache = map;
+  __sourceDecoderCacheAt = now;
+  return map;
 }
 
 // ── Day-part histogram ─────────────────────────────────────────────────────
@@ -1139,7 +1210,24 @@ async function loadDevice() {
     const vt=venue.venue_type||dev.venue_type||d.venue_type||'—'; setVal('d-venue', vt); $('d-venue-f').textContent=venue.name||venue.address||'—';
     const dwt=$('d-waterfall-tag'); if(dwt){ dwt.textContent=sources.length+' sources'; }
     if(sources.length) {
-      $('device-waterfall').innerHTML='<div class="source-list">'+sources.map((s,i)=>`<div class="source-row"><div class="source-left"><div class="source-num">${i+1}</div><div><div class="source-name">${esc(s.name||s.id||'Source '+(i+1))}</div><div class="source-domain">${s.vast_url?(new URL(s.vast_url).hostname):'no url'}</div></div></div><div class="source-right"><span class="tag ts" style="font-family:monospace">priority ${s.priority||i+1}</span>${s.enabled===false?'<span class="tag tr">DISABLED</span>':'<span class="tag tg">ENABLED</span>'}</div></div>`).join('')+'</div>';
+      // Decode each variant to its real SSP name (Adipolo / Google Ad Manager /
+      // VidVerto / …) by parsing the inner vast_url — var_XXXXXX is opaque on
+      // its own, the useful identity is downstream. Fallback to raw id/hostname.
+      const decoder = await getSourceDecoder();
+      $('device-waterfall').innerHTML='<div class="source-list">'+sources.map((s,i)=>{
+        const d = decoder[s.name] || {};
+        const ssp = d.ssp || '—';
+        const inner = d.inner_host || (s.vast_url ? (new URL(s.vast_url)).hostname : 'no url');
+        const rawId = esc(s.name||s.id||'Source '+(i+1));
+        // Primary label = SSP name (bold), sub-label = var_ID + inner host (mono)
+        const primary = d.ssp
+          ? `<span style="color:${d.ssp==='Adipolo'?'#15803d':'#1e40af'}">${esc(ssp)}</span>`
+          : rawId;
+        const sub = d.ssp
+          ? `<span style="font-family:monospace;opacity:0.7">${rawId}</span> · ${esc(inner)}`
+          : esc(inner);
+        return `<div class="source-row"><div class="source-left"><div class="source-num">${i+1}</div><div><div class="source-name">${primary}</div><div class="source-domain">${sub}</div></div></div><div class="source-right"><span class="tag ts" style="font-family:monospace">priority ${s.priority||i+1}</span>${s.enabled===false?'<span class="tag tr">DISABLED</span>':'<span class="tag tg">ENABLED</span>'}</div></div>`;
+      }).join('')+'</div>';
     } else { $('device-waterfall').innerHTML='<div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">No waterfall sources found</div></div>'; }
     $('device-kv').innerHTML=renderObj({device_id:DEVICE_ID,screen_id:SCREEN_ID,status:dstat,venue_type:vt,address:venue.address||dev.address||'—',city:venue.city||dev.city||'—',country:venue.country||dev.country||'—'});
     $('device-hb-kv').innerHTML=renderObj({timeout_ms:hbs.timeout_ms,refresh_interval:hbs.refresh_interval,floor_cpm:hbs.floor_cpm,currency:hbs.currency,sources_count:sources.length});
