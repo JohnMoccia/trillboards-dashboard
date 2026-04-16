@@ -1017,6 +1017,101 @@ async function loadDashboardKV() {
     }
     log('dash-log','w',`KV fetch failed: ${e.message}`);
   }
+  // Always try to render the day-part histogram — independent of main KV call
+  try { await loadDayPart(); } catch (_) {}
+}
+
+// ── Day-part histogram ─────────────────────────────────────────────────────
+// Reads /get-daily-hourly and renders a 24-hour bar chart showing paid /
+// completed / no-fill per UTC hour. Master asked for this so he can see WHEN
+// ad-completion demand actually peaks (confirming the 5–9 PM EST pump window)
+// vs when the tablet is running through the morning trough.
+async function loadDayPart() {
+  // Inject the container on first run
+  let wrap = document.getElementById('day-part-wrap');
+  if (!wrap) {
+    // Put it right after the main stats grid — find a stable anchor
+    const anchor = document.getElementById('dash-log') || document.body;
+    wrap = document.createElement('div');
+    wrap.id = 'day-part-wrap';
+    wrap.style.cssText = 'margin:16px 0;padding:16px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;font-family:system-ui,sans-serif';
+    wrap.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;letter-spacing:1px;color:#6b7280;font-weight:600">DAY-PART DEMAND</div>
+          <div style="font-size:18px;font-weight:700;color:#111">Completed ads by hour (UTC)</div>
+        </div>
+        <div>
+          <select id="dp-date" style="font-family:monospace;padding:4px 8px;border:1px solid #d1d5db;border-radius:4px">
+            <option value="today" selected>Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="-2">2 days ago</option>
+            <option value="-3">3 days ago</option>
+          </select>
+        </div>
+      </div>
+      <div id="dp-chart" style="display:flex;align-items:flex-end;gap:2px;height:160px;border-bottom:1px solid #e5e7eb;padding-bottom:4px"></div>
+      <div id="dp-axis" style="display:flex;gap:2px;margin-top:4px;font-size:9px;color:#9ca3af;font-family:monospace"></div>
+      <div id="dp-summary" style="margin-top:12px;font-size:12px;color:#6b7280"></div>`;
+    anchor.parentNode.insertBefore(wrap, anchor);
+    document.getElementById('dp-date').addEventListener('change', loadDayPart);
+  }
+
+  const sel = (document.getElementById('dp-date') || {}).value || 'today';
+  let date;
+  const d0 = new Date();
+  if (sel === 'today')      date = d0.toISOString().slice(0,10);
+  else if (sel === 'yesterday') { d0.setUTCDate(d0.getUTCDate()-1); date = d0.toISOString().slice(0,10); }
+  else { d0.setUTCDate(d0.getUTCDate() + parseInt(sel,10)); date = d0.toISOString().slice(0,10); }
+
+  let data;
+  try {
+    data = await workerGet('/get-daily-hourly?date=' + date);
+  } catch (e) {
+    const chart = document.getElementById('dp-chart');
+    if (chart) chart.innerHTML = '<div style="color:#dc2626;font-size:12px">Day-part fetch failed: '+esc(e.message)+'</div>';
+    return;
+  }
+
+  const hours   = (data && data.hours) || [];
+  const maxPaid = Math.max(1, ...hours.map(h => (h.paid || 0)));
+  const totPaid = hours.reduce((s,h) => s + (h.paid || 0), 0);
+  const totCompleted = hours.reduce((s,h) => s + (h.completed || 0), 0);
+  const totNoFill    = hours.reduce((s,h) => s + (h.no_fill || 0), 0);
+  // Peak hour (the "pump window" indicator)
+  let peakHour = -1, peakVal = 0;
+  hours.forEach(h => { if ((h.paid || 0) > peakVal) { peakVal = h.paid; peakHour = h.hour; } });
+
+  // Render bars
+  const chart = document.getElementById('dp-chart');
+  const axis  = document.getElementById('dp-axis');
+  if (!chart || !axis) return;
+  chart.innerHTML = hours.map(h => {
+    const paid   = h.paid || 0;
+    const height = Math.max(2, Math.round((paid / maxPaid) * 150));
+    const color  = paid === peakVal && peakVal > 0 ? '#16a34a'
+                 : paid > 0 ? '#3b82f6'
+                 : '#f3f4f6';
+    const tip = `Hour ${String(h.hour).padStart(2,'0')}:00 UTC\n`+
+                `paid: ${paid}\ncompleted: ${h.completed||0}\nno_fill: ${h.no_fill||0}`;
+    return `<div title="${tip}" style="flex:1;min-width:12px;background:${color};height:${height}px;border-radius:2px 2px 0 0;position:relative">`+
+           (paid > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:#111;font-family:monospace">${paid}</div>` : '')+
+           `</div>`;
+  }).join('');
+  axis.innerHTML = hours.map(h => {
+    const utc = String(h.hour).padStart(2,'0');
+    return `<div style="flex:1;min-width:12px;text-align:center">${utc}</div>`;
+  }).join('');
+  const summary = document.getElementById('dp-summary');
+  if (summary) {
+    const peakUtc = peakHour >= 0 ? String(peakHour).padStart(2,'0')+':00 UTC' : '—';
+    // EST = UTC-5 (roughly — ignoring DST for a quick read)
+    const peakEst = peakHour >= 0 ? ((peakHour + 24 - 5) % 24) : -1;
+    const peakEstTxt = peakEst >= 0 ? '~'+String(peakEst).padStart(2,'0')+':00 EST' : '—';
+    summary.innerHTML =
+      `<strong>${fn(totPaid)}</strong> paid · <strong>${fn(totCompleted)}</strong> completed · <strong>${fn(totNoFill)}</strong> no-fill  ·  `+
+      `Peak: <strong>${peakUtc}</strong> (${peakEstTxt}) with <strong>${peakVal}</strong> paid`;
+  }
 }
 
 async function loadDevice() {
@@ -1266,11 +1361,16 @@ async function loadReconcile() {
     const txList = txData.data?.data || [];
     let trillToday = 0, trillWeek = 0;
 
-    // Pull from earner transactions for both today and yesterday — more accurate than partner API
-    const filterDate = recDay === 'yesterday' ? utcDate(-1) : utcDate(0);
-    const dayTx = txList.filter(t => (t.createdAt||'').slice(0,10) === filterDate);
-    trillToday = dayTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
+    // For today: use partner API live count (updates throughout the day)
+    // For yesterday: use earner transaction list (finalized after 9pm)
     trillWeek = d.stats?.total_impressions_week || 0;
+    if (recDay === 'today') {
+      trillToday = d.stats?.total_impressions_today || 0;
+    } else {
+      const filterDate = utcDate(-1);
+      const dayTx = txList.filter(t => (t.createdAt||'').slice(0,10) === filterDate);
+      trillToday = dayTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
+    }
 
     const delta = completedDay - trillToday;
     const deltaPct = trillToday > 0 ? ((delta / trillToday) * 100).toFixed(1) : null;
