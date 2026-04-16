@@ -1030,8 +1030,10 @@ async function loadDayPart() {
   // Inject the container on first run
   let wrap = document.getElementById('day-part-wrap');
   if (!wrap) {
-    // Put it right after the main stats grid — find a stable anchor
-    const anchor = document.getElementById('dash-log') || document.body;
+    // Anchor: right after the .stat-grid inside #page-dashboard so it appears
+    // as a full-width section below the main KPI cards (not inside the log card).
+    const page = document.getElementById('page-dashboard');
+    const statGrid = page ? page.querySelector('.stat-grid') : null;
     wrap = document.createElement('div');
     wrap.id = 'day-part-wrap';
     wrap.style.cssText = 'margin:16px 0;padding:16px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;font-family:system-ui,sans-serif';
@@ -1053,7 +1055,13 @@ async function loadDayPart() {
       <div id="dp-chart" style="display:flex;align-items:flex-end;gap:2px;height:160px;border-bottom:1px solid #e5e7eb;padding-bottom:4px"></div>
       <div id="dp-axis" style="display:flex;gap:2px;margin-top:4px;font-size:9px;color:#9ca3af;font-family:monospace"></div>
       <div id="dp-summary" style="margin-top:12px;font-size:12px;color:#6b7280"></div>`;
-    anchor.parentNode.insertBefore(wrap, anchor);
+    if (statGrid && statGrid.parentNode) {
+      statGrid.parentNode.insertBefore(wrap, statGrid.nextSibling);
+    } else if (page) {
+      page.appendChild(wrap);
+    } else {
+      document.body.appendChild(wrap);
+    }
     document.getElementById('dp-date').addEventListener('change', loadDayPart);
   }
 
