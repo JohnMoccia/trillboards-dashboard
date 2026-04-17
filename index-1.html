@@ -581,7 +581,7 @@ canvas{display:block;width:100%;height:160px}
   <!-- Two column: SSP breakdown + hourly activity -->
   <div class="two" style="margin-bottom:18px">
     <div class="card">
-      <div class="card-head"><span class="card-title">SSP Breakdown</span><span class="tag tb" id="burn-ssp-tag">—</span><button class="btn btn-blue btn-sm" style="margin-left:auto" onclick="decodeAndRefresh()">🔍 Decode & Refresh</button></div>
+      <div class="card-head"><span class="card-title">SSP Breakdown</span><span class="tag tb" id="burn-ssp-tag">—</span></div>
       <div class="card-body" id="burn-ssp-body"><div class="empty"><div class="empty-icon">📡</div><div class="empty-text">Loading…</div></div></div>
     </div>
     <div class="card">
@@ -959,7 +959,7 @@ async function loadDashboard() {
     else { $('activity').innerHTML='<div class="imp-feed">'+ra.slice(0,8).map(a=>`<div class="imp-row"><div class="imp-dot" style="background:${a.type==='impression'?'#2563eb':'#16a34a'}"></div><div class="imp-text"><strong>${esc(a.type||'event')}</strong>${a.ad_id?' · '+esc(a.ad_id.slice(-10)):''}</div><div class="imp-time">${fd(a.timestamp)}</div></div>`).join('')+'</div>'; }
     log('dash-log','g',`partner="${partner.name}" · screens=${stats.total_screens} · imp_today=${stats.total_impressions_today}`);
   } catch(e) { setPill(false,'ERROR'); log('dash-log','e','✕ '+e.message); errBox('dash-err', e.message); }
-  workerGet('/earner-ads').then(r => buildVarMap(r?.data?.sources || [])).catch(()=>{}).finally(() => loadDashboardKV());
+  loadDashboardKV();
 }
 
 // ── Updated: reads from /get-daily instead of /get-impressions ──
@@ -1009,20 +1009,11 @@ async function loadDashboardKV() {
         noFillF.textContent = 'missed';
       }
     }
-    // SSP source breakdown — show top sources, decoded to human names via
-    // the canonical _varMap/sspName() helper populated by buildVarMap().
+    // SSP source breakdown — show top sources
     if (Object.keys(sourcesToday).length > 0) {
       const srcHtml = Object.entries(sourcesToday)
         .sort((a,b) => b[1]-a[1])
-        .map(([k,v]) => {
-          const label = sspName(k);
-          const decoded = label !== k; // sspName returns the raw id if not decoded
-          // Keep raw var_ID visible as debug tail when decoded; omit when not
-          const suffix = decoded ? ` <span style="opacity:0.55;font-size:10px">${k}</span>` : '';
-          const bg = decoded ? (/adipolo/i.test(label) ? '#dcfce7' : '#dbeafe') : '#f1f5f9';
-          const color = decoded ? (/adipolo/i.test(label) ? '#15803d' : '#1e40af') : '#334155';
-          return `<span style="font-size:11px;background:${bg};color:${color};padding:2px 8px;border-radius:10px;margin:2px;display:inline-block">${esc(label)}${suffix}: <strong>${v}</strong></span>`;
-        })
+        .map(([k,v]) => `<span style="font-size:11px;background:#f1f5f9;padding:2px 8px;border-radius:10px;margin:2px">${sspName(k)}: ${v}</span>`)
         .join('');
       const srcEl = $('s-ad-completed-f');
       if (srcEl) srcEl.innerHTML = srcHtml;
@@ -1104,112 +1095,6 @@ async function loadDashboardKV() {
     }
     log('dash-log','w',`KV fetch failed: ${e.message}`);
   }
-  // Always try to render the day-part histogram — independent of main KV call
-  try { await loadDayPart(); } catch (_) {}
-}
-
-// NOTE: SSP name decoding is handled by buildVarMap() + sspName() earlier in
-// this file (populated from /earner-ads). We use sspName(varId) throughout.
-
-// ── Day-part histogram ─────────────────────────────────────────────────────
-// Reads /get-daily-hourly and renders a 24-hour bar chart showing paid /
-// completed / no-fill per UTC hour. Master asked for this so he can see WHEN
-// ad-completion demand actually peaks (confirming the 5–9 PM EST pump window)
-// vs when the tablet is running through the morning trough.
-async function loadDayPart() {
-  // Inject the container on first run
-  let wrap = document.getElementById('day-part-wrap');
-  if (!wrap) {
-    // Anchor: right after the .stat-grid inside #page-dashboard so it appears
-    // as a full-width section below the main KPI cards (not inside the log card).
-    const page = document.getElementById('page-dashboard');
-    const statGrid = page ? page.querySelector('.stat-grid') : null;
-    wrap = document.createElement('div');
-    wrap.id = 'day-part-wrap';
-    wrap.style.cssText = 'margin:16px 0;padding:16px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;font-family:system-ui,sans-serif';
-    wrap.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div>
-          <div style="font-size:11px;letter-spacing:1px;color:#6b7280;font-weight:600">DAY-PART DEMAND</div>
-          <div style="font-size:18px;font-weight:700;color:#111">Completed ads by hour (UTC)</div>
-        </div>
-        <div>
-          <select id="dp-date" style="font-family:monospace;padding:4px 8px;border:1px solid #d1d5db;border-radius:4px">
-            <option value="today" selected>Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="-2">2 days ago</option>
-            <option value="-3">3 days ago</option>
-          </select>
-        </div>
-      </div>
-      <div id="dp-chart" style="display:flex;align-items:flex-end;gap:2px;height:160px;border-bottom:1px solid #e5e7eb;padding-bottom:4px"></div>
-      <div id="dp-axis" style="display:flex;gap:2px;margin-top:4px;font-size:9px;color:#9ca3af;font-family:monospace"></div>
-      <div id="dp-summary" style="margin-top:12px;font-size:12px;color:#6b7280"></div>`;
-    if (statGrid && statGrid.parentNode) {
-      statGrid.parentNode.insertBefore(wrap, statGrid.nextSibling);
-    } else if (page) {
-      page.appendChild(wrap);
-    } else {
-      document.body.appendChild(wrap);
-    }
-    document.getElementById('dp-date').addEventListener('change', loadDayPart);
-  }
-
-  const sel = (document.getElementById('dp-date') || {}).value || 'today';
-  let date;
-  const d0 = new Date();
-  if (sel === 'today')      date = d0.toISOString().slice(0,10);
-  else if (sel === 'yesterday') { d0.setUTCDate(d0.getUTCDate()-1); date = d0.toISOString().slice(0,10); }
-  else { d0.setUTCDate(d0.getUTCDate() + parseInt(sel,10)); date = d0.toISOString().slice(0,10); }
-
-  let data;
-  try {
-    data = await workerGet('/get-daily-hourly?date=' + date);
-  } catch (e) {
-    const chart = document.getElementById('dp-chart');
-    if (chart) chart.innerHTML = '<div style="color:#dc2626;font-size:12px">Day-part fetch failed: '+esc(e.message)+'</div>';
-    return;
-  }
-
-  const hours   = (data && data.hours) || [];
-  const maxPaid = Math.max(1, ...hours.map(h => (h.paid || 0)));
-  const totPaid = hours.reduce((s,h) => s + (h.paid || 0), 0);
-  const totCompleted = hours.reduce((s,h) => s + (h.completed || 0), 0);
-  const totNoFill    = hours.reduce((s,h) => s + (h.no_fill || 0), 0);
-  // Peak hour (the "pump window" indicator)
-  let peakHour = -1, peakVal = 0;
-  hours.forEach(h => { if ((h.paid || 0) > peakVal) { peakVal = h.paid; peakHour = h.hour; } });
-
-  // Render bars
-  const chart = document.getElementById('dp-chart');
-  const axis  = document.getElementById('dp-axis');
-  if (!chart || !axis) return;
-  chart.innerHTML = hours.map(h => {
-    const paid   = h.paid || 0;
-    const height = Math.max(2, Math.round((paid / maxPaid) * 150));
-    const color  = paid === peakVal && peakVal > 0 ? '#16a34a'
-                 : paid > 0 ? '#3b82f6'
-                 : '#f3f4f6';
-    const tip = `Hour ${String(h.hour).padStart(2,'0')}:00 UTC\n`+
-                `paid: ${paid}\ncompleted: ${h.completed||0}\nno_fill: ${h.no_fill||0}`;
-    return `<div title="${tip}" style="flex:1;min-width:12px;background:${color};height:${height}px;border-radius:2px 2px 0 0;position:relative">`+
-           (paid > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:#111;font-family:monospace">${paid}</div>` : '')+
-           `</div>`;
-  }).join('');
-  axis.innerHTML = hours.map(h => {
-    const utc = String(h.hour).padStart(2,'0');
-    return `<div style="flex:1;min-width:12px;text-align:center">${utc}</div>`;
-  }).join('');
-  const summary = document.getElementById('dp-summary');
-  if (summary) {
-    const peakUtc = peakHour >= 0 ? String(peakHour).padStart(2,'0')+':00 UTC' : '—';
-    // EST = UTC-5 (roughly — ignoring DST for a quick read)
-    const peakEst = peakHour >= 0 ? ((peakHour + 24 - 5) % 24) : -1;
-    const peakEstTxt = peakEst >= 0 ? '~'+String(peakEst).padStart(2,'0')+':00 EST' : '—';
-    summary.innerHTML =
-      `<strong>${fn(totPaid)}</strong> paid · <strong>${fn(totCompleted)}</strong> completed · <strong>${fn(totNoFill)}</strong> no-fill  ·  `+
-      `Peak: <strong>${peakUtc}</strong> (${peakEstTxt}) with <strong>${peakVal}</strong> paid`;
-  }
 }
 
 async function loadDevice() {
@@ -1229,22 +1114,7 @@ async function loadDevice() {
     const vt=venue.venue_type||dev.venue_type||d.venue_type||'—'; setVal('d-venue', vt); $('d-venue-f').textContent=venue.name||venue.address||'—';
     const dwt=$('d-waterfall-tag'); if(dwt){ dwt.textContent=sources.length+' sources'; }
     if(sources.length) {
-      // Decode each variant to its real SSP name via the canonical sspName()
-      // helper (populated by buildVarMap(sources) earlier in this function).
-      // Raw var_XXXXXX is kept visible as a small debug tail.
-      $('device-waterfall').innerHTML='<div class="source-list">'+sources.map((s,i)=>{
-        const label = sspName(s.name);
-        const decoded = label !== s.name;
-        const inner = s.vast_url ? (new URL(s.vast_url)).hostname : 'no url';
-        const rawId = esc(s.name||s.id||'Source '+(i+1));
-        const primary = decoded
-          ? `<span style="color:${/adipolo/i.test(label)?'#15803d':'#1e40af'}">${esc(label)}</span>`
-          : rawId;
-        const sub = decoded
-          ? `<span style="font-family:monospace;opacity:0.7">${rawId}</span> · ${esc(inner)}`
-          : esc(inner);
-        return `<div class="source-row"><div class="source-left"><div class="source-num">${i+1}</div><div><div class="source-name">${primary}</div><div class="source-domain">${sub}</div></div></div><div class="source-right"><span class="tag ts" style="font-family:monospace">priority ${s.priority||i+1}</span>${s.enabled===false?'<span class="tag tr">DISABLED</span>':'<span class="tag tg">ENABLED</span>'}</div></div>`;
-      }).join('')+'</div>';
+      $('device-waterfall').innerHTML='<div class="source-list">'+sources.map((s,i)=>`<div class="source-row"><div class="source-left"><div class="source-num">${i+1}</div><div><div class="source-name">${esc(s.name||s.id||'Source '+(i+1))}</div><div class="source-domain">${s.vast_url?(new URL(s.vast_url).hostname):'no url'}</div></div></div><div class="source-right"><span class="tag ts" style="font-family:monospace">priority ${s.priority||i+1}</span>${s.enabled===false?'<span class="tag tr">DISABLED</span>':'<span class="tag tg">ENABLED</span>'}</div></div>`).join('')+'</div>';
     } else { $('device-waterfall').innerHTML='<div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">No waterfall sources found</div></div>'; }
     $('device-kv').innerHTML=renderObj({device_id:DEVICE_ID,screen_id:SCREEN_ID,status:dstat,venue_type:vt,address:venue.address||dev.address||'—',city:venue.city||dev.city||'—',country:venue.country||dev.country||'—'});
     $('device-hb-kv').innerHTML=renderObj({timeout_ms:hbs.timeout_ms,refresh_interval:hbs.refresh_interval,floor_cpm:hbs.floor_cpm,currency:hbs.currency,sources_count:sources.length});
@@ -1474,16 +1344,11 @@ async function loadReconcile() {
     const txList = txData.data?.data || [];
     let trillToday = 0, trillWeek = 0;
 
-    // For today: use partner API live count (updates throughout the day)
-    // For yesterday: use earner transaction list (finalized after 9pm)
+    // Pull from earner transactions for both today and yesterday — more accurate than partner API
+    const filterDate = recDay === 'yesterday' ? utcDate(-1) : utcDate(0);
+    const dayTx = txList.filter(t => (t.createdAt||'').slice(0,10) === filterDate);
+    trillToday = dayTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
     trillWeek = d.stats?.total_impressions_week || 0;
-    if (recDay === 'today') {
-      trillToday = d.stats?.total_impressions_today || 0;
-    } else {
-      const filterDate = utcDate(-1);
-      const dayTx = txList.filter(t => (t.createdAt||'').slice(0,10) === filterDate);
-      trillToday = dayTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
-    }
 
     const delta = completedDay - trillToday;
     const deltaPct = trillToday > 0 ? ((delta / trillToday) * 100).toFixed(1) : null;
@@ -1967,12 +1832,7 @@ async function safeLoadDashboard() {
 async function safeLoadDashboardKV() {
   if (inflightLoadDashboardKV) return;
   inflightLoadDashboardKV = true;
-  try {
-    if (!Object.keys(_varMap).length) {
-      await workerGet('/earner-ads').then(r => buildVarMap(r?.data?.sources || [])).catch(()=>{});
-    }
-    await loadDashboardKV();
-  } finally { inflightLoadDashboardKV = false; }
+  try { await loadDashboardKV(); } finally { inflightLoadDashboardKV = false; }
 }
 
 function startAutoRefresh() {
@@ -1999,19 +1859,6 @@ function startAutoRefresh() {
 }
 
 document.addEventListener('DOMContentLoaded', checkSession);
-
-async function decodeAndRefresh() {
-  const btn = document.querySelector('[onclick="decodeAndRefresh()"]');
-  if (btn) { btn.textContent = '⏳ Fetching…'; btn.disabled = true; }
-  try {
-    const r = await workerGet('/earner-ads');
-    buildVarMap(r?.data?.sources || []);
-    await loadDashboardKV();
-    if (btn) { btn.textContent = '✓ Decoded'; btn.disabled = false; }
-  } catch(e) {
-    if (btn) { btn.textContent = '✗ Failed'; btn.disabled = false; }
-  }
-}
 </script>
 </body>
 </html>
