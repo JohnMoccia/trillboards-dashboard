@@ -1171,29 +1171,32 @@ async function loadDayPart() {
     return;
   }
 
-  const hours   = (data && data.hours) || [];
-  const maxPaid = Math.max(1, ...hours.map(h => (h.paid || 0)));
-  const totPaid = hours.reduce((s,h) => s + (h.paid || 0), 0);
+  const hours        = (data && data.hours) || [];
+  // Chart uses `completed` (matches the widget title "Completed ads by hour").
+  // `paid` / `ima` / `self_promo` breakdown is not populated on the current APK
+  // build (tablet sends impression_count totals only, no per-ad type tag).
+  const maxCompleted = Math.max(1, ...hours.map(h => (h.completed || 0)));
+  const totPaid      = hours.reduce((s,h) => s + (h.paid || 0), 0);
   const totCompleted = hours.reduce((s,h) => s + (h.completed || 0), 0);
   const totNoFill    = hours.reduce((s,h) => s + (h.no_fill || 0), 0);
   // Peak hour (the "pump window" indicator)
   let peakHour = -1, peakVal = 0;
-  hours.forEach(h => { if ((h.paid || 0) > peakVal) { peakVal = h.paid; peakHour = h.hour; } });
+  hours.forEach(h => { if ((h.completed || 0) > peakVal) { peakVal = h.completed; peakHour = h.hour; } });
 
   // Render bars
   const chart = document.getElementById('dp-chart');
   const axis  = document.getElementById('dp-axis');
   if (!chart || !axis) return;
   chart.innerHTML = hours.map(h => {
-    const paid   = h.paid || 0;
-    const height = Math.max(2, Math.round((paid / maxPaid) * 150));
-    const color  = paid === peakVal && peakVal > 0 ? '#16a34a'
-                 : paid > 0 ? '#3b82f6'
-                 : '#f3f4f6';
+    const completed = h.completed || 0;
+    const height    = Math.max(2, Math.round((completed / maxCompleted) * 150));
+    const color     = completed === peakVal && peakVal > 0 ? '#16a34a'
+                    : completed > 0 ? '#3b82f6'
+                    : '#f3f4f6';
     const tip = `Hour ${String(h.hour).padStart(2,'0')}:00 UTC\n`+
-                `paid: ${paid}\ncompleted: ${h.completed||0}\nno_fill: ${h.no_fill||0}`;
+                `completed: ${completed}\nrequests: ${h.count||0}\npaid: ${h.paid||0}\nno_fill: ${h.no_fill||0}`;
     return `<div title="${tip}" style="flex:1;min-width:12px;background:${color};height:${height}px;border-radius:2px 2px 0 0;position:relative">`+
-           (paid > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:#111;font-family:monospace">${paid}</div>` : '')+
+           (completed > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:#111;font-family:monospace">${completed}</div>` : '')+
            `</div>`;
   }).join('');
   axis.innerHTML = hours.map(h => {
@@ -1207,8 +1210,8 @@ async function loadDayPart() {
     const peakEst = peakHour >= 0 ? ((peakHour + 24 - 5) % 24) : -1;
     const peakEstTxt = peakEst >= 0 ? '~'+String(peakEst).padStart(2,'0')+':00 EST' : '—';
     summary.innerHTML =
-      `<strong>${fn(totPaid)}</strong> paid · <strong>${fn(totCompleted)}</strong> completed · <strong>${fn(totNoFill)}</strong> no-fill  ·  `+
-      `Peak: <strong>${peakUtc}</strong> (${peakEstTxt}) with <strong>${peakVal}</strong> paid`;
+      `<strong>${fn(totCompleted)}</strong> completed · <strong>${fn(totPaid)}</strong> paid · <strong>${fn(totNoFill)}</strong> no-fill  ·  `+
+      `Peak: <strong>${peakUtc}</strong> (${peakEstTxt}) with <strong>${peakVal}</strong> completed`;
   }
 }
 
@@ -1474,15 +1477,20 @@ async function loadReconcile() {
     const txList = txData.data?.data || [];
     let trillToday = 0, trillWeek = 0;
 
-    // For today: use partner API live count (updates throughout the day)
-    // For yesterday: use earner transaction list (finalized after 9pm)
+    // For today: partner-dashboard IS a live counter (verified 2026-04-20 —
+    // total_impressions_today matched tablet-side reality when our KV was still
+    // at 0 due to an APK classification bug). Use it for today.
+    // For yesterday: use payment-list (finalized at ~9PM EST).
     trillWeek = d.stats?.total_impressions_week || 0;
+    let trillFinalized;
     if (recDay === 'today') {
       trillToday = d.stats?.total_impressions_today || 0;
+      trillFinalized = true;
     } else {
       const filterDate = utcDate(-1);
-      const dayTx = txList.filter(t => (t.createdAt||'').slice(0,10) === filterDate);
+      const dayTx = txList.filter(t => (t.date || t.createdAt || '').slice(0,10) === filterDate);
       trillToday = dayTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
+      trillFinalized = dayTx.length > 0;
     }
 
     const delta = completedDay - trillToday;
@@ -1491,7 +1499,7 @@ async function loadReconcile() {
 
     setVal('rec-our-today', fn(completedDay));
     setVal('rec-requests-today', fn(requestsDay));
-    setVal('rec-trill-today', fn(trillToday));
+    setVal('rec-trill-today', trillFinalized ? fn(trillToday) : '—');
     // Update stat card labels to reflect selected day
     const lbl2 = recDay === 'yesterday' ? 'Yesterday' : 'Today';
     const recLabelCompleted = $('rec-label-completed');
@@ -1509,17 +1517,25 @@ async function loadReconcile() {
     }
 
     const deltaEl = $('rec-delta');
-    if (deltaEl) { deltaEl.textContent = (delta >= 0 ? '+' : '') + fn(delta); deltaEl.style.color = delta === 0 ? '#16a34a' : '#ef4444'; }
+    if (deltaEl) {
+      if (!trillFinalized) { deltaEl.textContent = '—'; deltaEl.style.color = '#6b7280'; }
+      else { deltaEl.textContent = (delta >= 0 ? '+' : '') + fn(delta); deltaEl.style.color = delta === 0 ? '#16a34a' : '#ef4444'; }
+    }
     const deltaPctEl = $('rec-delta-pct');
-    if (deltaPctEl) deltaPctEl.textContent = deltaPct !== null ? Math.abs(deltaPct) + '% variance' : 'no trill data yet';
+    if (deltaPctEl) {
+      if (!trillFinalized) deltaPctEl.textContent = 'pending 9PM rollup';
+      else deltaPctEl.textContent = deltaPct !== null ? Math.abs(deltaPct) + '% variance' : 'no trill data yet';
+    }
 
     const alertEl = $('rec-alert');
-    if (completedDay === 0 && trillToday === 0) {
+    if (recDay === 'today' && !trillFinalized) {
+      alertEl.innerHTML = `<div class="alert alert-blue"><strong>⏳ Trillboards not finalized yet</strong>Today's row won't post until their ~9PM EST rollup. Our KV shows <strong>${fn(completedDay)}</strong> completed / <strong>${fn(requestsDay)}</strong> requested so far. Check back after 9PM EST for reconciliation.</div>`;
+    } else if (completedDay === 0 && trillToday === 0) {
       alertEl.innerHTML = `<div class="alert alert-blue"><strong>ℹ No impressions ${lbl} yet</strong>Waiting for first impression from the tablet.</div>`;
     } else if (delta === 0) {
       alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Counts match</strong>Both our log and Trillboards show ${fn(completedDay)} impressions ${lbl}.</div>`;
     } else {
-      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy</strong>Our log: <strong>${fn(completedDay)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: ${fn(Math.abs(delta))}${deltaPct !== null ? ' ('+Math.abs(deltaPct)+'%)' : ''}<br><span style="font-size:12px;color:#991b1b">Note: Trillboards API updates ~9PM EST — intraday discrepancies are expected.</span></div>`;
+      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy</strong>Our log: <strong>${fn(completedDay)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: ${fn(Math.abs(delta))}${deltaPct !== null ? ' ('+Math.abs(deltaPct)+'%)' : ''}</div>`;
     }
 
     $('rec-our-body').innerHTML = `<div class="kv">
