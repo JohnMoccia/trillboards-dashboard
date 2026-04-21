@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.21.2">
-<title>Curb · Trillboards Monitor (v2026.04.21.2)</title>
+<meta name="dashboard-version" content="2026.04.21.3">
+<title>Curb · Trillboards Monitor (v2026.04.21.3)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1180,9 +1180,9 @@ async function loadImaFailures() {
     wrap.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div>
-          <div style="font-size:11px;letter-spacing:1px;color:#6b7280;font-weight:600">IMA PLAYER FAILURES</div>
-          <div style="font-size:18px;font-weight:700;color:#111">Why ads sent to IMA didn't render today</div>
-          <div style="font-size:11px;color:#9ca3af;margin-top:2px">Sneh 04-20 benchmark: healthy screens render 70%+ of served; our screen ran &lt;6%. Codes below explain the drop.</div>
+          <div style="font-size:11px;letter-spacing:1px;color:#6b7280;font-weight:600">IMA ERROR CODES</div>
+          <div style="font-size:18px;font-weight:700;color:#111">IMA-reported error breakdown today</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px">Sneh 04-20 benchmark: healthy screens render 70%+ of served. Our low ratio is mostly <strong>pre-serve waterfall exhaustion</strong> (supply-side, not our player). Post-serve codes below are the true player rejections — those are ours to fix.</div>
         </div>
         <div>
           <select id="if-date" style="font-family:monospace;padding:4px 8px;border:1px solid #d1d5db;border-radius:4px">
@@ -1194,15 +1194,21 @@ async function loadImaFailures() {
         </div>
       </div>
       <div id="if-summary" style="font-size:14px;color:#111;margin-bottom:12px">Loading…</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
         <div>
-          <div style="font-size:11px;color:#6b7280;font-weight:600;margin-bottom:6px">BY ERROR CODE</div>
-          <div id="if-codes" style="font-family:monospace;font-size:12px"></div>
+          <div style="font-size:11px;color:#2563eb;font-weight:600;margin-bottom:2px">PRE-SERVE · VAST RESOLUTION</div>
+          <div style="font-size:10px;color:#9ca3af;margin-bottom:6px">Supply-side (Trillboards) — ad never reached the player</div>
+          <div id="if-codes-preserve" style="font-family:monospace;font-size:12px"></div>
         </div>
         <div>
-          <div style="font-size:11px;color:#6b7280;font-weight:600;margin-bottom:6px">BY CODE + SOURCE</div>
-          <div id="if-sources" style="font-family:monospace;font-size:12px"></div>
+          <div style="font-size:11px;color:#dc2626;font-weight:600;margin-bottom:2px">POST-SERVE · PLAYER REJECTION</div>
+          <div style="font-size:10px;color:#9ca3af;margin-bottom:6px">Our side — device / network / WebView / autoplay</div>
+          <div id="if-codes-postserve" style="font-family:monospace;font-size:12px"></div>
         </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#6b7280;font-weight:600;margin-bottom:6px">BY CODE + SOURCE</div>
+        <div id="if-sources" style="font-family:monospace;font-size:12px"></div>
       </div>`;
     const anchorNode = anchor || document.querySelector('#page-dashboard .stat-grid');
     if (anchorNode && anchorNode.parentNode) {
@@ -1233,7 +1239,18 @@ async function loadImaFailures() {
 
   const byCode   = (data && data.ima_errors)        || {};
   const bySource = (data && data.ima_error_sources) || {};
-  const total    = Object.values(byCode).reduce((s,n) => s + (n || 0), 0);
+
+  // Split codes into pre-serve (VAST resolution / supply-side) vs post-serve (player rejection / our side).
+  // Must stay consistent with isPostServeImaError() in MainActivity.java:
+  //   post-serve ⇔ code >= 400 && code != 500 && code != 601
+  // Pre-serve bucket (VAST-resolution failures): 100s/200s/300s, plus 500 (VAST_EMPTY_RESPONSE) and 601 (FAILED_TO_REQUEST_ADS).
+  // Post-serve bucket (player rejections): 4xx (except 500/601), 5xx companion errors, 6xx unknown, 9xx, 10xx autoplay/type.
+  const isPostServe = (c) => { const n = parseInt(c, 10); return n >= 400 && n !== 500 && n !== 601; };
+  const preserveEntries  = Object.entries(byCode).filter(([c]) => !isPostServe(c));
+  const postserveEntries = Object.entries(byCode).filter(([c]) =>  isPostServe(c));
+  const preserveTotal    = preserveEntries.reduce((s,[,n]) => s + (n || 0), 0);
+  const postserveTotal   = postserveEntries.reduce((s,[,n]) => s + (n || 0), 0);
+  const total            = preserveTotal + postserveTotal;
 
   const summary = document.getElementById('if-summary');
   if (summary) {
@@ -1244,29 +1261,35 @@ async function loadImaFailures() {
       const completed = (data && data.completed) || 0;
       const ratio     = served > 0 ? (100 * completed / served) : 0;
       summary.innerHTML =
-        '<strong>'+fn(total)+'</strong> player-side failures · '+
-        '<strong>'+fn(completed)+'</strong> completed out of <strong>'+fn(served)+'</strong> requests · '+
-        'render ratio <strong>'+ratio.toFixed(1)+'%</strong>';
+        '<strong>'+fn(total)+'</strong> IMA error events · '+
+        '<span style="color:#2563eb"><strong>'+fn(preserveTotal)+'</strong> pre-serve</span> / '+
+        '<span style="color:#dc2626"><strong>'+fn(postserveTotal)+'</strong> post-serve</span> · '+
+        '<strong>'+fn(completed)+'</strong> completed / <strong>'+fn(served)+'</strong> requests = '+
+        '<strong>'+ratio.toFixed(1)+'%</strong> render ratio';
     }
   }
 
-  const codes = Object.entries(byCode).sort((a,b) => b[1] - a[1]).slice(0, 10);
-  const codeHtml = codes.length === 0
-    ? '<div style="color:#9ca3af">—</div>'
-    : codes.map(([code, n]) => {
-        const label = imaCodeLabel(code);
-        const pct   = total > 0 ? Math.round(100 * n / total) : 0;
-        const color = code === '402' || code === '301' ? '#f59e0b'
-                    : code === '400' || code === '401' ? '#dc2626'
-                    : code === '303' ? '#3b82f6'
-                    : code === '1012' ? '#991b1b'
-                    : '#6b7280';
-        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb">`+
-               `<span style="color:${color}"><strong>${esc(code)}</strong> ${esc(label)}</span>`+
-               `<span>${fn(n)} · ${pct}%</span></div>`;
-      }).join('');
-  const codeEl = document.getElementById('if-codes');
-  if (codeEl) codeEl.innerHTML = codeHtml;
+  function renderCodes(entries, containerId, bucketTotal, emptyMsg) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const sorted = entries.sort((a,b) => b[1] - a[1]).slice(0, 10);
+    el.innerHTML = sorted.length === 0
+      ? '<div style="color:#9ca3af;padding:4px 0">'+emptyMsg+'</div>'
+      : sorted.map(([code, n]) => {
+          const label = imaCodeLabel(code);
+          const pct   = bucketTotal > 0 ? Math.round(100 * n / bucketTotal) : 0;
+          const color = code === '402' || code === '301' ? '#f59e0b'
+                      : code === '400' || code === '401' ? '#dc2626'
+                      : code === '303' ? '#3b82f6'
+                      : code === '1012' ? '#991b1b'
+                      : '#6b7280';
+          return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb">`+
+                 `<span style="color:${color}"><strong>${esc(code)}</strong> ${esc(label)}</span>`+
+                 `<span>${fn(n)} · ${pct}%</span></div>`;
+        }).join('');
+  }
+  renderCodes(preserveEntries,  'if-codes-preserve',  preserveTotal,  '— no pre-serve errors');
+  renderCodes(postserveEntries, 'if-codes-postserve', postserveTotal, '— no post-serve errors (player is healthy)');
 
   const srcs = Object.entries(bySource).sort((a,b) => b[1] - a[1]).slice(0, 10);
   const srcHtml = srcs.length === 0
