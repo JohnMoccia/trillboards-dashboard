@@ -1614,8 +1614,8 @@ async function loadEarnings() {
       ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Screen</th><th>Gross</th><th>Net (70%)</th></tr></thead><tbody>${txList.map(t=>{
           const netVal = t.earnings != null ? Number(t.earnings) : null;
           const grossVal = netVal != null ? netVal / 0.70 : null;
-          const gross = netVal != null ? '$'+grossVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}) : '—';
-          const net   = netVal != null ? '$'+netVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}) : '—';
+          const gross = netVal != null ? '$'+grossVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+          const net   = netVal != null ? '$'+netVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
           const impressions = t.impressions ? fn(t.impressions)+' impressions' : esc(t.source_type||'—');
           const cpm = t.net_cpm != null ? ' @ $'+Number(t.net_cpm).toFixed(2)+' net CPM' : '';
           const status = t.status || t.event_type || 'pending';
@@ -1763,7 +1763,7 @@ async function loadReconcile() {
         const n = netOf(t);
         return n != null ? n / 0.70 : null;
       };
-      const fmt = v => (v==null||v===undefined) ? '—' : '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4});
+      const fmt = v => (v==null||v===undefined) ? '—' : '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
       const rows = allTx.map(t => {
         const date    = (t.date || t.createdAt || '').slice(0,10);
         const imps    = t.impressions || 0;
