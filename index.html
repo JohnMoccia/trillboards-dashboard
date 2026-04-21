@@ -1606,9 +1606,22 @@ async function loadEarnings() {
     const playsEl = $('earn-plays'); if(playsEl){ playsEl.textContent = fn(d.advertisementPlay||d.programmatic_impressions||0); playsEl.className='stat-value'; }
     $('earn-breakdown').innerHTML=`<div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:8px"><div style="font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:500">Programmatic Earnings</div><div style="font-size:26px;font-weight:700;color:#2563eb;margin-bottom:4px">${fmt(d.programmatic_earnings||d.amount)}</div><div style="font-size:12px;color:#94a3b8">Pending (net-60) <span style="float:right;color:#6b7280">${fmt(d.programmatic_breakdown?.estimated||d.amount)}</span></div></div>`;
     $('earn-bytype').innerHTML=kv('Direct',fmt(d.direct_earnings||0))+kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+kv('Rev Share','70%')+kv('Available',fmt(d.available_for_withdrawal));
+    // Earnings tx table — real API shape (verified 2026-04-21):
+    //   { impressions, net_cpm, earnings (=net), status, source_type, date }
+    // `earnings` is NET (post-70%). Derive gross = net / 0.70.
     const txList = tx.data?.data || [];
     $('earn-tx').innerHTML = txList.length
-      ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Screen</th><th>Amount</th><th>Net</th></tr></thead><tbody>${txList.map(t=>{const gross=fmt(t.gross_amount??t.amount_received??t.amount);const grossVal=(t.gross_amount??t.amount_received??t.amount??0);const net=fmt(grossVal*0.70/100*100);const impressions=t.impressions?fn(t.impressions)+' impressions':esc(t.advertisement?.name||t.source_provider||'—');const cpm=t.cpm?' @ $'+Number(t.cpm).toFixed(2)+' CPM':'';const status=t.programmatic_status||t.event_type||'pending';return`<tr><td style="white-space:nowrap">${fd(t.createdAt)}</td><td><span class="tag ${status==='estimated'||status==='pending'?'ty':status==='confirmed'?'tg':'ts'}">Programmatic</span></td><td style="font-size:12px">${impressions}${cpm}</td><td style="font-size:12px">${esc(t.screen?.name||'Curb Taxi - NYC')}</td><td style="font-weight:600">${gross}</td><td style="font-weight:600;color:#16a34a">${net}</td></tr>`;}).join('')}</tbody></table>`
+      ? `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Screen</th><th>Gross</th><th>Net (70%)</th></tr></thead><tbody>${txList.map(t=>{
+          const netVal = t.earnings != null ? Number(t.earnings) : null;
+          const grossVal = netVal != null ? netVal / 0.70 : null;
+          const gross = netVal != null ? '$'+grossVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}) : '—';
+          const net   = netVal != null ? '$'+netVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}) : '—';
+          const impressions = t.impressions ? fn(t.impressions)+' impressions' : esc(t.source_type||'—');
+          const cpm = t.net_cpm != null ? ' @ $'+Number(t.net_cpm).toFixed(2)+' net CPM' : '';
+          const status = t.status || t.event_type || 'pending';
+          const statusCls = status==='estimated'||status==='pending' ? 'ty' : status==='confirmed' ? 'tg' : 'ts';
+          return `<tr><td style="white-space:nowrap">${fd(t.date||t.createdAt)}</td><td><span class="tag ${statusCls}">${esc(status)}</span></td><td style="font-size:12px">${impressions}${cpm}</td><td style="font-size:12px">${esc(t.screen?.name||'Curb Taxi - NYC')}</td><td style="font-weight:600">${gross}</td><td style="font-weight:600;color:#16a34a">${net}</td></tr>`;
+        }).join('')}</tbody></table>`
       : '<div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">No transactions yet</div></div>';
   } catch(e){ errBox('earn-err', e.message); }
 }
@@ -1734,57 +1747,33 @@ async function loadReconcile() {
       ${kv('API Update Time', '~9PM EST daily')}
     </div>`;
 
-    // Transaction history table — full list from payment-list
+    // Transaction history table — full list from payment-list.
+    // Verified 2026-04-21 against /v1/earner/payment-list: the API returns
+    //   { impressions, net_cpm, earnings, status, source_type, date,
+    //     event_type, createdAt, screen:{_id,name} }
+    // - `earnings` is NET (already post the 70% partner cut per Sneh's email:
+    //   04-20 row shows 25 imp / net_cpm=3.5 / earnings=0.0875 which matches
+    //   "25 impressions / $0.125 gross / $0.0875 earner at 70%")
+    // - No separate gross field → derive as earnings / 0.70
+    // - `net_cpm` is the earner's CPM (net rate), so tx row × net_cpm/1000 = earnings
     const allTx = txData.data?.data || [];
     if (allTx.length > 0) {
-      // Debug: log first row's raw shape so we can see what fields the API
-      // actually returns for dollar amounts. Sneh's 04-21 email confirmed
-      // Apr 20 = $0.125 gross / $0.0875 net so the data exists somewhere.
-      try { console.log('[rec-tx] first row raw fields:', Object.keys(allTx[0]), allTx[0]); } catch(_){}
-
-      // Normalize amount from whatever field the API uses. Support both
-      // dollar and cent denominations — divides cents by 100. Covers:
-      // gross_amount / amount_received / amount (dollars), plus
-      // gross_cents / amount_cents / earnings_cents / estimated_gross_cents
-      // / settled_gross_cents / gross_amount_cents (cents).
-      const dollarize = (t) => {
-        const d = t.gross_amount ?? t.amount_received ?? t.amount
-               ?? t.estimated_amount ?? t.settled_amount ?? t.revenue;
-        if (d != null) return Number(d);
-        const c = t.gross_cents ?? t.amount_cents ?? t.earnings_cents
-               ?? t.estimated_gross_cents ?? t.settled_gross_cents
-               ?? t.gross_amount_cents ?? t.revenue_cents;
-        if (c != null) return Number(c) / 100;
-        // Nested shapes some endpoints use
-        if (t.earnings?.gross_amount != null) return Number(t.earnings.gross_amount);
-        if (t.earnings?.gross_cents  != null) return Number(t.earnings.gross_cents) / 100;
-        if (t.amount?.gross          != null) return Number(t.amount.gross);
-        return null;
+      const netOf   = (t) => t.earnings != null ? Number(t.earnings) : null;
+      const grossOf = (t) => {
+        const n = netOf(t);
+        return n != null ? n / 0.70 : null;
       };
-      const netize = (t) => {
-        // Prefer an explicit partner/net field if the API provides one
-        const n = t.net_amount ?? t.partner_amount ?? t.earner_amount
-               ?? t.partner_earnings ?? t.payout_amount;
-        if (n != null) return Number(n);
-        const nc = t.net_cents ?? t.partner_cents ?? t.earner_cents
-                ?? t.partner_earnings_cents ?? t.payout_cents;
-        if (nc != null) return Number(nc) / 100;
-        // Fallback: derive from gross at the partner rate (assume 70% post-04-17)
-        const g = dollarize(t);
-        return g != null ? g * 0.70 : null;
-      };
-
-      const fmt = v => (v==null||v===undefined) ? '—' : '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      const fmt = v => (v==null||v===undefined) ? '—' : '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4});
       const rows = allTx.map(t => {
-        const date    = (t.createdAt||t.date||'').slice(0,10);
-        const imps    = t.impressions_count || t.impressions || 0;
-        const cpm     = t.cpm ? '$'+Number(t.cpm).toFixed(2) : '—';
-        const grossV  = dollarize(t);
-        const netV    = netize(t);
+        const date    = (t.date || t.createdAt || '').slice(0,10);
+        const imps    = t.impressions || 0;
+        const cpm     = t.net_cpm != null ? '$'+Number(t.net_cpm).toFixed(2) : '—';
+        const grossV  = grossOf(t);
+        const netV    = netOf(t);
         const gross   = fmt(grossV);
         const net     = fmt(netV);
-        const status  = t.programmatic_status || t.event_type || 'pending';
-        const stype   = t.source_provider || t.type || 'Programmatic';
+        const status  = t.status || t.event_type || 'pending';
+        const stype   = t.source_type || 'programmatic';
         const statusCls = status==='confirmed'?'tg':status==='pending'||status==='estimated'?'ty':'ts';
         return `<tr>
           <td style="white-space:nowrap;font-size:12px">${date}</td>
@@ -1798,9 +1787,9 @@ async function loadReconcile() {
       }).join('');
 
       // Totals row
-      const totalImps  = allTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
-      const totalGross = allTx.reduce((s,t) => s + (dollarize(t) || 0), 0);
-      const totalNet   = allTx.reduce((s,t) => s + (netize(t)    || 0), 0);
+      const totalImps  = allTx.reduce((s,t) => s + (t.impressions || 0), 0);
+      const totalNet   = allTx.reduce((s,t) => s + (netOf(t) || 0), 0);
+      const totalGross = totalNet / 0.70;
 
       $('rec-tx-body').innerHTML = `
         <div style="overflow-x:auto">
