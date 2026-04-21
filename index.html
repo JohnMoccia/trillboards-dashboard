@@ -1729,13 +1729,52 @@ async function loadReconcile() {
     // Transaction history table — full list from payment-list
     const allTx = txData.data?.data || [];
     if (allTx.length > 0) {
+      // Debug: log first row's raw shape so we can see what fields the API
+      // actually returns for dollar amounts. Sneh's 04-21 email confirmed
+      // Apr 20 = $0.125 gross / $0.0875 net so the data exists somewhere.
+      try { console.log('[rec-tx] first row raw fields:', Object.keys(allTx[0]), allTx[0]); } catch(_){}
+
+      // Normalize amount from whatever field the API uses. Support both
+      // dollar and cent denominations — divides cents by 100. Covers:
+      // gross_amount / amount_received / amount (dollars), plus
+      // gross_cents / amount_cents / earnings_cents / estimated_gross_cents
+      // / settled_gross_cents / gross_amount_cents (cents).
+      const dollarize = (t) => {
+        const d = t.gross_amount ?? t.amount_received ?? t.amount
+               ?? t.estimated_amount ?? t.settled_amount ?? t.revenue;
+        if (d != null) return Number(d);
+        const c = t.gross_cents ?? t.amount_cents ?? t.earnings_cents
+               ?? t.estimated_gross_cents ?? t.settled_gross_cents
+               ?? t.gross_amount_cents ?? t.revenue_cents;
+        if (c != null) return Number(c) / 100;
+        // Nested shapes some endpoints use
+        if (t.earnings?.gross_amount != null) return Number(t.earnings.gross_amount);
+        if (t.earnings?.gross_cents  != null) return Number(t.earnings.gross_cents) / 100;
+        if (t.amount?.gross          != null) return Number(t.amount.gross);
+        return null;
+      };
+      const netize = (t) => {
+        // Prefer an explicit partner/net field if the API provides one
+        const n = t.net_amount ?? t.partner_amount ?? t.earner_amount
+               ?? t.partner_earnings ?? t.payout_amount;
+        if (n != null) return Number(n);
+        const nc = t.net_cents ?? t.partner_cents ?? t.earner_cents
+                ?? t.partner_earnings_cents ?? t.payout_cents;
+        if (nc != null) return Number(nc) / 100;
+        // Fallback: derive from gross at the partner rate (assume 70% post-04-17)
+        const g = dollarize(t);
+        return g != null ? g * 0.70 : null;
+      };
+
       const fmt = v => (v==null||v===undefined) ? '—' : '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
       const rows = allTx.map(t => {
-        const date    = (t.createdAt||'').slice(0,10);
+        const date    = (t.createdAt||t.date||'').slice(0,10);
         const imps    = t.impressions_count || t.impressions || 0;
         const cpm     = t.cpm ? '$'+Number(t.cpm).toFixed(2) : '—';
-        const gross   = fmt(t.gross_amount ?? t.amount_received ?? t.amount);
-        const net     = fmt((t.gross_amount ?? t.amount_received ?? t.amount ?? 0) * 0.70);
+        const grossV  = dollarize(t);
+        const netV    = netize(t);
+        const gross   = fmt(grossV);
+        const net     = fmt(netV);
         const status  = t.programmatic_status || t.event_type || 'pending';
         const stype   = t.source_provider || t.type || 'Programmatic';
         const statusCls = status==='confirmed'?'tg':status==='pending'||status==='estimated'?'ty':'ts';
@@ -1752,8 +1791,8 @@ async function loadReconcile() {
 
       // Totals row
       const totalImps  = allTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
-      const totalGross = allTx.reduce((s,t) => s + (t.gross_amount??t.amount_received??t.amount??0), 0);
-      const totalNet   = totalGross * 0.70;
+      const totalGross = allTx.reduce((s,t) => s + (dollarize(t) || 0), 0);
+      const totalNet   = allTx.reduce((s,t) => s + (netize(t)    || 0), 0);
 
       $('rec-tx-body').innerHTML = `
         <div style="overflow-x:auto">
