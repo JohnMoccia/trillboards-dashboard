@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.21.3">
-<title>Curb · Trillboards Monitor (v2026.04.21.3)</title>
+<meta name="dashboard-version" content="2026.04.22.1">
+<title>Curb · Trillboards Monitor (v2026.04.22.1)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -826,7 +826,7 @@ async function earnerApi(path) {
 const $ = id => document.getElementById(id);
 const fn = n => n == null ? '—' : Number(n).toLocaleString();
 const fc = c => c == null ? '—' : '$' + (c/100).toLocaleString('en-US',{minimumFractionDigits:2});
-const fd = s => s ? new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+const fd = s => s ? new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}) : '—';
 const rmsk = el => el && el.classList.remove('sk');
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
@@ -1600,7 +1600,7 @@ function drawTimeline(tl) {
   ctx.beginPath();ctx.strokeStyle='#2563eb';ctx.lineWidth=2.5;vals.forEach((v,i)=>i===0?ctx.moveTo(xi(i),yi(v)):ctx.lineTo(xi(i),yi(v)));ctx.stroke();
   ctx.fillStyle='#2563eb';vals.forEach((v,i)=>{ctx.beginPath();ctx.arc(xi(i),yi(v),3.5,0,Math.PI*2);ctx.fill();});
   const step=Math.max(1,Math.floor(vals.length/8));ctx.fillStyle='#94a3b8';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';
-  tl.forEach((t,i)=>{if(i%step!==0&&i!==vals.length-1)return;const d=new Date(t.date);ctx.fillText(`${d.getMonth()+1}/${d.getDate()}`,xi(i),H-7);});
+  tl.forEach((t,i)=>{if(i%step!==0&&i!==vals.length-1)return;const d=new Date(t.date);ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`,xi(i),H-7);});
 }
 
 async function loadAudience() {
