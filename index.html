@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.22.3">
-<title>Curb · Trillboards Monitor (v2026.04.22.3)</title>
+<meta name="dashboard-version" content="2026.04.22.4">
+<title>Curb · Trillboards Monitor (v2026.04.22.4)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -468,6 +468,65 @@ canvas{display:block;width:100%;height:160px}
     </div>
   </div>
   <div id="hist-err"></div>
+
+  <!-- R2 quota + rip cord -->
+  <div class="card" style="margin-bottom:16px;border-left:3px solid #16a34a" id="hist-storage-card">
+    <div class="card-head">
+      <span class="card-title">R2 Archive — Usage vs Cloudflare Free Tier</span>
+      <span class="tag tg" id="hist-stor-range">—</span>
+    </div>
+    <div class="card-body" style="padding:14px 16px">
+      <!-- 3 quota bars -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:14px">
+        <!-- Storage -->
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+            <span style="color:#475569;font-weight:600">💾 Storage</span>
+            <span style="color:#6b7280"><strong id="hist-stor-size">—</strong> / 10 GB</span>
+          </div>
+          <div style="background:#e2e8f0;border-radius:3px;height:8px;overflow:hidden">
+            <div id="hist-stor-bar" style="background:#16a34a;height:8px;width:0%;transition:all 0.3s"></div>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px"><strong id="hist-stor-pct">—</strong> used · <strong id="hist-stor-count">—</strong> archives</div>
+        </div>
+        <!-- Writes -->
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+            <span style="color:#475569;font-weight:600">✍ Writes/mo (Class A)</span>
+            <span style="color:#6b7280"><strong id="hist-writes-used">~30</strong> / 1M</span>
+          </div>
+          <div style="background:#e2e8f0;border-radius:3px;height:8px;overflow:hidden">
+            <div id="hist-writes-bar" style="background:#16a34a;height:8px;width:0.003%;transition:all 0.3s"></div>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px">1 nightly cron + rare purge · projected</div>
+        </div>
+        <!-- Reads -->
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+            <span style="color:#475569;font-weight:600">👁 Reads/mo (Class B)</span>
+            <span style="color:#6b7280">varies / 10M</span>
+          </div>
+          <div style="background:#e2e8f0;border-radius:3px;height:8px;overflow:hidden">
+            <div style="background:#16a34a;height:8px;width:0.1%;transition:all 0.3s"></div>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px">dashboard range views · live count at <a href="https://dash.cloudflare.com" target="_blank" style="color:#2563eb">CF dashboard</a></div>
+        </div>
+      </div>
+      <!-- Safety + rip cord row -->
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #e2e8f0">
+        <div style="font-size:12px;color:#475569;display:flex;gap:14px;flex-wrap:wrap">
+          <span><strong>Auto-retention:</strong> 90 days</span>
+          <span><strong>Emergency purge:</strong> kicks in at 8 GB → trims to 6 GB</span>
+          <span><strong>Egress cost:</strong> <span style="color:#16a34a">FREE</span></span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-white btn-sm" onclick="ripCord('keep')" title="Keep last N days, delete older">Purge &gt; N days</button>
+          <button class="btn btn-white btn-sm" onclick="ripCord('before')" title="Delete before date">Purge before date</button>
+          <button class="btn btn-sm" style="background:#dc2626;color:#fff;border:0" onclick="ripCord('all')" title="⚠ Nuclear — delete every archive">🚨 NUKE ALL</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px">
     <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Earned (net)</div><div class="stat-icon">💵</div></div><div class="stat-value" id="hist-earn-net">—</div><div class="stat-footer" id="hist-earn-gross">gross —</div></div>
@@ -1997,8 +2056,87 @@ function histPreset(days) {
   loadHistory();
 }
 
+function fmtBytes(n) {
+  if (n == null) return '—';
+  if (n < 1024) return n + ' B';
+  if (n < 1024*1024) return (n / 1024).toFixed(1) + ' KB';
+  if (n < 1024*1024*1024) return (n / (1024*1024)).toFixed(2) + ' MB';
+  return (n / (1024*1024*1024)).toFixed(3) + ' GB';
+}
+
+async function loadStorageStats() {
+  try {
+    const r = await workerGet('/archive/stats');
+    if (!r || !r.success) return;
+    // Storage bar
+    setVal('hist-stor-count', fn(r.count));
+    setVal('hist-stor-size',  fmtBytes(r.total_bytes));
+    setVal('hist-stor-pct',   r.pct_of_free_tier.toFixed(3) + '%');
+    setVal('hist-stor-range', r.oldest && r.newest ? (r.oldest + ' → ' + r.newest) : 'empty');
+    const storBar = $('hist-stor-bar');
+    if (storBar) {
+      // Visible minimum 0.5% so users can see a sliver when usage is tiny
+      const pct = r.pct_of_free_tier || 0;
+      const displayPct = pct < 0.5 && pct > 0 ? 0.5 : pct;
+      storBar.style.width = Math.min(100, displayPct) + '%';
+      storBar.style.background = pct > 80 ? '#dc2626' : pct > 50 ? '#f59e0b' : '#16a34a';
+    }
+    // Writes bar — projected from cron pattern
+    const wUsed = r.projected_usage?.writes_per_month || 30;
+    const wPct  = r.projected_usage?.expected_pct_class_a || 0.003;
+    setVal('hist-writes-used', '~' + fn(wUsed));
+    const wBar = $('hist-writes-bar');
+    if (wBar) {
+      wBar.style.width = Math.max(0.5, wPct) + '%';
+    }
+    // Color-code card overall by worst dimension (storage is the one that matters most)
+    const card = $('hist-storage-card');
+    if (card) {
+      const pct = r.pct_of_free_tier || 0;
+      card.style.borderLeftColor = pct > 80 ? '#dc2626' : pct > 50 ? '#f59e0b' : '#16a34a';
+    }
+  } catch(e) { /* silent — storage is informational */ }
+}
+
+async function ripCord(mode) {
+  const { WORKER_SECRET } = getCreds();
+  if (!WORKER_SECRET) { alert('Enter worker secret first (password bar).'); return; }
+  let body;
+  if (mode === 'all') {
+    const typed = prompt('⚠ NUCLEAR: delete EVERY archive in R2. Type "NUKE" to confirm.');
+    if (typed !== 'NUKE') { return; }
+    body = { all: true };
+  } else if (mode === 'keep') {
+    const n = prompt('Keep last N days — delete anything older. Enter N (e.g. 30):', '30');
+    if (!n || !/^\d+$/.test(n)) return;
+    if (!confirm('Delete archives older than ' + n + ' days?')) return;
+    body = { keep_last_n_days: Number(n) };
+  } else if (mode === 'before') {
+    const d = prompt('Delete archives with date < this. Enter YYYY-MM-DD:', '2026-04-01');
+    if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+    if (!confirm('Delete all archives before ' + d + '?')) return;
+    body = { before: d };
+  } else return;
+
+  try {
+    const res = await fetch(WORKER_BASE + '/archive/purge', {
+      method: 'POST',
+      headers: { 'X-Proxy-Secret': WORKER_SECRET, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const j = await res.json();
+    if (!j.success) { alert('Purge failed: ' + (j.error || 'unknown')); return; }
+    alert(`✓ Purged ${j.deleted_count} archives (${fmtBytes(j.deleted_bytes)}).\nRemaining: ${j.remaining_count} archives (${fmtBytes(j.remaining_bytes)}).`);
+    await loadStorageStats();
+    await loadHistory();
+  } catch(e) {
+    alert('Purge error: ' + e.message);
+  }
+}
+
 async function loadHistory() {
   $('hist-err').innerHTML = '';
+  loadStorageStats();   // fire-and-forget, populates the storage card
   const fromEl = $('hist-from');
   const toEl   = $('hist-to');
   // Default the first time to last 7 days
