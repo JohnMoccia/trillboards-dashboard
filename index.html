@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.22.6">
-<title>Curb · Trillboards Monitor (v2026.04.22.6)</title>
+<meta name="dashboard-version" content="2026.04.22.7">
+<title>Curb · Trillboards Monitor (v2026.04.22.7)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1435,7 +1435,7 @@ async function loadDayPart() {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div>
           <div style="font-size:11px;letter-spacing:1px;color:#6b7280;font-weight:600">DAY-PART DEMAND</div>
-          <div style="font-size:18px;font-weight:700;color:#111">Completed ads by hour (UTC)</div>
+          <div style="font-size:18px;font-weight:700;color:#111">Ad requests by hour (UTC)</div>
         </div>
         <div>
           <select id="dp-date" style="font-family:monospace;padding:4px 8px;border:1px solid #d1d5db;border-radius:4px">
@@ -1476,31 +1476,35 @@ async function loadDayPart() {
   }
 
   const hours        = (data && data.hours) || [];
-  // Chart uses `completed` (matches the widget title "Completed ads by hour").
-  // `paid` / `ima` / `self_promo` breakdown is not populated on the current APK
-  // build (tablet sends impression_count totals only, no per-ad type tag).
-  const maxCompleted = Math.max(1, ...hours.map(h => (h.completed || 0)));
+  // Chart uses `count` (ad requests fired per hour = actual demand). Was
+  // `completed` but that field is unreliable: 04-14 APK gated empty-adId
+  // events → always 0, and the current placeholder-filter-v3 APK uses
+  // local-buffer architecture so no realtime KV flushes happen at all.
+  // Requests are the authoritative demand signal and are tracked per hour
+  // via the per-completion /log-impression pings.
+  const maxCount     = Math.max(1, ...hours.map(h => (h.count || 0)));
   const totPaid      = hours.reduce((s,h) => s + (h.paid || 0), 0);
+  const totCount     = hours.reduce((s,h) => s + (h.count || 0), 0);
   const totCompleted = hours.reduce((s,h) => s + (h.completed || 0), 0);
   const totNoFill    = hours.reduce((s,h) => s + (h.no_fill || 0), 0);
   // Peak hour (the "pump window" indicator)
   let peakHour = -1, peakVal = 0;
-  hours.forEach(h => { if ((h.completed || 0) > peakVal) { peakVal = h.completed; peakHour = h.hour; } });
+  hours.forEach(h => { if ((h.count || 0) > peakVal) { peakVal = h.count; peakHour = h.hour; } });
 
   // Render bars
   const chart = document.getElementById('dp-chart');
   const axis  = document.getElementById('dp-axis');
   if (!chart || !axis) return;
   chart.innerHTML = hours.map(h => {
-    const completed = h.completed || 0;
-    const height    = Math.max(2, Math.round((completed / maxCompleted) * 150));
-    const color     = completed === peakVal && peakVal > 0 ? '#16a34a'
-                    : completed > 0 ? '#3b82f6'
+    const count     = h.count || 0;
+    const height    = Math.max(2, Math.round((count / maxCount) * 150));
+    const color     = count === peakVal && peakVal > 0 ? '#16a34a'
+                    : count > 0 ? '#3b82f6'
                     : '#f3f4f6';
     const tip = `Hour ${String(h.hour).padStart(2,'0')}:00 UTC\n`+
-                `completed: ${completed}\nrequests: ${h.count||0}\npaid: ${h.paid||0}\nno_fill: ${h.no_fill||0}`;
+                `requests: ${count}\ncompleted: ${h.completed||0}\npaid: ${h.paid||0}\nno_fill: ${h.no_fill||0}`;
     return `<div title="${tip}" style="flex:1;min-width:12px;background:${color};height:${height}px;border-radius:2px 2px 0 0;position:relative">`+
-           (completed > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:#111;font-family:monospace">${completed}</div>` : '')+
+           (count > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:#111;font-family:monospace">${count}</div>` : '')+
            `</div>`;
   }).join('');
   axis.innerHTML = hours.map(h => {
@@ -1514,8 +1518,8 @@ async function loadDayPart() {
     const peakEst = peakHour >= 0 ? ((peakHour + 24 - 5) % 24) : -1;
     const peakEstTxt = peakEst >= 0 ? '~'+String(peakEst).padStart(2,'0')+':00 EST' : '—';
     summary.innerHTML =
-      `<strong>${fn(totCompleted)}</strong> completed · <strong>${fn(totPaid)}</strong> paid · <strong>${fn(totNoFill)}</strong> no-fill  ·  `+
-      `Peak: <strong>${peakUtc}</strong> (${peakEstTxt}) with <strong>${peakVal}</strong> completed`;
+      `<strong>${fn(totCount)}</strong> requests · <strong>${fn(totCompleted)}</strong> completed · <strong>${fn(totPaid)}</strong> paid · <strong>${fn(totNoFill)}</strong> no-fill  ·  `+
+      `Peak: <strong>${peakUtc}</strong> (${peakEstTxt}) with <strong>${peakVal}</strong> requests`;
   }
 }
 
