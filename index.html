@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.22.8">
-<title>Curb · Trillboards Monitor (v2026.04.22.8)</title>
+<meta name="dashboard-version" content="2026.04.22.9">
+<title>Curb · Trillboards Monitor (v2026.04.22.9)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1495,16 +1495,26 @@ async function loadDayPart() {
   const chart = document.getElementById('dp-chart');
   const axis  = document.getElementById('dp-axis');
   if (!chart || !axis) return;
+  // Stacked bar: green-bottom = completed plays, blue-top = requests that
+  // didn't complete (no_fill / lost). Height of full bar represents total
+  // requests for that hour so you see demand shape AND fill ratio at once.
   chart.innerHTML = hours.map(h => {
     const count     = h.count || 0;
-    const height    = Math.max(2, Math.round((count / maxCount) * 150));
-    const color     = count === peakVal && peakVal > 0 ? '#16a34a'
-                    : count > 0 ? '#3b82f6'
-                    : '#f3f4f6';
+    const completed = Math.min(count, h.completed || 0);  // cap at count (schema safety)
+    const notFilled = Math.max(0, count - completed);
+    const totalHeight  = Math.max(2, Math.round((count / maxCount) * 150));
+    const completedPx  = count > 0 ? Math.round((completed / maxCount) * 150) : 0;
+    const remainderPx  = Math.max(0, totalHeight - completedPx);
     const tip = `Hour ${String(h.hour).padStart(2,'0')}:00 UTC\n`+
-                `requests: ${count}\ncompleted: ${h.completed||0}\npaid: ${h.paid||0}\nno_fill: ${h.no_fill||0}`;
-    return `<div title="${tip}" style="flex:1;min-width:12px;background:${color};height:${height}px;border-radius:2px 2px 0 0;position:relative">`+
+                `requests: ${count}\ncompleted: ${completed}\npaid: ${h.paid||0}\nno_fill: ${h.no_fill||0}`;
+    // Outer wrapper holds the full bar; inner div = played (green), on top = unfilled (blue)
+    const isPeak = count === peakVal && peakVal > 0;
+    const playedColor = '#16a34a';                               // completed plays
+    const reqColor    = isPeak ? '#3b82f6' : count > 0 ? '#93c5fd' : '#f3f4f6';
+    return `<div title="${tip}" style="flex:1;min-width:12px;height:${totalHeight}px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;border-radius:2px 2px 0 0;overflow:hidden">`+
            (count > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:#111;font-family:monospace">${count}</div>` : '')+
+           (remainderPx > 0 ? `<div style="background:${reqColor};height:${remainderPx}px"></div>` : '')+
+           (completedPx > 0 ? `<div style="background:${playedColor};height:${completedPx}px"></div>` : '')+
            `</div>`;
   }).join('');
   axis.innerHTML = hours.map(h => {
