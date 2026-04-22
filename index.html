@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.22.2">
-<title>Curb · Trillboards Monitor (v2026.04.22.2)</title>
+<meta name="dashboard-version" content="2026.04.22.3">
+<title>Curb · Trillboards Monitor (v2026.04.22.3)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -239,6 +239,7 @@ canvas{display:block;width:100%;height:160px}
     <span class="nav-group-lbl">Finance</span>
     <div class="nav-item" onclick="nav('earnings',this)"><span class="nav-icon">💰</span>Earnings</div>
     <div class="nav-item" onclick="nav('reconcile',this)"><span class="nav-icon">🔁</span>Reconcile</div>
+    <div class="nav-item" onclick="nav('history',this)"><span class="nav-icon">📅</span>History</div>
     <div class="nav-item" onclick="nav('databurn',this)"><span class="nav-icon">🔥</span>Data Burn</div>
   </div>
   <div class="nav-group">
@@ -447,6 +448,48 @@ canvas{display:block;width:100%;height:160px}
     <div class="card-body" id="rec-tx-body">
       <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Loading…</div></div>
     </div>
+  </div>
+</div>
+
+<!-- HISTORY — date-range view over R2 nightly archives -->
+<div class="page" id="page-history">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">History</div>
+      <div class="ph-sub">Pick a date range. Data is read from the R2 nightly archive (finalized ~11 PM ET each night). Today + yesterday come from live KV.</div>
+    </div>
+    <div class="ph-right" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <label style="font-size:12px;color:#475569">From <input type="date" id="hist-from" style="padding:4px 8px;border:1px solid #cbd5e1;border-radius:5px;font-size:12px"></label>
+      <label style="font-size:12px;color:#475569">To <input type="date" id="hist-to" style="padding:4px 8px;border:1px solid #cbd5e1;border-radius:5px;font-size:12px"></label>
+      <button class="btn btn-white btn-sm" onclick="histPreset(7)">Last 7d</button>
+      <button class="btn btn-white btn-sm" onclick="histPreset(14)">Last 14d</button>
+      <button class="btn btn-white btn-sm" onclick="histPreset(30)">Last 30d</button>
+      <button class="btn btn-blue btn-sm" onclick="loadHistory()">↻ Load</button>
+    </div>
+  </div>
+  <div id="hist-err"></div>
+
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px">
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Earned (net)</div><div class="stat-icon">💵</div></div><div class="stat-value" id="hist-earn-net">—</div><div class="stat-footer" id="hist-earn-gross">gross —</div></div>
+    <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Billable imps</div><div class="stat-icon">📡</div></div><div class="stat-value" id="hist-imps">—</div><div class="stat-footer">Trillboards ledger · settled</div></div>
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">KV plays</div><div class="stat-icon">📦</div></div><div class="stat-value" id="hist-plays">—</div><div class="stat-footer">local tablet counter</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">KV requests</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="hist-reqs">—</div><div class="stat-footer">ad requests fired</div></div>
+    <div class="stat-card" style="--c:#f59e0b"><div class="stat-top"><div class="stat-label">Peak day</div><div class="stat-icon">⭐</div></div><div class="stat-value" id="hist-peak" style="font-size:20px">—</div><div class="stat-footer" id="hist-peak-foot">highest net earnings</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head"><span class="card-title">Daily earnings</span><span class="tag tg" id="hist-range-tag">—</span></div>
+    <div class="card-body"><canvas id="hist-earn-canvas" width="900" height="180"></canvas><div id="hist-earn-empty" class="empty" style="display:none"><div class="empty-icon">📊</div><div class="empty-text">No archive data in range yet. Archives finalize ~11 PM ET each night.</div></div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head"><span class="card-title">Day-part pattern (hourly avg across range)</span><span class="tag tb">UTC hours</span></div>
+    <div class="card-body"><canvas id="hist-daypart-canvas" width="900" height="160"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="card-title">Per-day detail</span></div>
+    <div class="card-body" id="hist-table-body"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Pick a range and click Load.</div></div></div>
   </div>
 </div>
 
@@ -944,6 +987,7 @@ function nav(name, el) {
   if(name==='usage'&&$('usage-json').textContent.includes('press')) loadUsage();
   if(name==='telemetry'&&$('t-quality').textContent.includes('Loading')) loadTelemetry();
   if(name==='reconcile') loadReconcile();
+  if(name==='history')   loadHistory();
   if(name==='databurn') loadDataBurn();
   if(name==='config') loadConfig();
   if(name==='exports') loadExports();
@@ -1939,6 +1983,249 @@ async function loadReconcile() {
     }
 
   } catch(e) { errBox('rec-err', e.message); }
+}
+
+// ── History page ─────────────────────────────────────────────────────────────
+// Reads proxy `/archive/:date` (nightly R2-archived blob per day) over a range,
+// plots daily earnings + hourly day-part pattern + per-day detail table.
+
+function histPreset(days) {
+  const to = utcDate(-1);                          // yesterday (last archived-ready date)
+  const from = utcDate(-days);
+  $('hist-from').value = from;
+  $('hist-to').value   = to;
+  loadHistory();
+}
+
+async function loadHistory() {
+  $('hist-err').innerHTML = '';
+  const fromEl = $('hist-from');
+  const toEl   = $('hist-to');
+  // Default the first time to last 7 days
+  if (!fromEl.value || !toEl.value) {
+    fromEl.value = utcDate(-7);
+    toEl.value   = utcDate(-1);
+  }
+  const from = fromEl.value;
+  const to   = toEl.value;
+  if (from > to) { errBox('hist-err', 'From-date must be ≤ to-date'); return; }
+
+  // Build date list (inclusive)
+  const dates = [];
+  let cur = new Date(from + 'T00:00:00Z');
+  const end = new Date(to + 'T00:00:00Z');
+  while (cur <= end) {
+    dates.push(cur.toISOString().slice(0,10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+
+  $('hist-range-tag').textContent = dates.length + ' days';
+
+  // Fetch one blob per date in parallel. Missing dates (404 or not-archived-yet)
+  // come back as null and just render as gaps in the charts.
+  const results = await Promise.all(dates.map(async d => {
+    try {
+      const r = await workerGet('/archive/' + d);
+      if (r && r.success) return r;
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }));
+
+  // Aggregate totals
+  let totalNet = 0, totalImps = 0, totalPlays = 0, totalReqs = 0;
+  let peakDate = '—', peakNet = 0;
+  const perDay = results.map((r, i) => {
+    const d = dates[i];
+    const ledgerImp = r?.ledger?.impressions || 0;
+    const ledgerNet = r?.ledger?.earnings || 0;
+    const kvCount   = r?.daily?.count || 0;
+    const kvCompl   = r?.daily?.completed || 0;
+    totalImps += ledgerImp;
+    totalNet  += ledgerNet;
+    totalPlays += kvCompl;
+    totalReqs += kvCount;
+    if (ledgerNet > peakNet) { peakNet = ledgerNet; peakDate = d; }
+    return { date: d, blob: r, ledgerImp, ledgerNet, kvCount, kvCompl };
+  });
+
+  setVal('hist-earn-net',   '$' + totalNet.toFixed(2));
+  setVal('hist-earn-gross', 'gross $' + (totalNet / 0.70).toFixed(2));
+  setVal('hist-imps',  fn(totalImps));
+  setVal('hist-plays', fn(totalPlays));
+  setVal('hist-reqs',  fn(totalReqs));
+  setVal('hist-peak',  peakNet > 0 ? peakDate.slice(5) + ' · $' + peakNet.toFixed(2) : '—');
+
+  drawHistEarningsChart(perDay);
+  drawHistDaypartChart(results);
+  renderHistTable(perDay);
+}
+
+function drawHistEarningsChart(perDay) {
+  const canvas = $('hist-earn-canvas');
+  const empty  = $('hist-earn-empty');
+  const hasAny = perDay.some(p => p.ledgerNet > 0 || p.kvCompl > 0);
+  if (!hasAny) { canvas.style.display = 'none'; empty.style.display = 'block'; return; }
+  canvas.style.display = 'block'; empty.style.display = 'none';
+  const W = canvas.offsetWidth || 900;
+  const H = 180;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const padL = 48, padR = 16, padT = 16, padB = 32;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+  const maxNet = Math.max(0.01, ...perDay.map(p => p.ledgerNet));
+  const barW = Math.max(4, chartW / perDay.length - 2);
+
+  // y-axis grid + labels
+  ctx.strokeStyle = '#e2e8f0'; ctx.fillStyle = '#64748b';
+  ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (chartH * i / 4);
+    const v = maxNet * (1 - i / 4);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillText('$' + v.toFixed(2), padL - 4, y + 3);
+  }
+
+  // Bars
+  perDay.forEach((p, i) => {
+    const x = padL + (chartW * i / perDay.length) + 1;
+    const h = p.ledgerNet > 0 ? (p.ledgerNet / maxNet) * chartH : 0;
+    const y = padT + chartH - h;
+    ctx.fillStyle = p.blob ? '#16a34a' : '#cbd5e1';  // green if archived, gray if missing
+    ctx.fillRect(x, y, barW, h);
+    // Date label every ~N bars
+    if (perDay.length <= 14 || i % Math.ceil(perDay.length / 14) === 0) {
+      ctx.save();
+      ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
+      ctx.fillText(p.date.slice(5), x + barW/2, H - 14);
+      ctx.restore();
+    }
+  });
+}
+
+function drawHistDaypartChart(results) {
+  const canvas = $('hist-daypart-canvas');
+  const W = canvas.offsetWidth || 900;
+  const H = 160;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // Aggregate hourly: sum count/completed across all days per hour 0..23
+  const hourlyReq = new Array(24).fill(0);
+  const hourlyPlay = new Array(24).fill(0);
+  let daysWithHourly = 0;
+  for (const r of results) {
+    if (!r?.hourly) continue;
+    let hadAny = false;
+    for (let h = 0; h < 24; h++) {
+      const bucket = r.hourly[String(h).padStart(2,'0')];
+      if (bucket) {
+        hourlyReq[h] += bucket.count || 0;
+        hourlyPlay[h] += bucket.completed || 0;
+        hadAny = true;
+      }
+    }
+    if (hadAny) daysWithHourly++;
+  }
+  // Average per day
+  const avgReq  = hourlyReq.map(v => daysWithHourly ? v / daysWithHourly : 0);
+  const avgPlay = hourlyPlay.map(v => daysWithHourly ? v / daysWithHourly : 0);
+  const maxV = Math.max(0.01, ...avgReq);
+
+  const padL = 40, padR = 16, padT = 12, padB = 26;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+
+  // grid
+  ctx.strokeStyle = '#e2e8f0'; ctx.fillStyle = '#64748b';
+  ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (chartH * i / 4);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillText(Math.round(maxV * (1 - i / 4)), padL - 4, y + 3);
+  }
+
+  // Requests line (purple) + plays line (green)
+  const xFor = h => padL + (chartW * h / 23);
+  const yFor = v => padT + chartH - (v / maxV) * chartH;
+  const drawLine = (arr, color) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath();
+    arr.forEach((v, h) => {
+      if (h === 0) ctx.moveTo(xFor(h), yFor(v));
+      else ctx.lineTo(xFor(h), yFor(v));
+    });
+    ctx.stroke();
+    // dots
+    arr.forEach((v, h) => {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(xFor(h), yFor(v), 2.5, 0, Math.PI*2); ctx.fill();
+    });
+  };
+  drawLine(avgReq,  '#7c3aed');
+  drawLine(avgPlay, '#16a34a');
+
+  // x-axis labels every 3 hrs + pump-window shading (21-01 UTC = NYC peak)
+  ctx.fillStyle = '#fef3c7';
+  // Shade hours 21..23 and 0..0 as pump window — wrap-around handled in two fills
+  ctx.globalAlpha = 0.25;
+  ctx.fillRect(xFor(21), padT, xFor(23) - xFor(21), chartH);
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
+  for (let h = 0; h < 24; h += 3) {
+    ctx.fillText(String(h).padStart(2,'0') + ':00', xFor(h), H - 8);
+  }
+
+  // Legend
+  ctx.textAlign = 'left'; ctx.font = '11px -apple-system,sans-serif';
+  ctx.fillStyle = '#7c3aed'; ctx.fillRect(W - 170, padT, 10, 10); ctx.fillStyle = '#475569'; ctx.fillText('Requests',  W - 156, padT + 9);
+  ctx.fillStyle = '#16a34a'; ctx.fillRect(W - 90,  padT, 10, 10); ctx.fillStyle = '#475569'; ctx.fillText('Plays',     W - 76, padT + 9);
+}
+
+function renderHistTable(perDay) {
+  if (!perDay.length) {
+    $('hist-table-body').innerHTML = '<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No data in range.</div></div>';
+    return;
+  }
+  const rows = perDay.map(p => {
+    const delta = p.kvCompl - p.ledgerImp;
+    const deltaColor = delta === 0 ? '#16a34a' : delta < 0 ? '#0891b2' : '#ef4444';
+    const deltaNote  = delta === 0 ? 'match' : delta < 0 ? 'KV gap' : 'over';
+    const netStr     = '$' + p.ledgerNet.toFixed(2);
+    const grossStr   = '$' + (p.ledgerNet / 0.70).toFixed(2);
+    const status     = p.blob ? (p.blob.ledger ? 'archived + settled' : 'archived · no ledger row') : 'not archived';
+    const statusCls  = p.blob ? (p.blob.ledger ? 'tg' : 'ty') : 'ts';
+    return `<tr>
+      <td style="white-space:nowrap;font-size:12px">${p.date}</td>
+      <td><span class="tag ${statusCls}" style="font-size:10px">${status}</span></td>
+      <td style="text-align:right">${fn(p.ledgerImp)}</td>
+      <td style="text-align:right;font-weight:600">${netStr}</td>
+      <td style="text-align:right;color:#6b7280">${grossStr}</td>
+      <td style="text-align:right;color:#6b7280">${fn(p.kvCompl)}</td>
+      <td style="text-align:right;color:#6b7280">${fn(p.kvCount)}</td>
+      <td style="text-align:right;font-weight:600;color:${deltaColor}">${delta>=0?'+':''}${fn(delta)}</td>
+      <td style="font-size:11px;color:${deltaColor}">${deltaNote}</td>
+    </tr>`;
+  }).join('');
+  $('hist-table-body').innerHTML = `
+    <div style="overflow-x:auto">
+      <table class="tbl" style="font-size:13px">
+        <thead><tr style="background:#f8fafc">
+          <th>Date</th><th>Status</th>
+          <th style="text-align:right">Trill Imp</th>
+          <th style="text-align:right">Net $</th>
+          <th style="text-align:right;color:#6b7280">Gross $</th>
+          <th style="text-align:right;color:#6b7280">KV Plays</th>
+          <th style="text-align:right;color:#6b7280">KV Reqs</th>
+          <th style="text-align:right">Δ</th><th>Note</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 async function loadDataBurn() {
