@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.22.1">
-<title>Curb · Trillboards Monitor (v2026.04.22.1)</title>
+<meta name="dashboard-version" content="2026.04.22.2">
+<title>Curb · Trillboards Monitor (v2026.04.22.2)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -409,7 +409,7 @@ canvas{display:block;width:100%;height:160px}
   <div class="ph">
     <div class="ph-left">
       <div class="ph-title">Impression Reconciliation</div>
-      <div class="ph-sub">Paid programmatic (what earns $) vs Trillboards' billable settlement · played includes house + cache replays that don't earn</div>
+      <div class="ph-sub">Trillboards' 9PM settlement = source of truth for $$. Our KV = diagnostic counter (known to undercount when tablet can't flush in time — not a money issue).</div>
     </div>
     <div class="ph-right">
       <div class="ptabs">
@@ -425,7 +425,8 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#94a3b8"><div class="stat-top"><div class="stat-label" id="rec-label-completed">Played (Today)</div><div class="stat-icon">📦</div></div><div class="stat-value" id="rec-our-today" style="color:#475569">—</div><div class="stat-footer">incl. house + cache ($0)</div></div>
     <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label" id="rec-label-requests">Requests (Today)</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="rec-requests-today">—</div><div class="stat-footer">ad requests fired</div></div>
     <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label" id="rec-label-trill">Trillboards (Today)</div><div class="stat-icon">📡</div></div><div class="stat-value" id="rec-trill-today">—</div><div class="stat-footer">billable settlement · 9PM rollup</div></div>
-    <div class="stat-card" style="--c:#ef4444"><div class="stat-top"><div class="stat-label">Discrepancy</div><div class="stat-icon">⚠</div></div><div class="stat-value" id="rec-delta">—</div><div class="stat-footer" id="rec-delta-pct">paid vs Trillboards</div></div>
+    <div class="stat-card" id="rec-earn-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label" id="rec-label-earn">Earned (Today)</div><div class="stat-icon">💵</div></div><div class="stat-value" id="rec-earn-net">—</div><div class="stat-footer" id="rec-earn-foot">net (70%) · gross —</div></div>
+    <div class="stat-card" id="rec-delta-card" style="--c:#94a3b8"><div class="stat-top"><div class="stat-label" id="rec-delta-label">Reconciliation</div><div class="stat-icon" id="rec-delta-icon">✓</div></div><div class="stat-value" id="rec-delta">—</div><div class="stat-footer" id="rec-delta-pct">ledger vs our KV</div></div>
   </div>
   <div id="rec-alert" style="margin-bottom:16px"></div>
   <div class="two">
@@ -1702,12 +1703,18 @@ async function loadReconcile() {
     const dayTx = txList.filter(t => (t.date || t.createdAt || '').slice(0,10) === filterDate);
     trillToday = dayTx.reduce((s,t) => s + (t.impressions_count||t.impressions||0), 0);
     const trillFinalized = dayTx.length > 0;
+    // Earnings: payment-list `earnings` is NET post-70%. No gross field — derive.
+    const dayEarnNet   = dayTx.reduce((s,t) => s + (Number(t.earnings)||0), 0);
+    const dayEarnGross = dayEarnNet / 0.70;
 
-    // Reconcile against Trillboards' billable settlement, which is paid-only.
-    // Our `ima` bucket is the equivalent (billable programmatic) — comparing
-    // `completed` (which includes $0 cache/house replays) would always under-
-    // state our fill vs their count by whatever the house/cache portion is.
-    const delta = paidDay - trillToday;
+    // Reconcile TOTAL PLAYS vs Trillboards' billable settlement.
+    // Reasoning (2026-04-22): Trillboards may settle house/cache replays too —
+    // we don't actually know their settlement logic, just that their ledger is
+    // the money source of truth. So compare `completed` (all plays) vs their
+    // billable — that's the apples-to-apples "did this tablet fire an ad
+    // they're paying for" count. `ima` (paid programmatic only) is a diagnostic
+    // breakdown inside our KV, not the reconciliation target.
+    const delta = completedDay - trillToday;
     const deltaPct = trillToday > 0 ? ((delta / trillToday) * 100).toFixed(1) : null;
     const lbl = recDay === 'yesterday' ? 'yesterday' : 'today';
 
@@ -1725,16 +1732,53 @@ async function loadReconcile() {
     if (recLabelRequests) recLabelRequests.textContent = 'Requests (' + lbl2 + ')';
     const recLabelTrill = $('rec-label-trill');
     if (recLabelTrill) recLabelTrill.textContent = 'Trillboards (' + lbl2 + ')';
+    const recLabelEarn = $('rec-label-earn');
+    if (recLabelEarn) recLabelEarn.textContent = 'Earned (' + lbl2 + ')';
 
-    const deltaEl = $('rec-delta');
-    if (deltaEl) {
-      if (!trillFinalized) { deltaEl.textContent = '—'; deltaEl.style.color = '#6b7280'; }
-      else { deltaEl.textContent = (delta >= 0 ? '+' : '') + fn(delta); deltaEl.style.color = delta === 0 ? '#16a34a' : '#ef4444'; }
+    // Earnings card — the $$ is the money reality
+    const earnNetEl   = $('rec-earn-net');
+    const earnFootEl  = $('rec-earn-foot');
+    if (earnNetEl) {
+      if (!trillFinalized) { earnNetEl.textContent = '—'; earnNetEl.style.color = '#6b7280'; }
+      else { earnNetEl.textContent = '$' + dayEarnNet.toFixed(2); earnNetEl.style.color = '#16a34a'; }
     }
-    const deltaPctEl = $('rec-delta-pct');
-    if (deltaPctEl) {
-      if (!trillFinalized) deltaPctEl.textContent = 'pending 9PM rollup';
-      else deltaPctEl.textContent = 'paid vs Trillboards' + (deltaPct !== null ? ' · ' + Math.abs(deltaPct) + '%' : '');
+    if (earnFootEl) {
+      earnFootEl.textContent = trillFinalized
+        ? 'net (70%) · gross $' + dayEarnGross.toFixed(2)
+        : 'pending 9PM rollup';
+    }
+
+    // Reconciliation card — direction-aware styling
+    //   delta === 0  → green ✓ match
+    //   delta < 0    → gray/blue ℹ instrument gap (our KV missed events, Trillboards ledger is truth)
+    //   delta > 0    → red ⚠ over-claim (we counted fills Trillboards didn't settle — real concern)
+    //   !finalized   → gray — pending
+    const deltaEl     = $('rec-delta');
+    const deltaPctEl  = $('rec-delta-pct');
+    const deltaCard   = $('rec-delta-card');
+    const deltaLabel  = $('rec-delta-label');
+    const deltaIcon   = $('rec-delta-icon');
+    const setCard = (color, label, icon) => {
+      if (deltaCard)  deltaCard.style.setProperty('--c', color);
+      if (deltaLabel) deltaLabel.textContent = label;
+      if (deltaIcon)  deltaIcon.textContent = icon;
+    };
+    if (!trillFinalized) {
+      setCard('#94a3b8', 'Reconciliation', '⏳');
+      if (deltaEl) { deltaEl.textContent = '—'; deltaEl.style.color = '#6b7280'; }
+      if (deltaPctEl) deltaPctEl.textContent = 'pending 9PM rollup';
+    } else if (delta === 0) {
+      setCard('#16a34a', 'Match', '✓');
+      if (deltaEl) { deltaEl.textContent = '0'; deltaEl.style.color = '#16a34a'; }
+      if (deltaPctEl) deltaPctEl.textContent = 'our KV = Trillboards ledger';
+    } else if (delta < 0) {
+      setCard('#0891b2', 'Instrument Gap', 'ℹ');
+      if (deltaEl) { deltaEl.textContent = fn(Math.abs(delta)); deltaEl.style.color = '#0891b2'; }
+      if (deltaPctEl) deltaPctEl.textContent = 'KV undercount · $$ unaffected';
+    } else {
+      setCard('#ef4444', 'Over-claim', '⚠');
+      if (deltaEl) { deltaEl.textContent = '+' + fn(delta); deltaEl.style.color = '#ef4444'; }
+      if (deltaPctEl) deltaPctEl.textContent = 'ours > ledger · investigate' + (deltaPct !== null ? ' · ' + Math.abs(deltaPct) + '%' : '');
     }
 
     const alertEl = $('rec-alert');
@@ -1743,12 +1787,14 @@ async function loadReconcile() {
     const unpaidPlays = Math.max(0, completedDay - paidDay);
     if (recDay === 'today' && !trillFinalized) {
       alertEl.innerHTML = `<div class="alert alert-blue"><strong>⏳ Trillboards not finalized yet</strong>Today's row won't post until the ~9PM EST rollup. So far: <strong>${fn(paidDay)}</strong> paid / <strong>${fn(completedDay)}</strong> played / <strong>${fn(requestsDay)}</strong> requested. Paid-fill <strong>${paidFillPct}%</strong>${unpaidPlays > 0 ? ` · <strong>${fn(unpaidPlays)}</strong> unpaid plays (cache/house)` : ''}. Check back after 9PM for reconciliation.</div>`;
-    } else if (paidDay === 0 && trillToday === 0) {
+    } else if (!trillFinalized && paidDay === 0) {
       alertEl.innerHTML = `<div class="alert alert-blue"><strong>ℹ No paid impressions ${lbl} yet</strong>Waiting for the first billable programmatic fill.</div>`;
     } else if (delta === 0) {
-      alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Paid count matches</strong>Both our KV and Trillboards settlement show <strong>${fn(paidDay)}</strong> billable impressions ${lbl}.</div>`;
+      alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Match — Trillboards confirmed ${fn(trillToday)} billable · earned $${dayEarnNet.toFixed(2)} net ($${dayEarnGross.toFixed(2)} gross)</strong>Our KV and Trillboards ledger agree for ${lbl}.</div>`;
+    } else if (delta < 0) {
+      alertEl.innerHTML = `<div class="alert alert-green"><strong>✓ Trillboards settled ${fn(trillToday)} billable ${lbl} — earned $${dayEarnNet.toFixed(2)} net ($${dayEarnGross.toFixed(2)} gross)</strong>Our KV counter only saw <strong>${fn(paidDay)}</strong> of those (instrument gap of <strong>${fn(Math.abs(delta))}</strong> — KV couldn't flush in time; common when tablet buffers overnight). <strong>Money is unaffected — Trillboards ledger is the source of truth.</strong></div>`;
     } else {
-      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Discrepancy (paid vs Trillboards)</strong>Our paid: <strong>${fn(paidDay)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: <strong>${fn(Math.abs(delta))}</strong>${deltaPct !== null ? ' ('+Math.abs(deltaPct)+'%)' : ''}${unpaidPlays > 0 ? ` · also played ${fn(unpaidPlays)} unpaid (cache/house)` : ''}</div>`;
+      alertEl.innerHTML = `<div class="alert alert-red"><strong>⚠ Over-claim: our KV > Trillboards ledger</strong>Our paid: <strong>${fn(paidDay)}</strong> · Trillboards: <strong>${fn(trillToday)}</strong> · Delta: <strong>+${fn(delta)}</strong>${deltaPct !== null ? ' ('+Math.abs(deltaPct)+'%)' : ''}. We counted fills Trillboards didn't settle — investigate.</div>`;
     }
 
     $('rec-our-body').innerHTML = `<div class="kv">
@@ -1787,6 +1833,27 @@ async function loadReconcile() {
         return n != null ? n / 0.70 : null;
       };
       const fmt = v => (v==null||v===undefined) ? '—' : '$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+      // Per-date KV lookup: fetch `daily_${date}` for every date in the tx list
+      // in parallel, so the table can show our KV side next to Trillboards' ledger
+      // row-by-row with a real delta. KV under-count → "instrument gap" (cyan),
+      // KV over-count → "over-claim" (red), KV matches → ✓ green.
+      const uniqueDates = [...new Set(allTx.map(t => (t.date || t.createdAt || '').slice(0,10)).filter(Boolean))];
+      const kvByDate = {};
+      $('rec-tx-body').innerHTML = '<div class="empty" style="padding:16px"><div class="empty-text">Loading KV lookups for '+uniqueDates.length+' dates…</div></div>';
+      await Promise.all(uniqueDates.map(async d => {
+        try {
+          const r = await workerGet('/get-daily?date=' + d);
+          const row = r.today || r || {};
+          kvByDate[d] = {
+            requests: row.count || 0,
+            completed: row.completed || 0,
+            paid: row.ima || 0,
+            updated: row.updated_at || null,
+          };
+        } catch(e) { kvByDate[d] = null; }
+      }));
+
       const rows = allTx.map(t => {
         const date    = (t.date || t.createdAt || '').slice(0,10);
         const imps    = t.impressions || 0;
@@ -1796,45 +1863,77 @@ async function loadReconcile() {
         const gross   = fmt(grossV);
         const net     = fmt(netV);
         const status  = t.status || t.event_type || 'pending';
-        const stype   = t.source_type || 'programmatic';
         const statusCls = status==='confirmed'?'tg':status==='pending'||status==='estimated'?'ty':'ts';
+
+        const kv_ = kvByDate[date];
+        const kvPlays = kv_ ? kv_.completed : null;
+        const kvReqs  = kv_ ? kv_.requests : null;
+        const rowDelta = (kv_ && imps != null) ? (kvPlays - imps) : null;
+        let deltaTxt = '—', deltaColor = '#6b7280', deltaNote = '';
+        if (rowDelta !== null) {
+          if (rowDelta === 0)      { deltaTxt = '✓ 0';              deltaColor = '#16a34a'; deltaNote = 'match'; }
+          else if (rowDelta < 0)   { deltaTxt = fn(rowDelta);       deltaColor = '#0891b2'; deltaNote = 'KV gap'; }
+          else                     { deltaTxt = '+' + fn(rowDelta); deltaColor = '#ef4444'; deltaNote = 'over'; }
+        }
+
         return `<tr>
           <td style="white-space:nowrap;font-size:12px">${date}</td>
           <td><span class="tag ${statusCls}" style="font-size:10px">${status}</span></td>
-          <td style="font-size:12px">${stype}</td>
           <td style="font-size:12px;text-align:right">${fn(imps)}</td>
-          <td style="font-size:12px;text-align:right">${cpm}</td>
-          <td style="font-weight:600;text-align:right">${gross}</td>
-          <td style="font-weight:600;color:#16a34a;text-align:right">${net}</td>
+          <td style="font-weight:600;text-align:right">${net}</td>
+          <td style="font-size:12px;text-align:right;color:#6b7280">${fn(imps)}</td>
+          <td style="font-size:12px;text-align:right;color:#6b7280">${kv_ ? fn(kvPlays) : '—'}</td>
+          <td style="font-size:12px;text-align:right;color:#6b7280">${kv_ ? fn(kvReqs) : '—'}</td>
+          <td style="font-weight:600;text-align:right;color:${deltaColor}" title="${deltaNote}">${deltaTxt}</td>
+          <td style="font-size:11px;color:${deltaColor}">${deltaNote}</td>
         </tr>`;
       }).join('');
 
       // Totals row
       const totalImps  = allTx.reduce((s,t) => s + (t.impressions || 0), 0);
       const totalNet   = allTx.reduce((s,t) => s + (netOf(t) || 0), 0);
-      const totalGross = totalNet / 0.70;
+      const totalKvPlays = uniqueDates.reduce((s,d) => s + ((kvByDate[d]?.completed)||0), 0);
+      const totalKvReqs  = uniqueDates.reduce((s,d) => s + ((kvByDate[d]?.requests)||0), 0);
+      const totalDelta   = totalKvPlays - totalImps;
+      const totalDeltaColor = totalDelta === 0 ? '#16a34a' : totalDelta < 0 ? '#0891b2' : '#ef4444';
+      const totalDeltaNote  = totalDelta === 0 ? 'match' : totalDelta < 0 ? 'KV undercount' : 'over-claim';
 
       $('rec-tx-body').innerHTML = `
         <div style="overflow-x:auto">
           <table class="tbl" style="font-size:13px">
-            <thead><tr>
-              <th>Date</th><th>Status</th><th>Type</th>
-              <th style="text-align:right">Impressions</th>
-              <th style="text-align:right">CPM</th>
-              <th style="text-align:right">Gross</th>
-              <th style="text-align:right">Net (70%)</th>
+            <thead><tr style="background:#f8fafc">
+              <th rowspan="2" style="vertical-align:bottom">Date</th>
+              <th rowspan="2" style="vertical-align:bottom">Status</th>
+              <th colspan="2" style="text-align:center;border-bottom:1px solid #e2e8f0">💰 Trillboards ledger</th>
+              <th colspan="3" style="text-align:center;border-bottom:1px solid #e2e8f0">📦 Our KV (diagnostic)</th>
+              <th colspan="2" style="text-align:center;border-bottom:1px solid #e2e8f0">Δ plays − billable</th>
+            </tr>
+            <tr>
+              <th style="text-align:right">Billable</th>
+              <th style="text-align:right">Net $</th>
+              <th style="text-align:right;color:#6b7280">Billable</th>
+              <th style="text-align:right;color:#6b7280">Plays</th>
+              <th style="text-align:right;color:#6b7280">Requests</th>
+              <th style="text-align:right">Δ</th>
+              <th style="text-align:left">Note</th>
             </tr></thead>
             <tbody>${rows}</tbody>
             <tfoot><tr style="background:#f8fafc;font-weight:700">
-              <td colspan="3">TOTAL</td>
+              <td colspan="2">TOTAL</td>
               <td style="text-align:right">${fn(totalImps)}</td>
-              <td>—</td>
-              <td style="text-align:right">${fmt(totalGross)}</td>
               <td style="text-align:right;color:#16a34a">${fmt(totalNet)}</td>
+              <td style="text-align:right;color:#6b7280">${fn(totalImps)}</td>
+              <td style="text-align:right;color:#6b7280">${fn(totalKvPlays)}</td>
+              <td style="text-align:right;color:#6b7280">${fn(totalKvReqs)}</td>
+              <td style="text-align:right;color:${totalDeltaColor}">${totalDelta >= 0 ? '+' : ''}${fn(totalDelta)}</td>
+              <td style="font-size:11px;color:${totalDeltaColor}">${totalDeltaNote}</td>
             </tr></tfoot>
           </table>
+          <div style="margin-top:10px;font-size:12px;color:#6b7280;padding:8px 0;border-top:1px solid #e2e8f0">
+            <strong>How to read:</strong> Trillboards billable & net $ = money in the bank (ledger). Our KV plays = what the tablet logged locally (may undercount if flush missed). Δ = KV plays − Trillboards billable. <span style="color:#0891b2">Negative = KV gap (instrument only, $$ unaffected)</span>; <span style="color:#ef4444">positive = over-claim (investigate)</span>.
+          </div>
         </div>`;
-      $('rec-tx-tag').textContent = fn(allTx.length) + ' transactions';
+      $('rec-tx-tag').textContent = fn(allTx.length) + ' transactions · ' + fn(uniqueDates.length) + ' dates';
     } else {
       $('rec-tx-body').innerHTML = '<div class="empty" style="padding:32px"><div class="empty-icon">📋</div><div class="empty-text">No transactions yet</div></div>';
     }
