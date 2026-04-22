@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.22.14">
-<title>Curb · Trillboards Monitor (v2026.04.22.14)</title>
+<meta name="dashboard-version" content="2026.04.22.15">
+<title>Curb · Trillboards Monitor (v2026.04.22.15)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1508,23 +1508,34 @@ async function loadDayPart() {
   // full bar = total requests for that hour so you see demand shape AND
   // play ratio at once. Uses PLAYED not `completed` because completed is
   // gated by empty-adId on 04-14 APK and never flushed live on v3 APK.
+  // Classify each hour as "polling-only" (background APK cycle firing ~11/hr
+  // with zero plays — cab off-duty, overnight, no rider demand) vs "real
+  // demand" (above baseline OR any actual played ads). Polling hours render
+  // in muted gray so the real pump-window activity pops visually.
+  const POLLING_BASELINE = 12;   // events/hour threshold — anything at/below this with 0 plays is APK noise
+  let pollingHours = 0, realHours = 0;
   chart.innerHTML = hours.map(h => {
     const count    = h.count   || 0;
     const noFillH  = h.no_fill || 0;
-    const played   = Math.max(0, count - noFillH);  // PLAYED = what Trillboards bills
+    const played   = Math.max(0, count - noFillH);
     const totalHeight  = Math.max(2, Math.round((count / maxCount) * 150));
     const playedPx     = count > 0 ? Math.round((played / maxCount) * 150) : 0;
     const remainderPx  = Math.max(0, totalHeight - playedPx);
+    const isPollingOnly = count > 0 && count <= POLLING_BASELINE && played === 0;
+    if (isPollingOnly) pollingHours++; else if (count > 0) realHours++;
     const tip = `Hour ${String(h.hour).padStart(2,'0')}:00 UTC\n`+
-                `requests: ${count}\nplayed: ${played}\nno_fill: ${noFillH}\n(completed gated: ${h.completed||0})`;
-    // Outer wrapper: positioning only (no overflow:hidden, so the count
-    // label above the bar isn't clipped). Inner wrapper: absolute-fills and
-    // holds the stacked colored bars with rounded top corners clipped.
-    const isPeak = count === peakVal && peakVal > 0;
-    const playedColor = '#16a34a';                               // completed plays
-    const reqColor    = isPeak ? '#3b82f6' : count > 0 ? '#93c5fd' : '#f3f4f6';
+                `requests: ${count}\nplayed: ${played}\nno_fill: ${noFillH}\n`+
+                (isPollingOnly ? '(polling only — background APK cycle, no demand)' : '(real demand)');
+    // Muted gray for polling-only hours, full colors for real demand.
+    const isPeak = count === peakVal && peakVal > 0 && !isPollingOnly;
+    const playedColor = '#16a34a';
+    const reqColor    = isPollingOnly ? '#e5e7eb'
+                      : isPeak        ? '#3b82f6'
+                      : count > 0     ? '#93c5fd'
+                                      : '#f3f4f6';
+    const labelColor  = isPollingOnly ? '#94a3b8' : '#111';
     return `<div title="${tip}" style="flex:1;min-width:12px;height:${totalHeight}px;position:relative">`+
-           (count > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:#111;font-family:monospace;z-index:1">${count}</div>` : '')+
+           (count > 0 ? `<div style="position:absolute;top:-14px;left:0;right:0;text-align:center;font-size:9px;color:${labelColor};font-family:monospace;z-index:1">${count}</div>` : '')+
            `<div style="position:absolute;left:0;right:0;bottom:0;top:0;display:flex;flex-direction:column;justify-content:flex-end;border-radius:2px 2px 0 0;overflow:hidden">`+
              (remainderPx > 0 ? `<div style="background:${reqColor};height:${remainderPx}px"></div>` : '')+
              (playedPx > 0 ? `<div style="background:${playedColor};height:${playedPx}px"></div>` : '')+
@@ -1552,7 +1563,10 @@ async function loadDayPart() {
     summary.innerHTML =
       `<strong>${fn(dayReqs)}</strong> requests · <strong>${fn(dayPlayed)}</strong> played · <strong>${fn(dayPaid)}</strong> paid · <strong>${fn(dayNoFill)}</strong> no-fill  ·  `+
       `Peak: <strong>${peakUtc}</strong> (${peakEstTxt}) with <strong>${peakVal}</strong> requests` +
-      (dayReqs > totCount ? `<br><span style="font-size:11px;color:#94a3b8">(hourly bars show ${fn(totCount)} of ${fn(dayReqs)} — tracking started mid-day; earlier hours have no per-hour data)</span>` : '');
+      `<br><span style="font-size:11px;color:#94a3b8">`+
+      `${realHours} hrs real demand · ${pollingHours} hrs polling-only (gray bars = APK background cycle, cab off-duty, ~${POLLING_BASELINE}/hr baseline)`+
+      (dayReqs > totCount ? ` · hourly bars show ${fn(totCount)} of ${fn(dayReqs)}` : '')+
+      `</span>`;
   }
 }
 
