@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.22.16">
-<title>Curb · Trillboards Monitor (v2026.04.22.16)</title>
+<meta name="dashboard-version" content="2026.04.22.17">
+<title>Curb · Trillboards Monitor (v2026.04.22.17)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1459,56 +1459,90 @@ async function loadDayPart() {
     document.getElementById('dp-date').addEventListener('change', loadDayPart);
   }
 
-  const sel = (document.getElementById('dp-date') || {}).value || 'today';
-  let date;
-  const d0 = new Date();
-  if (sel === 'today')      date = d0.toISOString().slice(0,10);
-  else if (sel === 'yesterday') { d0.setUTCDate(d0.getUTCDate()-1); date = d0.toISOString().slice(0,10); }
-  else { d0.setUTCDate(d0.getUTCDate() + parseInt(sel,10)); date = d0.toISOString().slice(0,10); }
+  // Day-part is viewed in ET CALENDAR DAY. Target date = ET date from selector.
+  // An ET calendar day spans TWO UTC dates:
+  //   - UTC date A (= target ET date string): covers ET 00-19 (UTC 04-23 during EDT)
+  //   - UTC date B (= target ET date + 1):    covers ET 20-23 (UTC 00-03 next UTC day)
+  // We fetch both and filter every UTC hour by {ET date === target} to avoid
+  // yesterday-ET-evening leaking into today-ET-late-evening slots (the bug
+  // Master caught 2026-04-22: hours 20-23 showed yesterday's pump window).
+  function etDateForOffset(offset) {
+    const now = new Date();
+    now.setDate(now.getDate() + (offset || 0));
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(now);
+    return parts.find(p=>p.type==='year').value + '-' +
+           parts.find(p=>p.type==='month').value + '-' +
+           parts.find(p=>p.type==='day').value;
+  }
+  function addDays(dateStr, n) {
+    const d = new Date(dateStr + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0,10);
+  }
+  function utcToET(utcDateStr, utcHour) {
+    const iso = utcDateStr + 'T' + String(utcHour).padStart(2,'0') + ':00:00.000Z';
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: 'numeric', hour12: false
+    }).formatToParts(new Date(iso));
+    const y = parts.find(p=>p.type==='year').value;
+    const m = parts.find(p=>p.type==='month').value;
+    const d = parts.find(p=>p.type==='day').value;
+    const h = parseInt(parts.find(p=>p.type==='hour').value, 10) % 24;
+    return { date: y + '-' + m + '-' + d, hour: h };
+  }
 
-  let data, dailyData;
+  const sel = (document.getElementById('dp-date') || {}).value || 'today';
+  const etOffset = sel === 'today' ? 0
+                 : sel === 'yesterday' ? -1
+                 : parseInt(sel, 10) || 0;
+  const etDate  = etDateForOffset(etOffset);
+  const utcDateA = etDate;                     // same string — UTC day that overlaps with ET 00-19
+  const utcDateB = addDays(etDate, 1);         // next UTC day — covers ET 20-23
+  const date = etDate;                          // keep alias for downstream code that still reads `date`
+
+  let dataA, dataB, dailyData;
   try {
-    // Fetch hourly buckets AND daily totals in parallel. The chart's bars
-    // come from hourly (only covers hours where our tap has been recording);
-    // the summary row uses daily totals so the footer numbers match the
-    // Reconcile page (count, completed, paid, no_fill — true full-day state
-    // regardless of when hourly tracking started today).
-    [data, dailyData] = await Promise.all([
-      workerGet('/get-daily-hourly?date=' + date),
-      workerGet('/get-daily?date=' + date)
+    // Three-way parallel fetch: UTC day A hourly, UTC day B hourly, daily totals.
+    // dataB may 404 gracefully if tomorrow's UTC day hasn't been touched yet —
+    // filter out the error so the chart still renders with what we have.
+    const r = await Promise.all([
+      workerGet('/get-daily-hourly?date=' + utcDateA).catch(()=>null),
+      workerGet('/get-daily-hourly?date=' + utcDateB).catch(()=>null),
+      workerGet('/get-daily?date=' + utcDateA).catch(()=>null)
     ]);
+    dataA = r[0]; dataB = r[1]; dailyData = r[2];
   } catch (e) {
     const chart = document.getElementById('dp-chart');
     if (chart) chart.innerHTML = '<div style="color:#dc2626;font-size:12px">Day-part fetch failed: '+esc(e.message)+'</div>';
     return;
   }
 
-  const utcHours     = (data && data.hours) || [];
-  // Re-bucket from UTC → ET (America/New_York, handles EDT/EST DST transition).
-  // Each UTC hour is a fixed instant; Intl.DateTimeFormat tells us what ET hour
-  // it falls in on the given date. Sum metrics into the ET-indexed array.
-  function utcHourToET(uhh) {
-    const iso = date + 'T' + String(uhh).padStart(2,'0') + ':00:00.000Z';
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/New_York', hour: 'numeric', hour12: false
-    }).formatToParts(new Date(iso));
-    const hp = parts.find(p => p.type === 'hour');
-    return hp ? parseInt(hp.value, 10) % 24 : uhh;
-  }
+  // Accumulate hourly buckets per target ET date. Filter each UTC hour by ET
+  // calendar day so only the target day's data lands in the 24-bucket array.
   const hours = Array.from({length: 24}, (_, i) => ({
     hour: i, count: 0, completed: 0, paid: 0, ima: 0, self_promo: 0, no_fill: 0, sources: {}
   }));
-  utcHours.forEach(u => {
-    const et = utcHourToET(u.hour);
-    const bucket = hours[et];
-    bucket.count     += u.count     || 0;
-    bucket.completed += u.completed || 0;
-    bucket.paid      += u.paid      || 0;
-    bucket.ima       += u.ima       || 0;
-    bucket.self_promo+= u.self_promo|| 0;
-    bucket.no_fill   += u.no_fill   || 0;
-    bucket._utcHour  = u.hour;   // stash the original UTC hour for tooltip display
-  });
+  function ingest(hourArr, utcDate) {
+    (hourArr || []).forEach(u => {
+      const et = utcToET(utcDate, u.hour);
+      if (et.date !== etDate) return;   // drop cross-day leaks
+      const b = hours[et.hour];
+      b.count     += u.count     || 0;
+      b.completed += u.completed || 0;
+      b.paid      += u.paid      || 0;
+      b.ima       += u.ima       || 0;
+      b.self_promo+= u.self_promo|| 0;
+      b.no_fill   += u.no_fill   || 0;
+      b._utcHour   = u.hour;
+      b._utcDate   = utcDate;
+    });
+  }
+  ingest(dataA && dataA.hours, utcDateA);
+  ingest(dataB && dataB.hours, utcDateB);
   // Chart uses `count` (ad requests = demand) for total bar height and
   // `count - no_fill` (== "played") for the green bottom segment. Reason:
   // Trillboards bills on PLAYED (any render that made it to their server),
