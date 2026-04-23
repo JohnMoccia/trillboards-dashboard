@@ -1909,7 +1909,7 @@ async function loadReconcile() {
 
     const today = dailyData.today || dailyData || { count: 0, completed: 0 };
     const completedDay = today.completed || 0;        // all plays (incl cache + house)
-    const paidDay      = today.ima       || 0;        // billable programmatic only — earns $
+    const paidDay      = today.completed || 0;        // any play = billable — reconcile 1:1 against Trillboards ledger
     const requestsDay  = today.count     || 0;
     const lastUpdated  = today.updated_at || null;
 
