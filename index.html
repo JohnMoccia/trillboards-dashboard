@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.23.6">
-<title>Curb · Trillboards Monitor (v2026.04.23.6)</title>
+<meta name="dashboard-version" content="2026.04.23.7">
+<title>Curb · Trillboards Monitor (v2026.04.23.7)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -2945,10 +2945,9 @@ document.addEventListener('DOMContentLoaded', checkSession);
           const bn = document.createElement('div');
           bn.id = 'auto-upgrade-banner';
           bn.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#16a34a;color:#fff;text-align:center;padding:10px;font-weight:600;cursor:pointer;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15)';
-          bn.innerHTML = 'New dashboard version '+remote+' available. Click to reload now (or it will auto-reload in 10s)';
+          bn.innerHTML = 'New dashboard version '+remote+' available. Click to reload.';
           bn.onclick = () => location.reload();
           document.body.appendChild(bn);
-          setTimeout(() => location.reload(), 10000);
         }
       }
     } catch (e) { /* silent — network hiccup or Pages momentarily unavailable */ }
