@@ -2933,11 +2933,10 @@ document.addEventListener('DOMContentLoaded', checkSession);
 
   async function check() {
     try {
-      const r = await fetch(location.pathname + '?_cb=' + Date.now(), { cache: 'no-store' });
-      const html = await r.text();
-      const m = html.match(/dashboard-version"\s+content="([^"]+)"/);
-      if (!m) return;
-      const remote = m[1];
+      const r = await fetch('/trillboards-dashboard/version.json?_cb=' + Date.now(), { cache: 'no-store' });
+      const j = await r.json();
+      const remote = j.version;
+      if (!remote) return;
       if (remote !== LOCAL) {
         console.log('[auto-upgrade] new dashboard version available: ' + remote + ' (current: ' + LOCAL + ')');
         // Show a non-intrusive reload banner so an in-progress action
