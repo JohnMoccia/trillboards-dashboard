@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.23.8">
-<title>Curb · Trillboards Monitor (v2026.04.23.8)</title>
+<meta name="dashboard-version" content="2026.04.24.1">
+<title>Curb · Trillboards Monitor (v2026.04.24.1)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -269,7 +269,8 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Impressions / Week</div><div class="stat-icon">📊</div></div><div class="stat-value sk" id="s-imp-week" style="height:30px;width:70px"> </div><div class="stat-footer">7-day total</div></div>
     <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Revenue Share</div><div class="stat-icon">💸</div></div><div class="stat-value sk" id="s-rev" style="height:30px;width:60px"> </div><div class="stat-footer">partner cut</div></div>
     <div class="stat-card" style="--c:#0ea5e9"><div class="stat-top"><div class="stat-label">Ad Requests (today)</div><div class="stat-icon">⬆</div></div><div class="stat-value sk" id="s-ad-requests" style="height:30px;width:70px"> </div><div class="stat-footer" id="s-ad-requests-f">requests fired</div></div>
-    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Completed (today)</div><div class="stat-icon">✓</div></div><div class="stat-value sk" id="s-ad-completed" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-ad-completed-f">impressions logged</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Completed (today)</div><div class="stat-icon">✓</div></div><div class="stat-value sk" id="s-ad-completed" style="height:30px;width:70px;color:#16a34a"> </div><div class="stat-footer" id="s-ad-completed-f">KV gated counter</div></div>
+    <div class="stat-card" style="--c:#059669"><div class="stat-top"><div class="stat-label">TB Settled (yesterday)</div><div class="stat-icon">💰</div></div><div class="stat-value sk" id="s-tb-yest" style="height:30px;width:70px;color:#059669"> </div><div class="stat-footer" id="s-tb-yest-f">source of truth · 9PM EST rollup</div></div>
     <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">IMA / RTB (today)</div><div class="stat-icon">📡</div></div><div class="stat-value sk" id="s-ima" style="height:30px;width:70px;color:#7c3aed"> </div><div class="stat-footer" id="s-ima-f">open exchange</div></div>
     <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Direct / Cache (today)</div><div class="stat-icon">💾</div></div><div class="stat-value sk" id="s-paid" style="height:30px;width:70px;color:#0891b2"> </div><div class="stat-footer" id="s-paid-f">paid direct deals</div></div>
     <div class="stat-card" style="--c:#f59e0b"><div class="stat-top"><div class="stat-label">House Ads (today)</div><div class="stat-icon">🏠</div></div><div class="stat-value sk" id="s-selfpromo" style="height:30px;width:70px;color:#f59e0b"> </div><div class="stat-footer" id="s-selfpromo-f">non-billable</div></div>
@@ -1083,6 +1084,51 @@ async function loadDashboard() {
     log('dash-log','g',`partner="${partner.name}" · screens=${stats.total_screens} · imp_today=${stats.total_impressions_today}`);
   } catch(e) { setPill(false,'ERROR'); log('dash-log','e','✕ '+e.message); errBox('dash-err', e.message); }
   workerGet('/earner-ads').then(r => buildVarMap(r?.data?.sources || [])).catch(()=>{}).finally(() => loadDashboardKV());
+  // TB reconcile card — pulls yesterday's settled row from payment-list (source of truth, 9PM EST rollup)
+  loadTbSettledYesterday().catch(()=>{});
+}
+
+// ── TB reconcile card: yesterday's settled Trillboards billable + delta vs our KV ──
+// Payment-list is the money source of truth (9PM EST daily rollup, NET 70%). Today
+// never appears until after 9PM, so we always anchor on yesterday. Compares against
+// our KV `completed` for the same UTC day so Master sees the instrument gap at a glance.
+async function loadTbSettledYesterday() {
+  const el   = $('s-tb-yest');
+  const foot = $('s-tb-yest-f');
+  if (!el) return;
+  const yestStr = utcDate(-1);
+  try {
+    const [pl, kvYest] = await Promise.all([
+      earnerApi('/payment-list?page=1&limit=20').catch(() => ({ data: { data: [] } })),
+      workerGet('/get-daily?date=' + yestStr).catch(() => null),
+    ]);
+    const txList = pl?.data?.data || [];
+    const yestRow = txList.find(t => (t.date || t.createdAt || '').slice(0,10) === yestStr);
+    if (!yestRow) {
+      el.textContent = '—';
+      el.classList.remove('sk');
+      if (foot) foot.textContent = 'no row yet for ' + yestStr + ' · check after 9PM EST';
+      return;
+    }
+    const imp  = yestRow.impressions || yestRow.impressions_count || 0;
+    const net  = Number(yestRow.earnings) || 0;
+    const kvCompl = kvYest?.completed ?? kvYest?.today?.completed ?? 0;
+    const delta = kvCompl - imp;
+    el.textContent = fn(imp);
+    el.classList.remove('sk');
+    if (foot) {
+      const deltaStr = delta === 0
+        ? '✓ KV match'
+        : delta < 0
+          ? 'KV: ' + fn(kvCompl) + ' (Δ ' + fn(delta) + ' · instrument gap)'
+          : 'KV: ' + fn(kvCompl) + ' (Δ +' + fn(delta) + ' · over-claim ⚠)';
+      foot.innerHTML = '<strong>$' + net.toFixed(2) + '</strong> net · ' + deltaStr;
+    }
+  } catch (e) {
+    el.textContent = '—';
+    el.classList.remove('sk');
+    if (foot) foot.textContent = 'error: ' + (e?.message || 'fetch failed');
+  }
 }
 
 // ── Updated: reads from /get-daily instead of /get-impressions ──
