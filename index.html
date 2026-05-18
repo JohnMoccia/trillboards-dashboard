@@ -2007,8 +2007,16 @@ async function loadReconcile() {
     ]);
 
     const today = dailyData.today || dailyData || { count: 0, completed: 0 };
-    const completedDay = today.completed || 0;        // all plays (incl cache + house)
-    const paidDay      = today.completed || 0;        // any play = billable — reconcile 1:1 against Trillboards ledger
+    // Reconcile 2026-05-18: `completed` is the 5-min flush total — known to undercount
+    // when tablet misses native ad:completed callbacks. The per-event breakdown buckets
+    // (paid/ima/self_promo) are written by impression_event POSTs and accurately reflect
+    // TB-accepted billable impressions. Sum them for PAID/PLAYED instead of using the
+    // diagnostic-only `completed` field.
+    const breakPaid      = (today.paid       || 0);
+    const breakIma       = (today.ima        || 0);
+    const breakSelfPromo = (today.self_promo || 0);
+    const paidDay      = breakPaid + breakIma;                          // billable to TB (programmatic)
+    const completedDay = breakPaid + breakIma + breakSelfPromo;         // all plays incl house/self-promo
     const requestsDay  = today.count     || 0;
     const lastUpdated  = today.updated_at || null;
 
