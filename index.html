@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.04.24.2">
-<title>Curb · Trillboards Monitor (v2026.04.24.2)</title>
+<meta name="dashboard-version" content="2026.05.20.1">
+<title>Curb · Trillboards Monitor (v2026.05.20.1)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -537,8 +537,9 @@ canvas{display:block;width:100%;height:160px}
     <div class="stat-card" style="--c:#059669"><div class="stat-top"><div class="stat-label">Avg / day</div><div class="stat-icon">📈</div></div><div class="stat-value" id="hist-earn-avg">—</div><div class="stat-footer" id="hist-earn-avg-foot">net per day across range</div></div>
     <div class="stat-card" style="--c:#ea580c"><div class="stat-top"><div class="stat-label">Avg fill %</div><div class="stat-icon">🎯</div></div><div class="stat-value" id="hist-fill-pct">—</div><div class="stat-footer" id="hist-fill-pct-foot">billable ÷ requests</div></div>
     <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Billable imps</div><div class="stat-icon">📡</div></div><div class="stat-value" id="hist-imps">—</div><div class="stat-footer">Trillboards ledger · settled</div></div>
-    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">KV plays</div><div class="stat-icon">📦</div></div><div class="stat-value" id="hist-plays">—</div><div class="stat-footer">local tablet counter</div></div>
-    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">KV requests</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="hist-reqs">—</div><div class="stat-footer">ad requests fired</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Tablet requests</div><div class="stat-icon">⬆</div></div><div class="stat-value" id="hist-reqs">—</div><div class="stat-footer">all ad slots fired (incl. no-fill)</div></div>
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Tablet attempts</div><div class="stat-icon">📦</div></div><div class="stat-value" id="hist-plays">—</div><div class="stat-footer">slots that got a fill response · incl. watchdog fires</div></div>
+    <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Real plays (est)</div><div class="stat-icon">▶</div></div><div class="stat-value" id="hist-real-plays">—</div><div class="stat-footer" id="hist-real-plays-foot">requests minus no-fill · best on-device proxy</div></div>
     <div class="stat-card" style="--c:#f59e0b"><div class="stat-top"><div class="stat-label">Peak day</div><div class="stat-icon">⭐</div></div><div class="stat-value" id="hist-peak" style="font-size:20px">—</div><div class="stat-footer" id="hist-peak-foot">highest net earnings</div></div>
   </div>
 
@@ -2428,7 +2429,7 @@ async function loadHistory() {
   }));
 
   // Aggregate totals
-  let totalNet = 0, totalImps = 0, totalPlays = 0, totalReqs = 0;
+  let totalNet = 0, totalImps = 0, totalPlays = 0, totalReqs = 0, totalNoFill = 0;
   let peakDate = '—', peakNet = 0;
   const perDay = results.map((r, i) => {
     const d = dates[i];
@@ -2436,12 +2437,14 @@ async function loadHistory() {
     const ledgerNet = r?.ledger?.earnings || 0;
     const kvCount   = r?.daily?.count || 0;
     const kvCompl   = r?.daily?.completed || 0;
+    const kvNoFill  = r?.breakdown?.no_fill || 0;
     totalImps += ledgerImp;
     totalNet  += ledgerNet;
     totalPlays += kvCompl;
     totalReqs += kvCount;
+    totalNoFill += kvNoFill;
     if (ledgerNet > peakNet) { peakNet = ledgerNet; peakDate = d; }
-    return { date: d, blob: r, ledgerImp, ledgerNet, kvCount, kvCompl };
+    return { date: d, blob: r, ledgerImp, ledgerNet, kvCount, kvCompl, kvNoFill };
   });
 
   const daysWithData = perDay.filter(p => p.ledgerNet > 0).length;
@@ -2462,6 +2465,12 @@ async function loadHistory() {
   setVal('hist-imps',  fn(totalImps));
   setVal('hist-plays', fn(totalPlays));
   setVal('hist-reqs',  fn(totalReqs));
+  const realPlays = Math.max(0, totalReqs - totalNoFill);
+  setVal('hist-real-plays', fn(realPlays));
+  setVal('hist-real-plays-foot',
+    totalReqs > 0
+      ? fn(totalReqs) + ' req − ' + fn(totalNoFill) + ' no-fill'
+      : 'requests minus no-fill · best on-device proxy');
   setVal('hist-peak',  peakNet > 0 ? peakDate.slice(5) + ' · $' + peakNet.toFixed(2) : '—');
 
   drawHistEarningsChart(perDay);
