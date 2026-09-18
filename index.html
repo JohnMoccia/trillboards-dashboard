@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.05.20.2">
-<title>Curb · Trillboards Monitor (v2026.05.20.2)</title>
+<meta name="dashboard-version" content="2026.09.18.1">
+<title>Curb · Trillboards Monitor (v2026.09.18.1)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -398,8 +398,28 @@ canvas{display:block;width:100%;height:160px}
   <div class="stat-grid" id="earn-cards" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
     <div class="stat-card" style="--c:#16a34a"><div class="stat-top"><div class="stat-label">Total Earnings</div><div class="stat-icon">$</div></div><div class="stat-value sk" id="earn-total" style="height:28px;width:100px;color:#16a34a"> </div><div class="stat-footer" id="earn-total-sub">—</div></div>
     <div class="stat-card" style="--c:#2563eb"><div class="stat-top"><div class="stat-label">Available Balance</div><div class="stat-icon">↗</div></div><div class="stat-value" id="earn-available">—</div><div class="stat-footer">Ready to withdraw</div></div>
-    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Active Screens</div><div class="stat-icon">📺</div></div><div class="stat-value" id="earn-screens">—</div><div class="stat-footer" id="earn-screens-sub">of 0 total screens</div></div>
-    <div class="stat-card" style="--c:#d97706"><div class="stat-top"><div class="stat-label">Ad Plays</div><div class="stat-icon">↝</div></div><div class="stat-value" id="earn-plays">—</div><div class="stat-footer">Total impressions</div></div>
+    <div class="stat-card" style="--c:#7c3aed"><div class="stat-top"><div class="stat-label">Direct (all time)</div><div class="stat-icon">◉</div></div><div class="stat-value" id="earn-direct">—</div><div class="stat-footer" id="earn-direct-sub">—</div></div>
+    <div class="stat-card" style="--c:#0891b2"><div class="stat-top"><div class="stat-label">Programmatic (all time)</div><div class="stat-icon">⚡</div></div><div class="stat-value" id="earn-prog">—</div><div class="stat-footer" id="earn-prog-sub">—</div></div>
+    <div class="stat-card" style="--c:#dc2626"><div class="stat-top"><div class="stat-label">Paid Out To Date</div><div class="stat-icon">✓</div></div><div class="stat-value" id="earn-paid">—</div><div class="stat-footer" id="earn-paid-sub">—</div></div>
+  </div>
+  <!-- On-demand period filter. Nothing here is polled — it fires only on click,
+       and the proxy edge-caches each range for 10min (Cache API, not KV). -->
+  <div class="card" style="margin-bottom:16px"><div class="card-body" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+    <span style="font-size:12px;color:#6b7280;font-weight:600;margin-right:4px">REVENUE PERIOD</span>
+    <button class="btn btn-white btn-sm" onclick="loadPeriodRevenue('7d')">7 days</button>
+    <button class="btn btn-white btn-sm" onclick="loadPeriodRevenue('30d')">30 days</button>
+    <button class="btn btn-white btn-sm" onclick="loadPeriodRevenue('90d')">90 days</button>
+    <button class="btn btn-white btn-sm" onclick="loadPeriodRevenue('mtd')">MTD</button>
+    <button class="btn btn-white btn-sm" onclick="loadPeriodRevenue('ytd')">YTD</button>
+    <span style="width:1px;height:20px;background:#e2e8f0;margin:0 4px"></span>
+    <input type="date" id="earn-from" class="btn btn-white btn-sm" style="padding:4px 8px">
+    <input type="date" id="earn-to" class="btn btn-white btn-sm" style="padding:4px 8px">
+    <button class="btn btn-white btn-sm" onclick="loadPeriodRevenue('custom')">Apply</button>
+    <span id="earn-period-note" style="font-size:11px;color:#94a3b8;margin-left:auto"></span>
+  </div></div>
+  <div class="two" style="margin-bottom:16px">
+    <div class="card"><div class="card-head"><span class="card-title">Period Revenue — Direct vs Programmatic</span></div><div class="card-body" id="earn-period-split"><div class="empty" style="padding:24px"><div class="empty-text">Pick a range above</div></div></div></div>
+    <div class="card"><div class="card-head"><span class="card-title">Daily Revenue</span></div><div class="card-body" id="earn-daily" style="max-height:340px;overflow:auto"><div class="empty" style="padding:24px"><div class="empty-text">Pick a range above</div></div></div></div>
   </div>
   <div class="two" style="margin-bottom:16px">
     <div class="card"><div class="card-head"><span class="card-title">Programmatic Earnings</span></div><div class="card-body" id="earn-breakdown"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
@@ -1960,13 +1980,32 @@ async function loadEarnings() {
     const d = dash.data || {};
     const fmt = v => (v==null) ? '—' : '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     const totalEl = $('earn-total'); if(totalEl){ totalEl.textContent = fmt(d.amount); totalEl.className='stat-value'; totalEl.style.color='#16a34a'; }
-    const totalSub = $('earn-total-sub'); if(totalSub) totalSub.textContent = '$0.00 direct + ' + fmt(d.programmatic_earnings||d.amount) + ' programmatic';
+    // 2026-09-18: was hardcoded '$0.00 direct'. direct_earnings is now ~95% of
+    // the balance ($2,026.90 of $2,140.54), so the old string hid nearly all of
+    // it and contradicted the by-type table two lines down.
+    const dir = Number(d.direct_earnings||0), prog = Number(d.programmatic_earnings||0), amt = Number(d.amount||0);
+    const pct = v => amt > 0 ? ' (' + (v/amt*100).toFixed(1) + '%)' : '';
+    const totalSub = $('earn-total-sub'); if(totalSub) totalSub.textContent = fmt(dir) + ' direct + ' + fmt(prog) + ' programmatic';
     const availEl = $('earn-available'); if(availEl){ availEl.textContent = fmt(d.available_for_withdrawal); availEl.className='stat-value'; }
-    const screensEl = $('earn-screens'); if(screensEl){ screensEl.textContent = fn(d.active_screens||0); screensEl.className='stat-value'; }
-    const screensSub = $('earn-screens-sub'); if(screensSub) screensSub.textContent = 'of ' + fn(d.total_screens||0) + ' total screens';
-    const playsEl = $('earn-plays'); if(playsEl){ playsEl.textContent = fn(d.advertisementPlay||d.programmatic_impressions||0); playsEl.className='stat-value'; }
+    const dirEl = $('earn-direct'); if(dirEl){ dirEl.textContent = fmt(dir); dirEl.className='stat-value'; dirEl.style.color='#7c3aed'; }
+    const dirSub = $('earn-direct-sub'); if(dirSub) dirSub.textContent = 'of ' + fmt(amt) + ' total' + pct(dir);
+    const progEl = $('earn-prog'); if(progEl){ progEl.textContent = fmt(prog); progEl.className='stat-value'; progEl.style.color='#0891b2'; }
+    const progSub = $('earn-prog-sub'); if(progSub) progSub.textContent = 'of ' + fmt(amt) + ' total' + pct(prog);
+    // Payout status — total_paid has been 0 with last_payout_date null since the
+    // pilot began. Surface it; it is the single most consequential number here.
+    const ps = d.payout_summary || {};
+    const paidEl = $('earn-paid');
+    if(paidEl){
+      paidEl.textContent = fmt(ps.total_paid||0);
+      paidEl.className='stat-value';
+      paidEl.style.color = Number(ps.total_paid||0) === 0 ? '#dc2626' : '#16a34a';
+    }
+    const paidSub = $('earn-paid-sub');
+    if(paidSub) paidSub.textContent = ps.last_payout_date
+      ? 'Last payout ' + fd(ps.last_payout_date)
+      : 'Never paid · ' + fmt(ps.balance_owed||d.available_for_withdrawal) + ' owed';
     $('earn-breakdown').innerHTML=`<div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:8px"><div style="font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:500">Programmatic Earnings</div><div style="font-size:26px;font-weight:700;color:#2563eb;margin-bottom:4px">${fmt(d.programmatic_earnings||d.amount)}</div><div style="font-size:12px;color:#94a3b8">Pending (net-60) <span style="float:right;color:#6b7280">${fmt(d.programmatic_breakdown?.estimated||d.amount)}</span></div></div>`;
-    $('earn-bytype').innerHTML=kv('Direct',fmt(d.direct_earnings||0))+kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+kv('Rev Share','70%')+kv('Available',fmt(d.available_for_withdrawal));
+    $('earn-bytype').innerHTML=kv('Direct',fmt(d.direct_earnings||0))+kv('Est. Programmatic',fmt(d.programmatic_breakdown?.estimated))+kv('Confirmed',fmt(d.programmatic_breakdown?.confirmed))+kv('Paid Out',fmt(d.programmatic_breakdown?.paid))+kv('Rev Share','<span title="Contracted 70/30. Never confirmed as applied at source — Trillboards defaulted to 60/40 and held payouts pending an override. Gross figures below assume 70%.">70% <span style="color:#d97706;font-weight:600">(unconfirmed)</span></span>')+kv('Available',fmt(d.available_for_withdrawal));
     // Earnings tx table — real API shape (verified 2026-04-21):
     //   { impressions, net_cpm, earnings (=net), status, source_type, date }
     // `earnings` is NET (post-70%). Derive gross = net / 0.70.
@@ -1985,6 +2024,89 @@ async function loadEarnings() {
         }).join('')}</tbody></table>`
       : '<div class="empty" style="padding:40px"><div class="empty-icon">↕</div><div class="empty-text">No transactions yet</div></div>';
   } catch(e){ errBox('earn-err', e.message); }
+}
+
+// ── PERIOD REVENUE — on-demand only ───────────────────────────────
+// Deliberately NOT on any interval. Fires on button click only. Three layers
+// keep this off the Cloudflare free tier's back:
+//   1. on-demand    — no polling, no setInterval, no auto-refresh
+//   2. memo cache   — same range in the same tab never refetches
+//   3. proxy edge   — caches.default, 10min TTL, zero KV writes
+// The payload is ~272KB / ~2.2s upstream, so an interval here would have been
+// the single most expensive thing on the page.
+const _periodMemo = new Map();
+
+async function loadPeriodRevenue(period) {
+  const note = $('earn-period-note');
+  let qs = 'period=' + encodeURIComponent(period);
+  let label = period;
+  if (period === 'custom') {
+    const from = $('earn-from')?.value, to = $('earn-to')?.value;
+    if (!from || !to) { if(note){ note.textContent = 'Pick both dates first'; note.style.color='#dc2626'; } return; }
+    if (from > to)    { if(note){ note.textContent = 'Start date is after end date'; note.style.color='#dc2626'; } return; }
+    qs += '&startDate=' + from + '&endDate=' + to;
+    label = from + ' → ' + to;
+  }
+
+  if (note) { note.style.color='#94a3b8'; note.textContent = 'Loading …'; }
+
+  try {
+    let d = _periodMemo.get(qs);
+    let cached = !!d;
+    if (!d) {
+      const r = await earnerApi('/analytics/dashboard?' + qs);
+      if (!r.ok || !r.data || r.data.success === false) {
+        const msg = r.data?.error || ('HTTP ' + r.status);
+        if (note) { note.textContent = String(msg); note.style.color='#dc2626'; }
+        return;
+      }
+      d = r.data.data;
+      _periodMemo.set(qs, d);
+    }
+
+    // Earnings arrive in CENTS on this endpoint (vs dollars on /dashboard-data).
+    const c2d = c => Number(c||0) / 100;
+    const cur = d.earnings?.current || {}, prev = d.earnings?.previous || {};
+    const tot = c2d(cur.total), dir = c2d(cur.direct), prog = c2d(cur.programmatic);
+    const fmt = v => '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    const rangeTxt = (d.period?.label || label) + ' · ' + (d.period?.startDate||'?') + ' → ' + (d.period?.endDate||'?');
+
+    const pctOf = v => tot > 0 ? (v/tot*100).toFixed(1) + '%' : '—';
+    const delta = c2d(cur.total) - c2d(prev.total);
+    $('earn-period-split').innerHTML =
+        '<div style="font-size:26px;font-weight:700;margin-bottom:2px;color:' + (tot>0?'#0891b2':'#dc2626') + '">' + fmt(tot) + '</div>'
+      + '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">' + esc(rangeTxt) + '</div>'
+      + kv('Direct', '<span style="color:#7c3aed;font-weight:600">' + fmt(dir) + '</span> <span style="color:#94a3b8;font-size:11px">' + pctOf(dir) + '</span>')
+      + kv('Programmatic', '<span style="color:#0891b2;font-weight:600">' + fmt(prog) + '</span> <span style="color:#94a3b8;font-size:11px">' + pctOf(prog) + '</span>')
+      + kv('Period total', '<strong>' + fmt(tot) + '</strong>')
+      + kv('Prior period', fmt(c2d(prev.total)))
+      + kv('Change', '<span style="color:' + (delta>=0?'#16a34a':'#dc2626') + ';font-weight:600">' + (delta>=0?'+':'') + fmt(delta) + '</span>')
+      + kv('Data through', esc(d.report?.dataThrough || '—'))
+      + kv('Ledger balanced', d.report?.check?.balanced
+          ? '<span style="color:#16a34a">✓ yes</span>'
+          : '<span style="color:#dc2626">✗ NO</span>');
+
+    // Daily rows. This endpoint's sparkline carries {date,value} only — there is
+    // no per-day direct/programmatic split upstream, so don't imply one.
+    const spark = d.earnings?.sparkline || [];
+    const nz = spark.filter(x => Number(x.value) > 0).length;
+    $('earn-daily').innerHTML = spark.length
+      ? '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">Daily totals only — API exposes no direct/programmatic split per day. '
+        + nz + ' of ' + spark.length + ' days with revenue.</div>'
+        + '<table class="tbl"><thead><tr><th>Date</th><th style="text-align:right">Revenue</th></tr></thead><tbody>'
+        + spark.map(x => {
+            const v = c2d(x.value);
+            return '<tr><td style="white-space:nowrap">' + esc(x.date) + '</td><td style="text-align:right;font-weight:600;color:'
+              + (v>0?'#16a34a':'#cbd5e1') + '">' + fmt(v) + '</td></tr>';
+          }).join('')
+        + '</tbody></table>'
+      : '<div class="empty" style="padding:24px"><div class="empty-text">No daily rows returned</div></div>';
+
+    if (note) { note.textContent = (cached ? 'memo cache' : 'fetched') + ' · ' + spark.length + ' days'; note.style.color='#94a3b8'; }
+  } catch(e) {
+    if (note) { note.textContent = e.message; note.style.color='#dc2626'; }
+  }
 }
 
 // ── RECONCILE — updated to use /get-daily ──
