@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.09.18.2">
-<title>Curb · Trillboards Monitor (v2026.09.18.2)</title>
+<meta name="dashboard-version" content="2026.09.18.3">
+<title>Curb · Trillboards Monitor (v2026.09.18.3)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1990,6 +1990,7 @@ async function loadEarnings() {
     const progSub = $('earn-prog-sub'); if(progSub) progSub.textContent = 'of ' + fmt(amt) + ' total' + pct(prog);
     // Payout status — total_paid has been 0 with last_payout_date null since the
     // pilot began. Surface it; it is the single most consequential number here.
+    window.__allTimeSplit = { direct: dir, programmatic: prog, total: amt };
     const ps = d.payout_summary || {};
     const paidEl = $('earn-paid');
     if(paidEl){
@@ -2071,8 +2072,20 @@ async function loadPeriodRevenue(period) {
 
     const pctOf = v => tot > 0 ? (v/tot*100).toFixed(1) + '%' : '—';
     const delta = c2d(cur.total) - c2d(prev.total);
-    $('earn-period-split').innerHTML =
-        '<div style="font-size:26px;font-weight:700;margin-bottom:2px;color:' + (tot>0?'#0891b2':'#dc2626') + '">' + fmt(tot) + '</div>'
+    // /dashboard-data and /analytics/dashboard classify the SAME dollars
+    // differently: the former reports ~95% direct, the latter reports 100%
+    // programmatic. Flag it rather than letting the two cards silently
+    // contradict each other on screen.
+    const at = window.__allTimeSplit;
+    let warn = '';
+    if (at && at.direct > 0 && dir === 0 && prog > 0) {
+      warn = '<div style="border:1px solid #fca5a5;background:#fef2f2;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:#991b1b">'
+           + '<strong>Source conflict.</strong> This card (/analytics/dashboard) reports <strong>100% programmatic</strong>. '
+           + 'The tiles above (/dashboard-data) report <strong>' + fmt(at.direct) + ' direct</strong> of ' + fmt(at.total) + '. '
+           + 'Same dollars, opposite classification — upstream defect, open with Trillboards.</div>';
+    }
+    $('earn-period-split').innerHTML = warn
+      + '<div style="font-size:26px;font-weight:700;margin-bottom:2px;color:' + (tot>0?'#0891b2':'#dc2626') + '">' + fmt(tot) + '</div>'
       + '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">' + esc(rangeTxt) + '</div>'
       + kv('Direct', '<span style="color:#7c3aed;font-weight:600">' + fmt(dir) + '</span> <span style="color:#94a3b8;font-size:11px">' + pctOf(dir) + '</span>')
       + kv('Programmatic', '<span style="color:#0891b2;font-weight:600">' + fmt(prog) + '</span> <span style="color:#94a3b8;font-size:11px">' + pctOf(prog) + '</span>')
@@ -3219,7 +3232,14 @@ document.addEventListener('DOMContentLoaded', checkSession);
       const j = await r.json();
       const remote = j.version;
       if (!remote) return;
-      if (remote !== LOCAL) {
+      // 2026-09-18: was `remote !== LOCAL`, which also fired when version.json
+      // lagged behind the deployed page and advertised a DOWNGRADE forever.
+      // Compare the four numeric parts so .10 beats .2 (lexicographic would not).
+      const vparts = v => String(v||'').split('.').map(n => parseInt(n,10)||0);
+      const newer = (a,b) => { const A=vparts(a), B=vparts(b);
+        for (let i=0;i<Math.max(A.length,B.length);i++){ const x=A[i]||0, y=B[i]||0; if(x!==y) return x>y; }
+        return false; };
+      if (newer(remote, LOCAL)) {
         console.log('[auto-upgrade] new dashboard version available: ' + remote + ' (current: ' + LOCAL + ')');
         // Show a non-intrusive reload banner so an in-progress action
         // (e.g. a typed password) doesn't get wiped mid-keystroke.
