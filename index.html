@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dashboard-version" content="2026.09.18.1">
-<title>Curb · Trillboards Monitor (v2026.09.18.1)</title>
+<meta name="dashboard-version" content="2026.09.18.2">
+<title>Curb · Trillboards Monitor (v2026.09.18.2)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -417,10 +417,7 @@ canvas{display:block;width:100%;height:160px}
     <button class="btn btn-white btn-sm" onclick="loadPeriodRevenue('custom')">Apply</button>
     <span id="earn-period-note" style="font-size:11px;color:#94a3b8;margin-left:auto"></span>
   </div></div>
-  <div class="two" style="margin-bottom:16px">
-    <div class="card"><div class="card-head"><span class="card-title">Period Revenue — Direct vs Programmatic</span></div><div class="card-body" id="earn-period-split"><div class="empty" style="padding:24px"><div class="empty-text">Pick a range above</div></div></div></div>
-    <div class="card"><div class="card-head"><span class="card-title">Daily Revenue</span></div><div class="card-body" id="earn-daily" style="max-height:340px;overflow:auto"><div class="empty" style="padding:24px"><div class="empty-text">Pick a range above</div></div></div></div>
-  </div>
+  <div class="card" style="margin-bottom:16px"><div class="card-head"><span class="card-title">Period Revenue — Direct vs Programmatic</span></div><div class="card-body" id="earn-period-split"><div class="empty" style="padding:24px"><div class="empty-text">Pick a range above</div></div></div></div>
   <div class="two" style="margin-bottom:16px">
     <div class="card"><div class="card-head"><span class="card-title">Programmatic Earnings</span></div><div class="card-body" id="earn-breakdown"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Loading…</div></div></div></div>
     <div class="card"><div class="card-head"><span class="card-title">Breakdown by Type</span></div><div class="card-body" id="earn-bytype"><div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Loading…</div></div></div></div>
@@ -2087,23 +2084,7 @@ async function loadPeriodRevenue(period) {
           ? '<span style="color:#16a34a">✓ yes</span>'
           : '<span style="color:#dc2626">✗ NO</span>');
 
-    // Daily rows. This endpoint's sparkline carries {date,value} only — there is
-    // no per-day direct/programmatic split upstream, so don't imply one.
-    const spark = d.earnings?.sparkline || [];
-    const nz = spark.filter(x => Number(x.value) > 0).length;
-    $('earn-daily').innerHTML = spark.length
-      ? '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">Daily totals only — API exposes no direct/programmatic split per day. '
-        + nz + ' of ' + spark.length + ' days with revenue.</div>'
-        + '<table class="tbl"><thead><tr><th>Date</th><th style="text-align:right">Revenue</th></tr></thead><tbody>'
-        + spark.map(x => {
-            const v = c2d(x.value);
-            return '<tr><td style="white-space:nowrap">' + esc(x.date) + '</td><td style="text-align:right;font-weight:600;color:'
-              + (v>0?'#16a34a':'#cbd5e1') + '">' + fmt(v) + '</td></tr>';
-          }).join('')
-        + '</tbody></table>'
-      : '<div class="empty" style="padding:24px"><div class="empty-text">No daily rows returned</div></div>';
-
-    if (note) { note.textContent = (cached ? 'memo cache' : 'fetched') + ' · ' + spark.length + ' days'; note.style.color='#94a3b8'; }
+    if (note) { note.textContent = cached ? 'memo cache' : 'fetched'; note.style.color='#94a3b8'; }
   } catch(e) {
     if (note) { note.textContent = e.message; note.style.color='#dc2626'; }
   }
